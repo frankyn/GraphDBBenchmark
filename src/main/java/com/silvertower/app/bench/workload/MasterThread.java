@@ -13,7 +13,7 @@ public class MasterThread extends Thread {
 	private static final int initialNbThreads = 10;
 	private static final int sleepTime = 10000;
 	
-	public MasterThread(Graph g, Class slaveThreadsClass) {
+	public MasterThread(Graph g, DatasetsGenerator, Class slaveThreadsClass) {
 		this.g = g;
 		this.slaveThreadsClass = slaveThreadsClass;
 		this.slaves = new ArrayList<SlaveThread>(initialNbThreads);

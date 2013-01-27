@@ -26,18 +26,18 @@ public class Utilities {
 		}
 	}
 	
-	public static void log(String dbName, long result) {
+	public static void log(String operation, long result) {
 		try {
 			Globals.logBuffer = new BufferedWriter(new FileWriter(BenchmarkProperties.logFilePath, true));
-			Globals.logBuffer.write(dbName + ": " + String.valueOf((double)result/Globals.msToSFactor) + "\n");
+			Globals.logBuffer.write(operation + ": " + String.valueOf((double)result/Globals.msToSFactor) + "\n");
 			Globals.logBuffer.close();
 		} catch (IOException e) {}
 	}
 	
-	public static void log(String category) {
+	public static void log(String message) {
 		try {
 			Globals.logBuffer = new BufferedWriter(new FileWriter(BenchmarkProperties.logFilePath, true));
-			Globals.logBuffer.write("\n" + category + "\n");
+			Globals.logBuffer.write(message + ":" + "\n");
 			Globals.logBuffer.close();
 		} catch (IOException e) {}
 	}

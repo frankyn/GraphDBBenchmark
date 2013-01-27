@@ -8,7 +8,7 @@ public class BenchmarkProperties {
 	public static final String dbDirDex = currentDir + "\\dbs\\dex\\";
 	public static final String dbDirNeo4j = currentDir + "\\dbs\\neo4j\\";
 	public static final String dbDirTitan = currentDir + "\\dbs\\titan\\";
-	public static final String dbDirOrient = "local:" + currentDir + "\\dbs\\orient\\";
+	public static final String dbDirOrient = currentDir + "\\dbs\\orient\\";
 	public static final String datasetsDir = currentDir + "\\datasets\\";
 	public static final String pythonDir = currentDir + "\\src\\python\\";
 }
