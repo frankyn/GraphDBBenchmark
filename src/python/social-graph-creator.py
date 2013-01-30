@@ -1,12 +1,11 @@
-# Generate Artificial Graphs
-# Alex Averbuch (alex.averbuch@gmail.com)
-# Modified by Valentin Vansteenberghe (val.morro@gmail.com)
+# Outputs a graphml representation of a social network graph following
+# a Barabasi-Albert degree distribution.
 
-from igraph import *
 from random import *
 from sys import *
+from networkx import *
 
-degree = int('5')
+degree = 5
 vertices = int(sys.argv[1])
 firstnames = [i for i in open(sys.argv[2]).readlines()]
 firstnames_l = len(firstnames)
@@ -15,15 +14,17 @@ lastnames = [i for i in open(sys.argv[3]).readlines()]
 lastnames_l = len(lastnames)
 # http://names.mongabay.com/most_common_surnames.htm
 
-g = Graph.Barabasi(n=vertices, m=degree, power=1, directed=False, zero_appeal=8)
+g = barabasi_albert_graph(vertices, degree)
 
-for v in g.vs:
-	g.vs[v.index]['Firstname'] = firstnames[randint(0, firstnames_l-1)]
-	g.vs[v.index]['Lastname'] = lastnames[randint(0, lastnames_l-1)]
-	g.vs[v.index]['Age'] = str(randint(0,99))
-for e in g.es:
+for n in g.nodes_iter():
+	g.node[n]['Firstname'] = firstnames[randint(0, firstnames_l-1)]
+	g.node[n]['Lastname'] = lastnames[randint(0, lastnames_l-1)]
+	g.node[n]['Age'] = str(randint(0,99))
+for e in g.edges_iter():
     if random() < 0.5:
-        g.es[e.index]["relationship"] = 'friend'
+		g.edge[e[0]][e[1]]['Relationship'] = 'friend'
     else:
-        g.es[e.index]["relationship"] = 'family'
-g.write_graphml(sys.argv[4])
+        g.edge[e[0]][e[1]]['Relationship'] = 'family'
+	
+g.remove_node(0)
+write_graphml(g, sys.argv[4])
