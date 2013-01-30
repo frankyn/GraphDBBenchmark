@@ -5,11 +5,11 @@ import org.apache.commons.configuration.Configuration;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 
-public class TitanInitializer implements DBInitializer {
+public class TitanWrapper extends GraphDescriptor implements DBInitializer {
 	private boolean inMemory;
 	private Configuration config;
 	
-	public TitanInitializer(boolean inMemory, Configuration config) {
+	public TitanWrapper(boolean inMemory, Configuration config) {
 		this.inMemory = inMemory;
 		this.config = config;
 	}

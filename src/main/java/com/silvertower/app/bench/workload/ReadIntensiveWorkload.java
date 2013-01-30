@@ -1,17 +1,12 @@
 package com.silvertower.app.bench.workload;
 
-import com.silvertower.app.bench.main.Globals;
+import com.silvertower.app.bench.dbinitializers.*;
 import com.tinkerpop.blueprints.Graph;
 
-public class ReadIntensiveWorkload {
-	private Graph g;
+public class ReadIntensiveWorkload implements Workload {
 	
-	public ReadIntensiveWorkload(Graph g) {
-		this.g = g;
-	}
-	
-	public void runWorkload() {
-		MasterThread master = new MasterThread(g, ReadIDsSlaveThread.class);
+	public void work(Graph g, GraphDescriptor gDesc) {
+		MasterThread master = new MasterThread(g, gDesc, ReadIDsSlaveThread.class);
 		master.start();
 	}
 

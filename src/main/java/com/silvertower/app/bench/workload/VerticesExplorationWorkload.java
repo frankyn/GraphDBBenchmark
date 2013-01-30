@@ -3,14 +3,16 @@ package com.silvertower.app.bench.workload;
 import java.util.Iterator;
 
 import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
+import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 import com.silvertower.app.bench.utils.Utilities;
 
-public class ExplorationWorkload {
+public class VerticesExplorationWorkload implements Workload{
 	private Vertex firstVertex;
 	private Vertex lastVertex;
 	
-	public void work(Graph g) {
+	public void work(Graph g, GraphDescriptor graphDescriptor) {
 		long beforeTs = System.nanoTime();
 		Iterator <Vertex> iter = g.getVertices().iterator();
 		Vertex current = null;
@@ -21,9 +23,9 @@ public class ExplorationWorkload {
 			}
 		}
 		lastVertex = current;
-		g.shutdown();
+		((TransactionalGraph)g).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
 		long afterTs = System.nanoTime();
-		Utilities.log("Database exploration", afterTs - beforeTs);
+		Utilities.log("Database vertices exploration", afterTs - beforeTs);
 	}
 	
 	public Vertex getFirstVertex() {
