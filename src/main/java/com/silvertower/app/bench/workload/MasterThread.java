@@ -12,8 +12,9 @@ public class MasterThread extends Thread {
 	private GraphDescriptor gDesc;
 	private Class slaveThreadsClass;
 	private ArrayList<SlaveThread> slaves;
-	private static final int initialNbThreads = 1;
-	private static final int sleepTime = 3000;
+	private static final int initialNbThreads = 10;
+	private static final int additionalNbThreadsPerStep = 5;
+	private static final int sleepTime = 1000;
 	
 	public MasterThread(Graph g, GraphDescriptor gDesc, Class slaveThreadsClass) {
 		this.g = g;
@@ -23,9 +24,7 @@ public class MasterThread extends Thread {
 	}
 
 	public void run() {
-		for (int i = 0; i < initialNbThreads; i++) {
-			createNewSlave();
-		}
+		createNewSlaves(initialNbThreads);
 		
 		boolean thresholdReached = false;
 		int previousTotalOpCount = 0;
@@ -36,33 +35,53 @@ public class MasterThread extends Thread {
 			try {
 				sleep(sleepTime);
 			} catch (InterruptedException e) {}
-			stopSlaves();
 			
-			int currentTotalOpCount = getTotalOpCount();
+			sleepSlaves();
+			
+			int currentTotalOpCount = getTotalOpCount(); 
+			
 			System.out.println(currentTotalOpCount);
 			
 			if (currentTotalOpCount <= previousTotalOpCount) {
 				thresholdReached = true;
+				stopSlaves();
 			}
 			else {
 				previousTotalOpCount = currentTotalOpCount;
-				createNewSlave();
+				createNewSlaves(additionalNbThreadsPerStep);
+				resumeSlaves();
 			}
-			
-			resumeSlaves();
-		}
-	}
-	
-	private void runSlaves() {
-		for (int i = 0; i < slaves.size(); i++) {
-			slaves.get(i).activate();
 		}
 	}
 	
 	private void stopSlaves() {
+		resumeSlaves();
 		for (int i = 0; i < slaves.size(); i++) {
-			slaves.get(i).stopWork();
+			try {
+				slaves.get(i).stopThread();
+				slaves.get(i).join();
+			} catch (InterruptedException e) {}
 		}
+	}
+
+	private void runSlaves() {
+		for (int i = 0; i < slaves.size(); i++) {
+			slaves.get(i).startThread();
+		}
+	}
+	
+	private void sleepSlaves() {
+		for (int i = 0; i < slaves.size(); i++) {
+			slaves.get(i).sleepThread();
+		}
+	}
+	
+	private int getTotalOpCount() {
+		int totalOpCount = 0;
+		for (int i = 0; i < slaves.size(); i++) {
+			totalOpCount += slaves.get(i).getAndResetOpCount();
+		}
+		return totalOpCount;
 	}
 	
 	private void resumeSlaves() {
@@ -74,39 +93,30 @@ public class MasterThread extends Thread {
 				}
 			}
 			else {
-				slaves.get(i).activate();
+				slaves.get(i).startThread();
 			}
 		}
 	}
 	
-	private int getTotalOpCount() {
-		int total = 0;
-		for (int i = 0; i < slaves.size(); i++) {
-			total += slaves.get(i).getOpCount();
-		}
-		return total;
-	}
-	
-	private SlaveThread createNewSlave() {
+	private void createNewSlaves(int number) {
 		Constructor workersConstructor = null;
 		
-		try {
-			workersConstructor = slaveThreadsClass.getConstructor(Graph.class, GraphDescriptor.class);
-		} catch (NoSuchMethodException | SecurityException e) {
-			e.printStackTrace();
-		}
-		
-		SlaveThread t = null;
-		try {
-			t = (SlaveThread) workersConstructor.newInstance(g, gDesc);
-			slaves.add(t);
+		for (int i = 0; i < number; i++) {
+			try {
+				workersConstructor = slaveThreadsClass.getConstructor(Graph.class, GraphDescriptor.class);
+			} catch (NoSuchMethodException | SecurityException e) {
+				e.printStackTrace();
+			}
 			
-		} catch (InstantiationException | IllegalAccessException
-				| IllegalArgumentException | InvocationTargetException e) {
-			e.printStackTrace();
+			SlaveThread t = null;
+			try {
+				t = (SlaveThread) workersConstructor.newInstance(g, gDesc);
+				slaves.add(t);
+				
+			} catch (InstantiationException | IllegalAccessException
+					| IllegalArgumentException | InvocationTargetException e) {
+				e.printStackTrace();
+			}
 		}
-		
-		return t;
 	}
-
 }
