@@ -15,8 +15,6 @@ public class MasterThread extends Thread {
 	private GraphDescriptor gDesc;
 	private Class slaveThreadsClass;
 	private ArrayList<SlaveThread> slaves;
-	private static int initialNbOperationsAssigned = 10000;
-	private static int additionalNbOperationsAssigned = 100000;
 	private static final int initialNbThreads = 100;
 	private static final int additionalNbThreadsPerStep = 1;
 	private static final int maxNbThreads = 200;
@@ -30,42 +28,7 @@ public class MasterThread extends Thread {
 
 	public void run() {
 		measureConcurrency();
-		//resetSlavesPool();
-		//measureThroughput();
-		//resetSlavesPool();
 	}
-	
-	/*private void measureThroughput() {
-		int sleepTimeMs = 1000;
-		createNewSlaves(initialNbThreads, Type.THROUGHPUT);
-		for (int i = initialNbThreads; i < maxNbThreads; i += additionalNbThreadsPerStep) {
-			long previousTotalOpCount = 0;
-			boolean thresholdReached = false;
-			int totalNbOpPerRound = initialNbOperationsAssigned;
-			while (!thresholdReached) {
-				assignOperations(totalNbOpPerRound, i);
-				runSlaves();
-				try {
-					sleep(sleepTimeMs);
-				} catch (InterruptedException e) {}
-				sleepSlaves();
-				long currentTotalOpCount = getTotalOpCount(); 
-				System.out.println(currentTotalOpCount);
-				
-				if (currentTotalOpCount <= previousTotalOpCount) {
-					Utilities.log("Maximum throughput for " + i + " threads", previousTotalOpCount);
-					thresholdReached = true;
-				}
-				else {
-					previousTotalOpCount = currentTotalOpCount;
-					totalNbOpPerRound += additionalNbOperationsAssigned;
-				}
-				resetTotalOpCount();
-			}
-			createNewSlaves(additionalNbThreadsPerStep, Type.THROUGHPUT);
-		}
-		stopSlaves();
-	}*/
 
 	private void measureConcurrency() {
 		long roundTime = 1 * Globals.nanosToSFactor;
@@ -81,7 +44,7 @@ public class MasterThread extends Thread {
 			double averageLatency = getAverageLatency();
 			
 			Utilities.log("For " + i + " concurrent thread, throughput", currentTotalOpCount);
-			Utilities.log("For " + i + " concurrent thread, latency", averageLatency);
+			Utilities.log("For " + i + " concurrent thread, latency (op/s)", averageLatency);
 		}
 	}
 
@@ -105,37 +68,12 @@ public class MasterThread extends Thread {
 		}
 	}
 
-	private void assignOperations(int totalNbOperation, int nbThreads) {
-		int nbOpPerThread = (int) Math.floor(totalNbOperation*1.0/nbThreads);
-		for (int i = 0; i < slaves.size(); i++) {
-			slaves.get(i).setOperationsPerRound(nbOpPerThread);
-		}
-	}
-
-	private void stopSlaves() {
-		for (int i = 0; i < slaves.size(); i++) {
-			try {
-				slaves.get(i).stopThread();
-				synchronized(slaves.get(i)) {
-					slaves.get(i).notify();
-				}
-				slaves.get(i).join();
-			} catch (InterruptedException e) {}
-		}
-	}
-	
 	private long getTotalOpCount() {
 		long totalOpCount = 0;
 		for (int i = 0; i < slaves.size(); i++) {
 			totalOpCount += slaves.get(i).getOpCount();
 		}
 		return totalOpCount;
-	}
-	
-	private void resetTotalOpCount() {
-		for (int i = 0; i < slaves.size(); i++) {
-			slaves.get(i).resetOpCount();
-		}
 	}
 	
 	private void runSlaves() {
@@ -158,3 +96,34 @@ public class MasterThread extends Thread {
 		}
 	}
 }
+
+
+/*
+	private static int initialNbOperationsAssigned = 10000;
+	private static int additionalNbOperationsAssigned = 100000;
+	
+	private void assignOperations(int totalNbOperation, int nbThreads) {
+		int nbOpPerThread = (int) Math.floor(totalNbOperation*1.0/nbThreads);
+		for (int i = 0; i < slaves.size(); i++) {
+			slaves.get(i).setOperationsPerRound(nbOpPerThread);
+		}
+	}
+
+	private void stopSlaves() {
+		for (int i = 0; i < slaves.size(); i++) {
+			try {
+				slaves.get(i).stopThread();
+				synchronized(slaves.get(i)) {
+					slaves.get(i).notify();
+				}
+				slaves.get(i).join();
+			} catch (InterruptedException e) {}
+		}
+	}
+	
+	private void resetTotalOpCount() {
+		for (int i = 0; i < slaves.size(); i++) {
+			slaves.get(i).resetOpCount();
+		}
+	}
+*/	

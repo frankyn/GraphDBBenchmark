@@ -47,6 +47,7 @@ public class SocialNetworkDBLoader extends GraphMLLoader implements GraphLoader 
 			
 		} catch (IOException e) {
 			System.err.println("Error while filling a database with a social dataset");
+			e.printStackTrace();
 			System.exit(-1);
 		}
 		

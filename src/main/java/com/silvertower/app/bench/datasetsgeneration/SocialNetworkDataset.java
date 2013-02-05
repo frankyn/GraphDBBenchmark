@@ -20,6 +20,9 @@ public class SocialNetworkDataset implements Dataset {
 	public SocialNetworkDataset(int nVertices) {
 		this.nVertices = nVertices;
 		this.datasetFP = BenchmarkProperties.datasetsDir + "social\\" + nVertices + ".graphml";
+		/*if (!new File(BenchmarkProperties.datasetsDir + "social\\").exists()) {
+			new File(BenchmarkProperties.datasetsDir + "social\\").mkdirs();
+		}*/
 		new File(datasetFP);
 		properties = generate();
 	}

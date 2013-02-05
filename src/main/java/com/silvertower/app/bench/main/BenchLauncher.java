@@ -15,11 +15,13 @@ public class BenchLauncher {
 		Utilities.deleteDatabase(BenchmarkProperties.dbsDir);
 		Utilities.deleteDatabase(BenchmarkProperties.logFilePath);
 		
-		SocialNetworkDataset socialDataset = new SocialNetworkDataset(1000);
+		SocialNetworkDataset socialDataset = new SocialNetworkDataset(10000);
 		SocialNetworkDBLoader sl = new SocialNetworkDBLoader(socialDataset);
 		VerticesExplorationWorkload vew = new VerticesExplorationWorkload();
 		EdgesExplorationWorkload eew = new EdgesExplorationWorkload();
 		ReadIntensiveWorkload riw = new ReadIntensiveWorkload();
+		UpdateIntensiveWorkload uiw = new UpdateIntensiveWorkload();
+		
 		
 		/*Utilities.log("--------DEX--------");
 		Graph dexGraph = sl.load(new DexWrapper(), null, BenchmarkProperties.dbDirDex);
@@ -37,13 +39,15 @@ public class BenchLauncher {
 		Graph orientGraph = sl.load(new OrientWrapper(false), new OrientBatchWrapper(false), BenchmarkProperties.dbDirOrient);
 		vew.work(orientGraph, sl.getGraphDescriptor());
 		eew.work(orientGraph, sl.getGraphDescriptor());
-		riw.work(orientGraph, sl.getGraphDescriptor());*/
+		//riw.work(orientGraph, sl.getGraphDescriptor());
+		uiw.work(orientGraph, sl.getGraphDescriptor());*/
 		
 		Utilities.log("--------Titan--------");
 		Graph titanGraph = sl.load(new TitanWrapper(false, null), null, BenchmarkProperties.dbDirTitan);
 		vew.work(titanGraph, sl.getGraphDescriptor());
 		eew.work(titanGraph, sl.getGraphDescriptor());
-		riw.work(titanGraph, sl.getGraphDescriptor());
+		//riw.work(titanGraph, sl.getGraphDescriptor());
+		uiw.work(titanGraph, sl.getGraphDescriptor());
 	}
 	
 	public static void main(String [] args) {		
