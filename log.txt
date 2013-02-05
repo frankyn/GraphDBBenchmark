@@ -1,9 +1,0 @@
---------Neo4j--------:
-Load time for dataset C:\Users\Morro\workspace\GraphDBBenchmark\datasets\social\10000.graphml:
-Without batch loading: 33308327620
-With batch loading: 6993320983
-Database vertices exploration: 0.00343639
-Database edges exploration: 0.011647965
-Read intensive workload:
-Maximum throughput for 5 threads: 2440
-Mean latency: 0.0014628508893962519
