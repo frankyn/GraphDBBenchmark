@@ -10,10 +10,12 @@ import com.tinkerpop.blueprints.Graph;
 
 public class BenchLauncher {	
 	private static void socialNetworkBenchmark() {
+		//ExampleClass z = new ExampleClass();
+		//z.example();
 		Utilities.deleteDatabase(BenchmarkProperties.dbsDir);
 		Utilities.deleteDatabase(BenchmarkProperties.logFilePath);
 		
-		SocialNetworkDataset socialDataset = new SocialNetworkDataset(10000);
+		SocialNetworkDataset socialDataset = new SocialNetworkDataset(1000);
 		SocialNetworkDBLoader sl = new SocialNetworkDBLoader(socialDataset);
 		VerticesExplorationWorkload vew = new VerticesExplorationWorkload();
 		EdgesExplorationWorkload eew = new EdgesExplorationWorkload();
@@ -25,11 +27,11 @@ public class BenchLauncher {
 		eew.work(dexGraph, sl.getGraphDescriptor());
 		riw.work(dexGraph, sl.getGraphDescriptor());*/
 		
-		Utilities.log("--------Neo4j--------");
+		/*Utilities.log("--------Neo4j--------");
 		Graph neo4jGraph = sl.load(new Neo4jWrapper(), new Neo4jBatchWrapper(), BenchmarkProperties.dbDirNeo4j);
 		vew.work(neo4jGraph, sl.getGraphDescriptor());
 		eew.work(neo4jGraph, sl.getGraphDescriptor());
-		riw.work(neo4jGraph, sl.getGraphDescriptor());
+		riw.work(neo4jGraph, sl.getGraphDescriptor());*/
 		
 		/*Utilities.log("--------Orient--------");
 		Graph orientGraph = sl.load(new OrientWrapper(false), new OrientBatchWrapper(false), BenchmarkProperties.dbDirOrient);
@@ -37,11 +39,11 @@ public class BenchLauncher {
 		eew.work(orientGraph, sl.getGraphDescriptor());
 		riw.work(orientGraph, sl.getGraphDescriptor());*/
 		
-		/*Utilities.log("--------Titan--------");
+		Utilities.log("--------Titan--------");
 		Graph titanGraph = sl.load(new TitanWrapper(false, null), null, BenchmarkProperties.dbDirTitan);
 		vew.work(titanGraph, sl.getGraphDescriptor());
 		eew.work(titanGraph, sl.getGraphDescriptor());
-		riw.work(titanGraph, sl.getGraphDescriptor());*/
+		riw.work(titanGraph, sl.getGraphDescriptor());
 	}
 	
 	public static void main(String [] args) {		
