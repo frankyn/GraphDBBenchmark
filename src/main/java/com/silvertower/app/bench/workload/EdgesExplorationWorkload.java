@@ -3,6 +3,7 @@ package com.silvertower.app.bench.workload;
 import java.util.Iterator;
 
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.silvertower.app.bench.main.Globals;
 import com.silvertower.app.bench.utils.Utilities;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
@@ -25,7 +26,7 @@ public class EdgesExplorationWorkload implements Workload {
 		firstEdge = current;
 		((TransactionalGraph)g).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
 		long afterTs = System.nanoTime();
-		Utilities.log("Database edges exploration", afterTs - beforeTs);
+		Utilities.log("Database edges exploration", (afterTs - beforeTs) / (Globals.nanosToSFactor * 1.0));
 	}
 	
 	public Edge getFirstVertex() {

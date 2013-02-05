@@ -26,10 +26,19 @@ public class Utilities {
 		}
 	}
 	
+	public static void log(String operation, double result) {
+		try {
+			Globals.logBuffer = new BufferedWriter(new FileWriter(BenchmarkProperties.logFilePath, true));
+			Globals.logBuffer.write(operation + ": " + String.valueOf(result) + "\n");
+			Globals.logBuffer.close();
+		} catch (IOException e) {}
+	}
+	
 	public static void log(String operation, long result) {
 		try {
 			Globals.logBuffer = new BufferedWriter(new FileWriter(BenchmarkProperties.logFilePath, true));
-			Globals.logBuffer.write(operation + ": " + String.valueOf((double)result/Globals.msToSFactor) + "\n");
+			Globals.logBuffer.write(operation + ": " + String.valueOf(result) + "\n");
+			
 			Globals.logBuffer.close();
 		} catch (IOException e) {}
 	}

@@ -1,24 +1,34 @@
 package com.silvertower.app.bench.workload;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+
 import com.tinkerpop.blueprints.Graph;
 import com.silvertower.app.bench.dbinitializers.*;
 
 public abstract class SlaveThread extends Thread {
 	protected boolean activated;
-	protected boolean sleeping;
-	protected int opCount = 0;
-	private final int opLimit = 200;
+	protected long opCount;
+	private int nbOperationsPerRound;
 	protected Graph g;
 	protected GraphDescriptor gDesc;
+	public enum Type {
+		CONCURRENCY, THROUGHPUT
+	}
+	protected Type t;
+	protected long maxExecutionTimeInNano;
+	private long effectiveExecutionTime;
 	
-	protected SlaveThread(Graph g, GraphDescriptor gDesc) {
+	protected SlaveThread(Graph g, GraphDescriptor gDesc, Type t, long maxExecutionTimeInNano) {
+		this.opCount = 0;
 		this.g = g;
 		this.gDesc = gDesc;
+		this.t = t;
+		this.maxExecutionTimeInNano = maxExecutionTimeInNano;
 	}
 	
 	public void startThread() {
 		activated = true;
-		sleeping = false;
 		start();
 	}
 	
@@ -26,38 +36,51 @@ public abstract class SlaveThread extends Thread {
 		activated = false;
 	}
 	
-	public void sleepThread() {
-		sleeping = true;
-	}
-	
-	public int getAndResetOpCount() {
-		int previousOpCount= opCount;
-		opCount = 0;
-		return previousOpCount;
-	}
-
-	public void resumeWork() {
-		sleeping = false;
-	}
-	
-	public int getOpCount() {
+	public long getOpCount() {
 		return opCount;
 	}
 	
+	public void resetOpCount() {
+		opCount = 0;
+	}
+	
+	public void setOperationsPerRound(int nbOperations) {
+		nbOperationsPerRound = nbOperations;
+	}
+	
 	public void run() {
-		while (activated) {
-			while (sleeping || opCount >= opLimit) {
-				synchronized(this) {
-					try {
-						wait();
-					} catch (InterruptedException e) {}
+		ThreadMXBean beanThread = ManagementFactory.getThreadMXBean();
+		switch (t) {
+		case CONCURRENCY:
+			while (true) {
+				if (beanThread.getCurrentThreadCpuTime() > maxExecutionTimeInNano) {
+					effectiveExecutionTime = beanThread.getCurrentThreadCpuTime();
+					return;
+				}
+				else {
+					operation();
+					opCount ++;
 				}
 			}
-			operation();
-			opCount++;
+		
+		case THROUGHPUT:
+			while (true) {
+				if (beanThread.getCurrentThreadCpuTime() > maxExecutionTimeInNano || opCount >= nbOperationsPerRound) {
+					effectiveExecutionTime = beanThread.getCurrentThreadCpuTime();
+					return;
+				}
+				else {
+					operation();
+					opCount ++;
+				}
+			}
 		}
-		System.out.println("Thread killed:" + Thread.currentThread().getId());
+		
 	}
 	
 	protected abstract void operation();
+
+	public double getLatency() {
+		return opCount / (effectiveExecutionTime * 1.0);
+	}
 }

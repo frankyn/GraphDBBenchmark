@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.silvertower.app.bench.main.Globals;
 import com.silvertower.app.bench.utils.Utilities;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
@@ -19,12 +20,12 @@ public class GraphMLLoader {
 		if (isBatchLoad) {
 			g.shutdown();
 			long afterTs = System.nanoTime();
-			Utilities.log("With batch loading", afterTs - beforeTs);
+			Utilities.log("With batch loading", (afterTs - beforeTs) / (Globals.nanosToSFactor * 1.0));
 		}
 		else {
 			((TransactionalGraph)g).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
 			long afterTs = System.nanoTime();
-			Utilities.log("Without batch loading", afterTs - beforeTs);
+			Utilities.log("Without batch loading", (afterTs - beforeTs) / (Globals.nanosToSFactor * 1.0));
 		}
 	}
 }
