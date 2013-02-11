@@ -1,13 +1,19 @@
 package com.silvertower.app.bench.datasetsgeneration;
 
-import java.util.ArrayList;
 
-import com.silvertower.app.bench.dbinitializers.GraphProperty;
+public class BioInformaticsDataset extends Dataset {
 
-public class BioInformaticsDataset implements Dataset {
-
-	public ArrayList<GraphProperty> generate() {
-		return null;
+	public BioInformaticsDataset(int nVertices, String datasetFP) {
+		super(nVertices, datasetFP, "Bio");
+	}
+	
+	public void generate() {
+		// TODO Auto-generated method stub
 	}
 
+	@Override
+	public boolean isDirected() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

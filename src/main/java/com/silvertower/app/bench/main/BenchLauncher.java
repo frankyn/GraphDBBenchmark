@@ -1,56 +1,94 @@
 package com.silvertower.app.bench.main;
 
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.PropertyConfigurator;
+
+import com.silvertower.app.bench.datasetsgeneration.Dataset;
 import com.silvertower.app.bench.datasetsgeneration.SocialNetworkDataset;
-import com.silvertower.app.bench.load.SocialNetworkDBLoader;
 import com.silvertower.app.bench.dbinitializers.*;
 import com.silvertower.app.bench.utils.*;
 import com.silvertower.app.bench.workload.*;
-import com.tinkerpop.blueprints.Graph;
 
 public class BenchLauncher {	
-	private static void socialNetworkBenchmark() {
-		//ExampleClass z = new ExampleClass();
-		//z.example();
-		Utilities.deleteDatabase(BenchmarkProperties.dbsDir);
-		Utilities.deleteDatabase(BenchmarkProperties.logFilePath);
+	private static void runBenchmarks() {
+		initiateBenchmark();
+		List<DBInitializer> initializers = new ArrayList<DBInitializer>();
+		initializers.add(new Neo4jWrapper());
+		//socialBenchmark(new OrientWrapper(false), BenchmarkProperties.dbDirOrient, "Orient");
+		//socialBenchmark(new TitanWrapper(false, null), BenchmarkProperties.dbDirTitan, "Titan");
+		//socialBenchmark(new DexWrapper(), null, BenchmarkProperties.dbDirDex, "DEX");
+	}
+
+	public static void socialBenchmark(List<DBInitializer> initializers) {
+		Dataset d10000 = new SocialNetworkDataset(10000);
+		Dataset d20000 = new SocialNetworkDataset(20000);
+		Dataset d30000 = new SocialNetworkDataset(30000);
+		Dataset d40000 = new SocialNetworkDataset(40000);
+		Dataset d50000 = new SocialNetworkDataset(50000);
+		Dataset d100000 = new SocialNetworkDataset(100000);
 		
-		SocialNetworkDataset socialDataset = new SocialNetworkDataset(10000);
-		SocialNetworkDBLoader sl = new SocialNetworkDBLoader(socialDataset);
+		LoadWorkload lw = new LoadWorkload();
+		DijkstraWorkload dw = new DijkstraWorkload();
 		VerticesExplorationWorkload vew = new VerticesExplorationWorkload();
 		EdgesExplorationWorkload eew = new EdgesExplorationWorkload();
 		ReadIntensiveWorkload riw = new ReadIntensiveWorkload();
 		UpdateIntensiveWorkload uiw = new UpdateIntensiveWorkload();
 		
-		
-		/*Utilities.log("--------DEX--------");
-		Graph dexGraph = sl.load(new DexWrapper(), null, BenchmarkProperties.dbDirDex);
-		vew.work(dexGraph, sl.getGraphDescriptor());
-		eew.work(dexGraph, sl.getGraphDescriptor());
-		riw.work(dexGraph, sl.getGraphDescriptor());*/
-		
-		/*Utilities.log("--------Neo4j--------");
-		Graph neo4jGraph = sl.load(new Neo4jWrapper(), new Neo4jBatchWrapper(), BenchmarkProperties.dbDirNeo4j);
-		vew.work(neo4jGraph, sl.getGraphDescriptor());
-		eew.work(neo4jGraph, sl.getGraphDescriptor());
-		riw.work(neo4jGraph, sl.getGraphDescriptor());*/
-		
-		/*Utilities.log("--------Orient--------");
-		Graph orientGraph = sl.load(new OrientWrapper(false), new OrientBatchWrapper(false), BenchmarkProperties.dbDirOrient);
-		vew.work(orientGraph, sl.getGraphDescriptor());
-		eew.work(orientGraph, sl.getGraphDescriptor());
-		//riw.work(orientGraph, sl.getGraphDescriptor());
-		uiw.work(orientGraph, sl.getGraphDescriptor());*/
-		
-		Utilities.log("--------Titan--------");
-		Graph titanGraph = sl.load(new TitanWrapper(false, null), null, BenchmarkProperties.dbDirTitan);
-		vew.work(titanGraph, sl.getGraphDescriptor());
-		eew.work(titanGraph, sl.getGraphDescriptor());
-		//riw.work(titanGraph, sl.getGraphDescriptor());
-		uiw.work(titanGraph, sl.getGraphDescriptor());
+		for (DBInitializer initializer: initializers) {
+			Logger log = new Logger(initializer.getName(), "Social benchmark");
+			
+			ArrayList<Dataset> socialDatasets = new ArrayList<Dataset>();
+			socialDatasets.add(d10000);
+			
+			GraphDescriptor gDesc = lw.work(socialDatasets, initializer.getPath(), initializer, log);
+			dw.work(gDesc, log);
+			
+			socialDatasets.add(d20000);
+			socialDatasets.add(d30000);
+			socialDatasets.add(d40000);
+			socialDatasets.add(d50000);
+			socialDatasets.add(d100000);
+			
+			gDesc = lw.work(socialDatasets, initializer.getPath(), initializer, log);
+			
+			vew.work(gDesc, log);
+			eew.work(gDesc, log);
+			riw.work(gDesc, log);
+			uiw.work(gDesc, log);
+			
+			log.closeLogger();
+		}
+	}
+	
+	public static void initiateBenchmark() {
+		PropertyConfigurator.configure("log4j.properties");
+		File logDir = new File(BenchmarkProperties.logDir);
+		if (!logDir.mkdir()) {
+			Utilities.deleteDirectory(BenchmarkProperties.logDir);
+			logDir.mkdir();
+		}
+		File dbsDir = new File(BenchmarkProperties.dbsDir);
+		if (!dbsDir.mkdir()) {
+			Utilities.deleteDirectory(BenchmarkProperties.dbsDir);
+			dbsDir.mkdir();
+		}
+		File datasetsDir = new File(BenchmarkProperties.datasetsDir);
+		if (!datasetsDir.mkdir()) {
+			Utilities.deleteDirectory(BenchmarkProperties.datasetsDir);
+			datasetsDir.mkdir();
+		}
+		File plotsDir = new File(BenchmarkProperties.plotsDir);
+		if (!plotsDir.mkdir()) {
+			Utilities.deleteDirectory(BenchmarkProperties.plotsDir);
+			plotsDir.mkdir();
+		}
 	}
 	
 	public static void main(String [] args) {		
-		socialNetworkBenchmark();
+		runBenchmarks();
 	}
 }

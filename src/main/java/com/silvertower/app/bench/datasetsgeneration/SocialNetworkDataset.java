@@ -1,7 +1,6 @@
 package com.silvertower.app.bench.datasetsgeneration;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,27 +8,17 @@ import java.util.ArrayList;
 import com.silvertower.app.bench.dbinitializers.GraphProperty;
 import com.silvertower.app.bench.main.BenchmarkProperties;
 
-public class SocialNetworkDataset implements Dataset {
-	private int nVertices;
-	private String datasetFP;
-	private final String pyScriptPath = BenchmarkProperties.pythonDir + "social-graph-creator.py";
-	private final String firstNamesFilePath = BenchmarkProperties.pythonDir + "first_names2011.txt";
-	private final String lastNamesFilePath = BenchmarkProperties.pythonDir + "last_names1990.txt";
-	private ArrayList<GraphProperty> properties;
+public class SocialNetworkDataset extends Dataset {
+	private static final String pyScriptPath = BenchmarkProperties.pythonDir + "social-graph-creator.py";
+	private static final String firstNamesFilePath = BenchmarkProperties.pythonDir + "first_names2011.txt";
+	private static final String lastNamesFilePath = BenchmarkProperties.pythonDir + "last_names1990.txt";
 
 	public SocialNetworkDataset(int nVertices) {
-		this.nVertices = nVertices;
-		this.datasetFP = BenchmarkProperties.datasetsDir + "social\\" + nVertices + ".graphml";
-		/*if (!new File(BenchmarkProperties.datasetsDir + "social\\").exists()) {
-			new File(BenchmarkProperties.datasetsDir + "social\\").mkdirs();
-		}*/
-		new File(datasetFP);
-		properties = generate();
+		super(nVertices, BenchmarkProperties.datasetsDir + "social" + nVertices, "Social");
 	}
 	
-	public ArrayList<GraphProperty> generate() {
+	public void generate() {
 		Runtime r = Runtime.getRuntime();
-		ArrayList<GraphProperty> properties = new ArrayList<GraphProperty>();
 		try {
 			String command = "python" + " " 
 					+ pyScriptPath + " "
@@ -47,12 +36,15 @@ public class SocialNetworkDataset implements Dataset {
             properties.add(new GraphProperty("Firstname", firstNames));
             properties.add(new GraphProperty("Lastname", lastNames));
         }
-        catch (Exception e) {
+        catch (IOException | InterruptedException e ) {
         	e.printStackTrace();
-        	System.err.println("Error while generating a social network dataset");
+        	System.err.println("Error while generating the dataset: " + datasetName);
         	System.exit(-1);
         }
-        return properties;
+	}
+	
+	public boolean isDirected() {
+		return true;
 	}
 	
 	private void fillFirstNamesList(ArrayList<Object> firstNames) throws IOException {
@@ -69,17 +61,5 @@ public class SocialNetworkDataset implements Dataset {
 		while ((current = reader.readLine()) != null) {
 			lastNames.add(current);
 		}
-	}
-	
-	public String getDatasetFP() {
-		return datasetFP;
-	}
-	
-	public int getNumberVertices() {
-		return nVertices;
-	}
-
-	public ArrayList<GraphProperty> getProperties() {
-		return properties;
 	}
 }

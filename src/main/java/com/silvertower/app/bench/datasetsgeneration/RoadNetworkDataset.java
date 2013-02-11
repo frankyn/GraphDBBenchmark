@@ -1,13 +1,19 @@
 package com.silvertower.app.bench.datasetsgeneration;
 
-import java.util.ArrayList;
 
-import com.silvertower.app.bench.dbinitializers.GraphProperty;
+public class RoadNetworkDataset extends Dataset {
 
-public class RoadNetworkDataset implements Dataset {
-
-	public ArrayList<GraphProperty> generate() {
-		return null;
+	public RoadNetworkDataset(int nVertices, String datasetFP) {
+		super(nVertices, datasetFP, "Road");
 	}
 
+	public void generate() {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public boolean isDirected() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

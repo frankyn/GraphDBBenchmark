@@ -4,27 +4,25 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 
 import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.TransactionalGraph;
 import com.silvertower.app.bench.dbinitializers.*;
+import com.silvertower.app.bench.main.Globals;
 
 public abstract class SlaveThread extends Thread {
 	protected boolean activated;
 	protected long opCount;
-	private int nbOperationsPerRound;
 	protected Graph g;
 	protected GraphDescriptor gDesc;
-	public enum Type {
-		CONCURRENCY, THROUGHPUT
-	}
-	protected Type t;
 	protected long maxExecutionTimeInNano;
 	private long effectiveExecutionTime;
+	protected int id;
 	
-	protected SlaveThread(Graph g, GraphDescriptor gDesc, Type t, long maxExecutionTimeInNano) {
+	protected SlaveThread(Graph g, GraphDescriptor gDesc, long maxExecutionTimeInNano, int id) {
 		this.opCount = 0;
 		this.g = g;
 		this.gDesc = gDesc;
-		this.t = t;
 		this.maxExecutionTimeInNano = maxExecutionTimeInNano;
+		this.id = id;
 	}
 	
 	public void startThread() {
@@ -44,43 +42,28 @@ public abstract class SlaveThread extends Thread {
 		opCount = 0;
 	}
 	
-	public void setOperationsPerRound(int nbOperations) {
-		nbOperationsPerRound = nbOperations;
-	}
-	
 	public void run() {
 		ThreadMXBean beanThread = ManagementFactory.getThreadMXBean();
-		switch (t) {
-		case CONCURRENCY:
-			while (true) {
-				if (beanThread.getCurrentThreadCpuTime() > maxExecutionTimeInNano) {
-					effectiveExecutionTime = beanThread.getCurrentThreadCpuTime();
-					return;
-				}
-				else {
-					operation();
-					opCount ++;
-				}
+		while (true) {
+			if (beanThread.getCurrentThreadCpuTime() > maxExecutionTimeInNano) {
+				effectiveExecutionTime = beanThread.getCurrentThreadCpuTime();
+				((TransactionalGraph)g).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
+				return;
 			}
-		
-		case THROUGHPUT:
-			while (true) {
-				if (beanThread.getCurrentThreadCpuTime() > maxExecutionTimeInNano || opCount >= nbOperationsPerRound) {
-					effectiveExecutionTime = beanThread.getCurrentThreadCpuTime();
-					return;
-				}
-				else {
-					operation();
-					opCount ++;
-				}
+			
+			else {
+				operation();
+				opCount ++;
 			}
 		}
-		
 	}
 	
 	protected abstract void operation();
 
 	public double getLatency() {
-		return opCount / (effectiveExecutionTime * 1.0);
+		double scale = Globals.nanosToSFactor / (effectiveExecutionTime * 1.0);
+		double opCountScaled = opCount * scale;
+		return 1 / opCountScaled;
+		//return opCount / (effectiveExecutionTime * 1.0);
 	}
 }
