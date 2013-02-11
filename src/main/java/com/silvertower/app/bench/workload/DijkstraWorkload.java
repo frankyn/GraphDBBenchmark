@@ -10,13 +10,15 @@ import com.silvertower.app.bench.main.Globals;
 import com.silvertower.app.bench.utils.Logger;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 
 /*
  * Inspired from http://www.algolist.com/code/java/Dijkstra%27s_algorithm
  */
 public class DijkstraWorkload implements Workload {
-	private List<DijkstraVertex> visitedVertices = new ArrayList<DijkstraVertex> ();
+	private List<DijkstraVertex> visitedVertices;
 	
 	class DijkstraVertex implements Comparable<DijkstraVertex> {
 		public Vertex v;
@@ -85,7 +87,6 @@ public class DijkstraWorkload implements Workload {
 				}
 			}
 		}
-		
 		return System.nanoTime() - before;
 	}
 
@@ -94,6 +95,7 @@ public class DijkstraWorkload implements Workload {
 		log.logOperation("Dijkstra");
 		Vertex sourceVertex = null;
 		for (int i = 0; i < BenchmarkProperties.meanTimes; i++) {
+			visitedVertices = new ArrayList<DijkstraVertex> ();
 			while (sourceVertex == null) {
 				Object sourceId = gDesc.getRandomVertexId();
 				sourceVertex = gDesc.getGraph().getVertex(sourceId);
@@ -106,7 +108,6 @@ public class DijkstraWorkload implements Workload {
 			}
 			totalTime += computeShortestPath(new DijkstraVertex(sourceVertex), new DijkstraVertex(destinationVertex));
 		}
-		
 		log.logResult(totalTime / BenchmarkProperties.meanTimes / (Globals.nanosToMsFactor * 1.0));
 	}
 
