@@ -38,14 +38,12 @@ public class MasterThread extends Thread {
 		long roundTimePerThread;
 		for (int i = initialNbThreads; i <= maxNbThreads; i += additionalNbThreadsPerStep) {
 			System.out.println(i);
-			long before = System.currentTimeMillis();
 			roundTimePerThread = roundTime / i;
 			createNewSlaves(i, roundTimePerThread);
 			runSlaves();
 			waitRoundEnd();
-			System.out.println("After:" + (System.currentTimeMillis() - before) / (1000 * 1.0));
-			System.out.println("Throughput: " + getTotalOpCount() / numberOfSeconds);
-			System.out.println("Latency: " + getAverageLatency());
+			System.out.println(getTotalOpCount() / numberOfSeconds);
+			System.out.println(getAverageLatency());
 			throughputs.add(new ResultPair(i, getTotalOpCount() / numberOfSeconds));
 			latencies.add(new ResultPair(i, getAverageLatency()));
 		}
@@ -106,34 +104,3 @@ public class MasterThread extends Thread {
 		return throughputs;
 	}
 }
-
-
-/*
-	private static int initialNbOperationsAssigned = 10000;
-	private static int additionalNbOperationsAssigned = 100000;
-	
-	private void assignOperations(int totalNbOperation, int nbThreads) {
-		int nbOpPerThread = (int) Math.floor(totalNbOperation*1.0/nbThreads);
-		for (int i = 0; i < slaves.size(); i++) {
-			slaves.get(i).setOperationsPerRound(nbOpPerThread);
-		}
-	}
-
-	private void stopSlaves() {
-		for (int i = 0; i < slaves.size(); i++) {
-			try {
-				slaves.get(i).stopThread();
-				synchronized(slaves.get(i)) {
-					slaves.get(i).notify();
-				}
-				slaves.get(i).join();
-			} catch (InterruptedException e) {}
-		}
-	}
-	
-	private void resetTotalOpCount() {
-		for (int i = 0; i < slaves.size(); i++) {
-			slaves.get(i).resetOpCount();
-		}
-	}
-*/	

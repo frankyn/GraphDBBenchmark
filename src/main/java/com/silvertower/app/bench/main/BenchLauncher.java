@@ -17,18 +17,19 @@ public class BenchLauncher {
 	private static void runBenchmarks() {
 		initiateBenchmark();
 		List<DBInitializer> initializers = new ArrayList<DBInitializer>();
-		initializers.add(new Neo4jWrapper());
-		//socialBenchmark(new OrientWrapper(false), BenchmarkProperties.dbDirOrient, "Orient");
-		//socialBenchmark(new TitanWrapper(false, null), BenchmarkProperties.dbDirTitan, "Titan");
-		//socialBenchmark(new DexWrapper(), null, BenchmarkProperties.dbDirDex, "DEX");
+		//initializers.add(new Neo4jWrapper());
+		initializers.add(new TitanWrapper(false, null));
+		initializers.add(new OrientWrapper(false));
+		socialBenchmark(initializers);
 	}
 
 	public static void socialBenchmark(List<DBInitializer> initializers) {
+		/*Dataset d5000 = new SocialNetworkDataset(5000);
 		Dataset d10000 = new SocialNetworkDataset(10000);
 		Dataset d20000 = new SocialNetworkDataset(20000);
 		Dataset d30000 = new SocialNetworkDataset(30000);
 		Dataset d40000 = new SocialNetworkDataset(40000);
-		Dataset d50000 = new SocialNetworkDataset(50000);
+		Dataset d50000 = new SocialNetworkDataset(50000);*/
 		Dataset d100000 = new SocialNetworkDataset(100000);
 		
 		LoadWorkload lw = new LoadWorkload();
@@ -40,24 +41,25 @@ public class BenchLauncher {
 		
 		for (DBInitializer initializer: initializers) {
 			Logger log = new Logger(initializer.getName(), "Social benchmark");
-			
 			ArrayList<Dataset> socialDatasets = new ArrayList<Dataset>();
+			//socialDatasets.add(d5000);
+			
+			//GraphDescriptor gDesc = lw.work(socialDatasets, initializer.getPath(), initializer, log);
+			//dw.work(gDesc, log);
+			
+			/*socialDatasets.remove(d5000);
 			socialDatasets.add(d10000);
-			
-			GraphDescriptor gDesc = lw.work(socialDatasets, initializer.getPath(), initializer, log);
-			dw.work(gDesc, log);
-			
 			socialDatasets.add(d20000);
 			socialDatasets.add(d30000);
 			socialDatasets.add(d40000);
-			socialDatasets.add(d50000);
+			socialDatasets.add(d50000);*/
 			socialDatasets.add(d100000);
 			
-			gDesc = lw.work(socialDatasets, initializer.getPath(), initializer, log);
+			GraphDescriptor gDesc = lw.work(socialDatasets, initializer.getPath(), initializer, log);
 			
-			vew.work(gDesc, log);
+			/*vew.work(gDesc, log);
 			eew.work(gDesc, log);
-			riw.work(gDesc, log);
+			riw.work(gDesc, log);*/
 			uiw.work(gDesc, log);
 			
 			log.closeLogger();

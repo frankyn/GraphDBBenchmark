@@ -10,9 +10,7 @@ import com.silvertower.app.bench.main.Globals;
 import com.silvertower.app.bench.utils.Logger;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 
 /*
  * Inspired from http://www.algolist.com/code/java/Dijkstra%27s_algorithm
@@ -87,6 +85,7 @@ public class DijkstraWorkload implements Workload {
 				}
 			}
 		}
+		System.out.println(d.minDistance);
 		return System.nanoTime() - before;
 	}
 
@@ -108,7 +107,7 @@ public class DijkstraWorkload implements Workload {
 			}
 			totalTime += computeShortestPath(new DijkstraVertex(sourceVertex), new DijkstraVertex(destinationVertex));
 		}
-		log.logResult(totalTime / BenchmarkProperties.meanTimes / (Globals.nanosToMsFactor * 1.0));
+		log.logResult(totalTime / BenchmarkProperties.meanTimes / (Globals.nanosToSFactor * 1.0));
 	}
 
 }
