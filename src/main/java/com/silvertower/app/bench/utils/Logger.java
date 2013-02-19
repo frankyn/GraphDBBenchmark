@@ -5,21 +5,23 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.xy.XYSplineRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import com.silvertower.app.bench.main.BenchmarkProperties;
-import com.silvertower.app.bench.workload.ResultPair;
+import com.silvertower.app.bench.workload.Result;
 
 public class Logger {
 	private String dbName;
 	private String operation;
-	private ArrayList<ResultPair> resultsVector;
+	private List<Result> resultsVector;
 	private BufferedWriter logBuffer;
 	
 	public Logger(String dbName, String benchmarkName) {
@@ -30,7 +32,7 @@ public class Logger {
 			System.err.println("Unable to initialize the log buffer");
 			System.exit(-1);
 		}
-		this.resultsVector = new ArrayList<ResultPair>();
+		this.resultsVector = new ArrayList<Result>();
 	}
 	
 	public void log(String operation, double result) {
@@ -51,15 +53,6 @@ public class Logger {
 		}
 	}
 	
-	public void log(String message) {
-		try {
-			logBuffer.write(message + ":" + "\n");
-			logBuffer.flush();
-		} catch (IOException e) {
-			System.err.println("Unable to flush to the log buffer");
-		}
-	}
-	
 	public void logOperation(String operation) {
 		this.operation = operation;
 		try {
@@ -70,30 +63,30 @@ public class Logger {
 		}
 	}
 	
-	public void logResult(ResultPair result) {
+	public void logResult(Result result) {
 		resultsVector.add(result);
 		try {
-			logBuffer.write(result.first + ":" + result.second + "\n");
+			logBuffer.write(result.first + ":");
+			for (Number n: result.associated) {
+				 logBuffer.write(n + ":");
+			}
+			logBuffer.write("\n");
 			logBuffer.flush();
 		} catch (IOException e) {
 			System.err.println("Unable to flush to the log buffer");
 		}
 	}
 	
-	public void logResult(Number n) {
+	public void logResults(List<Result> list) {
+		this.resultsVector = list;
 		try {
-			logBuffer.write(n + "\n");
-			logBuffer.flush();
-		} catch (IOException e) {
-			System.err.println("Unable to flush to the log buffer");
-		}
-	}
-	
-	public void logResults(ArrayList<ResultPair> resultsVector) {
-		this.resultsVector = resultsVector;
-		try {
-			for (int i = 0; i < resultsVector.size(); i++) {
-				logBuffer.write(resultsVector.get(i).first + ":" + resultsVector.get(i).second + "\n");
+			for (int i = 0; i < list.size(); i++) {
+				Result r = list.get(i);
+				logBuffer.write(r.first + ":");
+				for (Number n: r.associated) {
+					 logBuffer.write(n + ":");
+				}
+				logBuffer.write("\n");
 				logBuffer.flush();
 			}
 		} catch (IOException e) {
@@ -101,18 +94,33 @@ public class Logger {
 		}
 	}
 	
-	public void plotResults(String xAxis, String yAxis) {
-		XYSeries series = new XYSeries("GraphSeries");
+	public void plotResults(String xAxis, String yAxis, String ... seriesName) {
+		assert resultsVector.size() != 0: "Nothing to plot!";
+		for (Result r: resultsVector) {
+			if (r.associated.length != seriesName.length) {
+				System.err.println("Error: one of the results is not the good dimension");
+				return;
+			}
+		}
 		
-		for (int i = 0; i < resultsVector.size(); i++) {
-			ResultPair p = resultsVector.get(i);
-			series.add(p.first, p.second);
+		List <XYSeries> series = new ArrayList<XYSeries>();
+		for (String serieName: seriesName) {
+			series.add(new XYSeries(serieName));
+		}
+		
+		for (Result r: resultsVector) {
+			for (int i = 0; i < r.associated.length; i++) {
+				series.get(i).add(r.first, r.associated[i]);
+			}
 		}
 		
 		XYSeriesCollection dataset = new XYSeriesCollection();
-		dataset.addSeries(series);
+		for (XYSeries s: series) {
+			dataset.addSeries(s);
+		}
 		JFreeChart graphChart = ChartFactory.createXYLineChart(operation, xAxis, yAxis, dataset, 
-				PlotOrientation.VERTICAL, false, false, false);
+				PlotOrientation.VERTICAL, true, true, true);
+		graphChart.getXYPlot().setRenderer(new XYSplineRenderer());
 
 		try {
 			ChartUtilities.saveChartAsPNG(new File(BenchmarkProperties.plotsDir + dbName + "-" + operation + ".png"), graphChart, 500, 500);
@@ -120,6 +128,8 @@ public class Logger {
 		} catch (IOException e) {
 			System.err.println("Unable to plot the chart " + operation + "for database " + dbName);
 		}
+		
+		this.resultsVector = new ArrayList<Result>();
 	}
 	
 	public void closeLogger() {

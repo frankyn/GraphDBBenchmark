@@ -1,33 +1,35 @@
 package com.silvertower.app.bench.workload;
 
+
+import bb.util.Benchmark;
+
 import com.silvertower.app.bench.dbinitializers.*;
-import com.silvertower.app.bench.main.Globals;
+import com.silvertower.app.bench.utils.Utilities;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import com.tinkerpop.blueprints.Graph;
 
 public class MasterThread extends Thread {
-	private Graph g;
 	private GraphDescriptor gDesc;
-	private Class slaveThreadsClass;
-	private ArrayList<SlaveThread> slaves;
-	private ArrayList<ResultPair> throughputs;
-	private ArrayList<ResultPair> latencies;
-	private static final int initialNbThreads = 1;
-	private static final int additionalNbThreadsPerStep = 1;
-	private static final int maxNbThreads = 100;
-	private static final int numberOfSeconds = 10;
-	private static final long roundTime = numberOfSeconds * Globals.nanosToSFactor;
+	private IntensiveWorkload w;	
+	private static final int initialNbOperations = 50000;
+	private static final int addNbOperations = 50000;
+	private static final int maxNbOperations = 1000000;
 	
-	public MasterThread(Graph g, GraphDescriptor gDesc, Class slaveThreadsClass) {
-		this.g = g;
+	private ArrayList<Result> results;
+	private int nbThreads;
+	
+	
+	public MasterThread(int nbThreads, GraphDescriptor gDesc, IntensiveWorkload w) {
 		this.gDesc = gDesc;
-		this.slaveThreadsClass = slaveThreadsClass;
-		this.slaves = new ArrayList<SlaveThread>(initialNbThreads);
-		this.throughputs = new ArrayList<ResultPair>();
-		this.latencies = new ArrayList<ResultPair>();
+		this.w = w;
+		this.results = new ArrayList<Result>();
+		this.nbThreads = nbThreads;
 	}
 
 	public void run() {
@@ -35,72 +37,39 @@ public class MasterThread extends Thread {
 	}
 
 	private void measureConcurrency() {
-		long roundTimePerThread;
-		for (int i = initialNbThreads; i <= maxNbThreads; i += additionalNbThreadsPerStep) {
-			System.out.println(i);
-			roundTimePerThread = roundTime / i;
-			createNewSlaves(i, roundTimePerThread);
-			runSlaves();
-			waitRoundEnd();
-			System.out.println(getTotalOpCount() / numberOfSeconds);
-			System.out.println(getAverageLatency());
-			throughputs.add(new ResultPair(i, getTotalOpCount() / numberOfSeconds));
-			latencies.add(new ResultPair(i, getAverageLatency()));
-		}
-	}
-
-	private double getAverageLatency() {
-		double totalLatency = 0;
-		for (int i = 0; i < slaves.size(); i++) {
-			totalLatency += slaves.get(i).getLatency();
-		}
-		return totalLatency / slaves.size();
-	}
-
-	private void waitRoundEnd() {
-		for (int i = 0; i < slaves.size(); i++) {
-			try {
-				System.out.println("Blocked");
-				slaves.get(i).join();
-				System.out.println("Unblocked");
-			} catch (InterruptedException e) {}
-		}
-	}
-
-	private long getTotalOpCount() {
-		long totalOpCount = 0;
-		for (int i = 0; i < slaves.size(); i++) {
-			totalOpCount += slaves.get(i).getOpCount();
-		}
-		return totalOpCount;
-	}
-	
-	private void runSlaves() {
-		for (int i = 0; i < slaves.size(); i++) {
-			slaves.get(i).start();
+		gDesc.setNbConcurrentThreads(nbThreads);
+		for (int i = initialNbOperations; i <= maxNbOperations; i += addNbOperations) {
+			List<Callable<Void>> slaves = new ArrayList<Callable<Void>>();
+			
+			for (int j = 1; j <= nbThreads; j++) {
+				Callable<Void> slave = new SlaveThread(gDesc, j, w, i / j);
+				slaves.add(slave);
+			}
+			double [] times = Utilities.benchTask(new InnerThread(slaves));			
+			results.add(new Result(i, times[0], times[1]));
 		}
 	}
 	
-	private void createNewSlaves(int nbThreads, long roundTimePerThread) {
-		slaves = new ArrayList<SlaveThread>(nbThreads);
-		Constructor workersConstructor = null;
-		for (int i = 1; i <= nbThreads; i++) {
+	public List<Result> getResults() {
+		return results;
+	}
+	
+	class InnerThread implements Runnable {
+		private ExecutorService executor;
+		private List<Callable<Void>> slaves;
+		public InnerThread(List<Callable<Void>> slaves) {
+			this.executor = Executors.newFixedThreadPool(nbThreads);
+			this.slaves = slaves;
+		}
+		public void run() {
 			try {
-				workersConstructor = slaveThreadsClass.getConstructor(Graph.class, GraphDescriptor.class, Long.TYPE, Integer.TYPE);
-				SlaveThread t = (SlaveThread) workersConstructor.newInstance(g, gDesc, roundTimePerThread, i);
-				slaves.add(t);
-			} catch (Exception e) {
+				executor.invokeAll(slaves);
+				executor.shutdown();
+				executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+				executor = Executors.newFixedThreadPool(nbThreads);
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-		}
-		gDesc.setNbConcurrentThreads(nbThreads);
-	}
-	
-	public ArrayList<ResultPair> getLatencyResults() {
-		return latencies;
-	}
-
-	public ArrayList<ResultPair> getThroughputResults() {
-		return throughputs;
-	}
+		} 
+	};
 }

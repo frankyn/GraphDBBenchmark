@@ -24,15 +24,18 @@ public abstract class Dataset {
 		this.datasetType = datasetType;
 		this.datasetName = datasetType + nVertices;
 		this.properties = new ArrayList<GraphProperty>();
-		new File(datasetFP);
-		generate();
+		File f = new File(datasetFP);
+		if (!f.exists()) generate();
+		else fillInfos();
 	}
 
 	/**
-	 * Generate a GraphML file that represents a graph composed of n vertices. The path of this 
-	 * file is datasetFP.
+	 * Generate a GraphML file that represents a graph. The path of this file is datasetFP.
+	 * 
 	 */
 	public abstract void generate();
+	
+	public abstract void fillInfos();
 	
 	/**
 	 * 
@@ -88,5 +91,4 @@ public abstract class Dataset {
 	public String getDatasetType() {
 		return datasetType;
 	}
-
 }

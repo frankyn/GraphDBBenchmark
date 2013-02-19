@@ -6,14 +6,15 @@ import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.impls.dex.DexGraph;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 
-public class DexWrapper implements DBInitializer {
+public class DexWrapper extends DBInitializer {
 	
-	public Graph initialize(String dbPath, boolean batchLoading) {
+	public Graph initialize(String name, boolean batchLoading) {
+		createDirectory(name);
 		if (batchLoading) {
-			return new BatchGraph((TransactionalGraph) new DexGraph(dbPath));
+			return new BatchGraph((TransactionalGraph) new DexGraph(getPath() + name));
 		}
 		else {
-			return new DexGraph(dbPath);
+			return new DexGraph(getPath() + name);
 		}
 	}
 

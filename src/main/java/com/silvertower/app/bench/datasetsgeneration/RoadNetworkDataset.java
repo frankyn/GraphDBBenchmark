@@ -16,4 +16,10 @@ public class RoadNetworkDataset extends Dataset {
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+	@Override
+	public void fillInfos() {
+		// TODO Auto-generated method stub
+		
+	}
 }

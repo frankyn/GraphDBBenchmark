@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
-import com.silvertower.app.bench.main.BenchmarkProperties;
-import com.silvertower.app.bench.main.Globals;
-import com.silvertower.app.bench.utils.Logger;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -15,8 +12,12 @@ import com.tinkerpop.blueprints.Vertex;
 /*
  * Inspired from http://www.algolist.com/code/java/Dijkstra%27s_algorithm
  */
-public class DijkstraWorkload implements Workload {
+public class DijkstraWorkload extends TraversalWorkload {
 	private List<DijkstraVertex> visitedVertices;
+	
+	public DijkstraWorkload() {
+		super("Dijkstra");
+	}
 	
 	class DijkstraVertex implements Comparable<DijkstraVertex> {
 		public Vertex v;
@@ -39,8 +40,8 @@ public class DijkstraWorkload implements Workload {
 		}
 	}
 	
-	public long computeShortestPath(DijkstraVertex s, DijkstraVertex d) {
-		long before = System.nanoTime();
+	public void computeShortestPath(DijkstraVertex s, DijkstraVertex d) {
+		visitedVertices = new ArrayList<DijkstraVertex> ();
 		s.minDistance = 0;
 		PriorityQueue<DijkstraVertex> q = new PriorityQueue<DijkstraVertex>();
 		q.add(s);
@@ -86,28 +87,20 @@ public class DijkstraWorkload implements Workload {
 			}
 		}
 		System.out.println(d.minDistance);
-		return System.nanoTime() - before;
 	}
 
-	public void work(GraphDescriptor gDesc, Logger log) {
-		long totalTime = 0;
-		log.logOperation("Dijkstra");
+	public void operation(GraphDescriptor gDesc) {
 		Vertex sourceVertex = null;
-		for (int i = 0; i < BenchmarkProperties.meanTimes; i++) {
-			visitedVertices = new ArrayList<DijkstraVertex> ();
-			while (sourceVertex == null) {
-				Object sourceId = gDesc.getRandomVertexId();
-				sourceVertex = gDesc.getGraph().getVertex(sourceId);
-			}
-			
-			Vertex destinationVertex = null;
-			while (destinationVertex == null) {
-				Object destinationId = gDesc.getRandomVertexId();
-				destinationVertex = gDesc.getGraph().getVertex(destinationId);
-			}
-			totalTime += computeShortestPath(new DijkstraVertex(sourceVertex), new DijkstraVertex(destinationVertex));
+		while (sourceVertex == null) {
+			Object sourceId = gDesc.getRandomVertexId();
+			sourceVertex = gDesc.getGraph().getVertex(sourceId);
 		}
-		log.logResult(totalTime / BenchmarkProperties.meanTimes / (Globals.nanosToSFactor * 1.0));
+		
+		Vertex destinationVertex = null;
+		while (destinationVertex == null) {
+			Object destinationId = gDesc.getRandomVertexId();
+			destinationVertex = gDesc.getGraph().getVertex(destinationId);
+		}
+		computeShortestPath(new DijkstraVertex(sourceVertex), new DijkstraVertex(destinationVertex));
 	}
-
 }

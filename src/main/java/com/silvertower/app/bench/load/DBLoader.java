@@ -4,65 +4,74 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
+import bb.util.Benchmark;
 
 import com.silvertower.app.bench.datasetsgeneration.Dataset;
-import com.silvertower.app.bench.main.Globals;
 import com.silvertower.app.bench.utils.Logger;
-import com.silvertower.app.bench.workload.ResultPair;
+import com.silvertower.app.bench.utils.Utilities;
+import com.silvertower.app.bench.workload.Result;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.io.graphml.GraphMLReader;
 
 public class DBLoader{
-
-	public static GraphDescriptor load(Dataset ds, DBInitializer graphInitializer, String dbDir, Logger log, boolean batchLoading) {
+ 	public static GraphDescriptor load(Dataset ds, DBInitializer graphInitializer) {
 		File datasetFile = new File(ds.getDatasetFP());
-		String suffix;
-		Graph g;
-		GraphDescriptor gDesc = null;
+		InputStream is;
+		Graph g = graphInitializer.initialize(ds.getDatasetName(), true);
+		try {
+			is = new FileInputStream(datasetFile);
+			GraphMLReader.inputGraph(g, is);
+		} catch (IOException e) {
+			System.err.println("Error while filling a database with a dataset");
+			System.exit(-1);
+		}
+		Graph g1 = graphInitializer.initialize(ds.getDatasetName(), false);
+		GraphDescriptor gDesc = new GraphDescriptor(g1, ds);
+		fillGraphDescriptor(gDesc);
+		return gDesc;
+	}
+	
+	public static List<GraphDescriptor> normalLoadingBenchmark(List<Dataset> datasets, DBInitializer initializer, Logger log) {
+		List<GraphDescriptor> gDescs = new ArrayList<GraphDescriptor>();
+		log.logOperation("Load time for a " + datasets.get(0).getDatasetType() + " dataset without batchloading");
+		for (final Dataset ds: datasets) {
+			String suffix = ds.getDatasetName();
+			LoadBenchThread t = new LoadBenchThread(suffix, false, initializer, ds);		
+			double [] time = Utilities.benchTask(t);
+			t.deleteUnusedDBs();
+			log.logResult(new Result(ds.getNumberVertices(), time[0], time[1]));
+			GraphDescriptor gDesc = new GraphDescriptor(t.getFinalGraph(), ds);
+			fillGraphDescriptor(gDesc);
+			gDescs.add(gDesc);
+			System.out.println("Ended normal loading");
+		}
 		
-		if (batchLoading) {
-			suffix = ds.getDatasetName() + ds.getNumberVertices() + "_batch";
-			g = graphInitializer.initialize(dbDir + suffix, true);
-			double t = loadGraphML(g, datasetFile, true, log);
-			log.logResult(new ResultPair(ds.getNumberVertices(), t));
+		log.plotResults("Number of vertices", "Time", "Wall time", "Cpu time");
+		return gDescs;
+	}
+	
+	public static void batchLoadingBenchmark(List<Dataset> datasets, final DBInitializer initializer, Logger log) {
+		log.logOperation("Load time for a " + datasets.get(0).getDatasetType() + " dataset using batchloading");
+		
+		for (final Dataset ds: datasets) {
+			String suffix = ds.getDatasetName() + "_batch";
+			LoadBenchThread t = new LoadBenchThread(suffix, true, initializer, ds);
+			double [] time = Utilities.benchTask(t);
+			t.deleteUnusedDBs();
+			log.logResult(new Result(ds.getNumberVertices(), time[0], time[1]));
 			System.out.println("Ended batch loading");
 		}
 		
-		else {
-			suffix = ds.getDatasetName() + ds.getNumberVertices();
-			g = graphInitializer.initialize(dbDir + suffix, false);
-			double t = loadGraphML(g, datasetFile, false, log);
-			log.logResult(new ResultPair(ds.getNumberVertices(), t));
-			System.out.println("Ended normal loading");
-			gDesc = new GraphDescriptor(g, ds);
-			fillGraphDescriptor(gDesc);
-		}
-		
-		return gDesc;
-		
-		/*String standardSuffix = ds.getDatasetName() + ds.getNumberVertices() + "_1";
-		String batchSuffix = ds.getDatasetName() + ds.getNumberVertices() + "_2";
-		
-		Graph g1 = graphInitializer.initialize(dbDir + standardSuffix, false);
-		double t1Seconds = loadGraphML(g1, datasetFile, false, log);
-		log.log("Load time for dataset " + ds.getDatasetFP() + " without batchloading", t1Seconds);
-		System.out.println("Ended normal loading");
-		GraphDescriptor gDesc = new GraphDescriptor(g1, ds);
-		fillGraphDescriptor(gDesc);
-
-		Graph g2 = graphInitializer.initialize(dbDir + batchSuffix, true);
-		double t2Seconds = loadGraphML(g2, datasetFile, true, log);
-		log.log("Load time for dataset " + ds.getDatasetFP() + " using batchloading", t2Seconds);
-		System.out.println("Ended batch loading");
-		
-		return gDesc;*/
+		log.plotResults("Number of vertices", "Time", "Wall time", "Cpu time");
 	}
-
+	
 	private static void fillGraphDescriptor(GraphDescriptor gDesc) {
 		Iterator <Vertex> iter = gDesc.getGraph().getVertices().iterator();
 		Vertex current = iter.next();
@@ -83,30 +92,5 @@ public class DBLoader{
 			gDesc.setVerticesIdClass(Long.class);
 		}
 	}
-	
-	private static double loadGraphML(Graph g, File datasetPath, boolean isBatchLoad, Logger log) {
-		InputStream is;
-		long beforeTs = System.nanoTime();
-		
-		try {
-			is = new FileInputStream(datasetPath);
-			GraphMLReader.inputGraph(g, is);
-		} catch (IOException e) {
-			System.err.println("Error while filling a database with a dataset");
-			System.exit(-1);
-		}
 
-		// As batch graphs do not handle transactions, we use shutdown() to end all the pending
-		// operations.
-		if (isBatchLoad) {
-			g.shutdown();
-			long afterTs = System.nanoTime();
-			return (afterTs - beforeTs) / (Globals.nanosToSFactor * 1.0);
-		}
-		else {
-			((TransactionalGraph)g).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
-			long afterTs = System.nanoTime();
-			return (afterTs - beforeTs) / (Globals.nanosToSFactor * 1.0);
-		}
-	}
 }

@@ -1,27 +1,39 @@
 package com.silvertower.app.bench.dbinitializers;
 
-import com.tinkerpop.blueprints.Graph;
+import java.io.File;
 
-public interface DBInitializer {
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
+
+public abstract class DBInitializer {
 	/**
 	 * 
 	 * Initialize a Graph instance in a particular way depending on the nature of the graph.
 	 * 
-	 * @param dbPath The place where the Graph(database) will be stored
-	 * @param batchLoading true if we want to create the Batch version of this database.
+	 * @param name The (directory) name where the Graph(database) will be stored
 	 * @return a graph instance
 	 */
-	public Graph initialize(String dbPath, boolean batchLoading);
+	public abstract Graph initialize(String name, boolean batchLoading);
 	
 	/**
 	 * 
 	 * @return the name of this graph database implementation.
 	 */
-	public String getName();
+	public abstract String getName();
 	
 	/**
 	 * 
 	 * @return the absolute path where this graph database will be stored
 	 */
-	public String getPath();
+	public abstract String getPath();
+	
+	/**
+	 * Create the directory where that will be used to store this graph(database)
+	 * @param name
+	 */
+	public void createDirectory(String name) {
+		File f = new File(getPath() + name);
+		f.mkdirs();
+	}
+
 }

@@ -1,27 +1,36 @@
 package com.silvertower.app.bench.workload;
 
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
-import com.silvertower.app.bench.utils.Logger;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 
-public class NeighborhoodWorkload implements Workload {
+
+public class NeighborhoodWorkload extends TraversalWorkload {
+	private static final int times = 100;
 	private int k;
-	private int current;
 	
 	public NeighborhoodWorkload(int k) {
+		super("Neighborhood " + k + " " + times + " times");
 		this.k = k;
 	}
 	
-	public void work(GraphDescriptor gDesc, Logger log) {
+	public void operation(GraphDescriptor gDesc) {
 		Vertex entry = null;
 		while (entry == null) {
 			entry = gDesc.getGraph().getVertex(gDesc.getRandomVertexId());
 		}
-		computeNeighborhood(entry);
+		for (int i = 0; i < times; i++) {
+			computeNeighborhood(entry, 0);
+		}
 	}
 
-	private void computeNeighborhood(Vertex v) {
-		
+	private void computeNeighborhood(Vertex v, int current) {
+		if (current == k) {return;}
+		else {
+			current = current + 1;
+			for (Vertex adjacent: v.getVertices(Direction.OUT)) {
+				computeNeighborhood(adjacent, current);
+			}
+		}
 	}
-	
 }

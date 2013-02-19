@@ -8,15 +8,15 @@ import java.util.ArrayList;
  *
  */
 public class GraphProperty {
-	private Object fieldName;
+	private String fieldName;
 	private ArrayList<Object> fieldPossibleValues;
 	
-	public GraphProperty (Object fieldName, ArrayList<Object> fieldPossibleValues) {
+	public GraphProperty (String fieldName, ArrayList<Object> fieldPossibleValues) {
 		this.fieldName = fieldName;
 		this.fieldPossibleValues = fieldPossibleValues;
 	}
 	
-	public Object getFieldName() {
+	public String getFieldName() {
 		return fieldName;
 	}
 	

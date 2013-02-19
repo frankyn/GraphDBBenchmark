@@ -28,38 +28,53 @@ public class SocialNetworkDataset extends Dataset {
 					+ datasetFP;
 			Process p = r.exec(command);
             p.waitFor();
-            
-            ArrayList<Object> firstNames = new ArrayList<Object>();
-        	ArrayList<Object> lastNames = new ArrayList<Object>();
-            fillFirstNamesList(firstNames);
-            fillLastNamesList(lastNames);
-            properties.add(new GraphProperty("Firstname", firstNames));
-            properties.add(new GraphProperty("Lastname", lastNames));
+            fillInfos();
         }
-        catch (IOException | InterruptedException e ) {
+        catch (IOException | InterruptedException e) {
         	e.printStackTrace();
         	System.err.println("Error while generating the dataset: " + datasetName);
         	System.exit(-1);
         }
 	}
 	
+	public void fillInfos() {
+        ArrayList<Object> firstNames = new ArrayList<Object>();
+    	ArrayList<Object> lastNames = new ArrayList<Object>();
+	    fillFirstNamesList(firstNames);
+	    fillLastNamesList(lastNames);
+        properties.add(new GraphProperty("Firstname", firstNames));
+        properties.add(new GraphProperty("Lastname", lastNames));
+	}
+	
 	public boolean isDirected() {
 		return true;
 	}
 	
-	private void fillFirstNamesList(ArrayList<Object> firstNames) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(firstNamesFilePath));
-		String current = null;
-		while ((current = reader.readLine()) != null) {
-			firstNames.add(current);
+	private void fillFirstNamesList(ArrayList<Object> firstNames) {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(firstNamesFilePath));
+			String current = null;
+			while ((current = reader.readLine()) != null) {
+				firstNames.add(current);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+        	System.err.println("Error while generating the dataset: " + datasetName);
+        	System.exit(-1);
 		}
 	}
 	
-	private void fillLastNamesList(ArrayList<Object> lastNames) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(lastNamesFilePath));
-		String current = null;
-		while ((current = reader.readLine()) != null) {
-			lastNames.add(current);
+	private void fillLastNamesList(ArrayList<Object> lastNames) {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(lastNamesFilePath));
+			String current = null;
+			while ((current = reader.readLine()) != null) {
+				lastNames.add(current);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+        	System.err.println("Error while generating the dataset: " + datasetName);
+        	System.exit(-1);
 		}
 	}
 }
