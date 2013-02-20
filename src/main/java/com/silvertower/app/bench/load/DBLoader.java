@@ -57,7 +57,7 @@ public class DBLoader{
 		return gDescs;
 	}
 	
-	public static void batchLoadingBenchmark(List<Dataset> datasets, final DBInitializer initializer, Logger log) {
+	public static void batchLoadingBenchmark(List<Dataset> datasets, DBInitializer initializer, Logger log) {
 		log.logOperation("Load time for a " + datasets.get(0).getDatasetType() + " dataset using batchloading");
 		
 		for (final Dataset ds: datasets) {
@@ -92,5 +92,24 @@ public class DBLoader{
 			gDesc.setVerticesIdClass(Long.class);
 		}
 	}
-
+	
+	public static double[] batchLoadingBenchmark(Dataset d, DBInitializer initializer, GraphDescriptor gDesc) {
+		String suffix = d.getDatasetName() + "_batch";
+		LoadBenchThread t = new LoadBenchThread(suffix, true, initializer, d);
+		return loadBenchmark(d, initializer, gDesc, t);
+	}
+	
+	public static double[] normalLoadingBenchmark(Dataset d, DBInitializer initializer, GraphDescriptor gDesc) {
+		String suffix = d.getDatasetName();
+		LoadBenchThread t = new LoadBenchThread(suffix, false, initializer, d);		
+		return loadBenchmark(d, initializer, gDesc, t);
+	}
+	
+	public static double[] loadBenchmark(Dataset d, DBInitializer initializer, GraphDescriptor gDesc, LoadBenchThread t) {
+		double [] time = Utilities.benchTask(t);
+		t.deleteUnusedDBs();
+		gDesc = new GraphDescriptor(t.getFinalGraph(), d);
+		fillGraphDescriptor(gDesc);
+		return time;
+	}
 }

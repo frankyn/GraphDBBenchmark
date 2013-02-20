@@ -18,6 +18,7 @@ public class OrientWrapper extends DBInitializer {
 	
 	public Graph initialize(String name, boolean batchLoading) {
 		createDirectory(name);
+		lastDBPath = getDirPath() + name;
 		if (batchLoading) {
 
 			OGlobalConfiguration.ENVIRONMENT_CONCURRENT.setValue(false);
@@ -25,22 +26,22 @@ public class OrientWrapper extends DBInitializer {
 				/*OrientGraph graph = new OrientGraph("remote:" + getPath() + name);
 				graph.getRawGraph().declareIntent(new OIntentMassiveInsert());
 				return new IdGraph(graph);*/
-				return new IdGraph<OrientBatchGraph>(new OrientBatchGraph("remote:" + getPath() + name));
+				return (lastGraphInitialized = new IdGraph<OrientBatchGraph>(new OrientBatchGraph("remote:" + getDirPath() + name)));
 			}
 			else {
 				/*OrientGraph graph = new OrientGraph("local:" + getPath() + name);
 				graph.getRawGraph().declareIntent(new OIntentMassiveInsert());
 				return new IdGraph(graph);*/
-				return new IdGraph<OrientBatchGraph>(new OrientBatchGraph("local:" + getPath() + name));
+				return (lastGraphInitialized = new IdGraph<OrientBatchGraph>(new OrientBatchGraph("local:" + getDirPath() + name)));
 			}
 		}
 		
 		else {
 			if (remote) {
-				return new IdGraph<OrientGraph>(new OrientGraph("remote:" + getPath() + name));
+				return (lastGraphInitialized = new IdGraph<OrientGraph>(new OrientGraph("remote:" + getDirPath() + name)));
 			}
 			else {
-				return new IdGraph<OrientGraph>(new OrientGraph("local:" + getPath() + name));
+				return (lastGraphInitialized = new IdGraph<OrientGraph>(new OrientGraph("local:" + getDirPath() + name)));
 			}
 		}
 	}
@@ -49,7 +50,7 @@ public class OrientWrapper extends DBInitializer {
 		return "Orient";
 	}
 
-	public String getPath() {
+	public String getDirPath() {
 		return BenchmarkProperties.dbDirOrient;
 	}	
 }

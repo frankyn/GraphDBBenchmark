@@ -10,17 +10,18 @@ public class Neo4jWrapper extends DBInitializer {
 
 	public Graph initialize(String name, boolean batchLoading) {
 		createDirectory(name);
+		lastDBPath = getDirPath() + name;
 		if (batchLoading) 
-			return new Neo4jBatchGraph(getPath() + name);
+			return (lastGraphInitialized = new Neo4jBatchGraph(getDirPath() + name));
 		else 
-			return new Neo4jGraph(getPath() + name);
+			return (lastGraphInitialized = new Neo4jGraph(getDirPath() + name));
 	}
 
 	public String getName() {
 		return "Neo4j";
 	}
 
-	public String getPath() {
+	public String getDirPath() {
 		return BenchmarkProperties.dbDirNeo4j;
 	}
 }

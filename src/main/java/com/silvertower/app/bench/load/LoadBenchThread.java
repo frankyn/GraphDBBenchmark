@@ -36,7 +36,7 @@ class LoadBenchThread implements Runnable {
 	}
 	
 	public Graph getFinalGraph() {
-		return i.initialize(suffix + counter, batchLoading);
+		return i.initialize(suffix + counter, false);
 	}
 	
 	private void loadGraphML(Graph g, InputStream is) {
@@ -63,7 +63,7 @@ class LoadBenchThread implements Runnable {
 	
 	public void deleteUnusedDBs() {
     	for (int j = 1; j < counter; j++) {
-    		Utilities.deleteDirectory(i.getPath() + suffix + j);
+    		Utilities.deleteDirectory(i.getDirPath() + suffix + j);
     	}
 	}
 }

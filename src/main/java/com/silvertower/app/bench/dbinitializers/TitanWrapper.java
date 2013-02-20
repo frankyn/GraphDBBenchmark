@@ -20,22 +20,23 @@ public class TitanWrapper extends DBInitializer {
 	
 	public Graph initialize(String name, boolean batchLoading) {
 		createDirectory(name);
+		lastDBPath = getDirPath() + name;
 		if (batchLoading) {
 			Configuration config = new BaseConfiguration();
 			config.setProperty("storage.batch-loading", "true");
-			config.setProperty("storage.directory", getPath() + name);
-			return new BatchGraph((TransactionalGraph) TitanFactory.open(config));
+			config.setProperty("storage.directory", getDirPath() + name);
+			return (lastGraphInitialized = new BatchGraph((TransactionalGraph) TitanFactory.open(config)));
 		}
 		
 		else {
 			if (inMemory) {
-				return TitanFactory.openInMemoryGraph();
+				return (lastGraphInitialized = TitanFactory.openInMemoryGraph());
 			}
 			else if (config != null) {
-				return TitanFactory.open(config);
+				return (lastGraphInitialized = TitanFactory.open(config));
 			}
 			else {
-				return TitanFactory.open(getPath() + name);
+				return (lastGraphInitialized = TitanFactory.open(getDirPath() + name));
 			}
 		}
 		
@@ -45,7 +46,7 @@ public class TitanWrapper extends DBInitializer {
 		return "Titan";
 	}
 
-	public String getPath() {
+	public String getDirPath() {
 		return BenchmarkProperties.dbDirTitan;
 	}
 }
