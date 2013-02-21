@@ -12,11 +12,11 @@ import com.tinkerpop.blueprints.Vertex;
 /*
  * Inspired from http://www.algolist.com/code/java/Dijkstra%27s_algorithm
  */
-public class DijkstraWorkload extends TraversalWorkload {
+public class DijkstraWorkload extends Workload {
 	private List<DijkstraVertex> visitedVertices;
 	
 	public DijkstraWorkload() {
-		super("Dijkstra");
+		super("Dijkstra", false);
 	}
 	
 	class DijkstraVertex implements Comparable<DijkstraVertex> {
@@ -89,7 +89,7 @@ public class DijkstraWorkload extends TraversalWorkload {
 		System.out.println(d.minDistance);
 	}
 
-	public void operation(GraphDescriptor gDesc) {
+	public void operation(GraphDescriptor gDesc, int ...nbThreads) {
 		Vertex sourceVertex = null;
 		while (sourceVertex == null) {
 			Object sourceId = gDesc.getRandomVertexId();

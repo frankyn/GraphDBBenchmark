@@ -13,7 +13,7 @@ import bb.util.Benchmark;
 import com.silvertower.app.bench.datasetsgeneration.Dataset;
 import com.silvertower.app.bench.utils.Logger;
 import com.silvertower.app.bench.utils.Utilities;
-import com.silvertower.app.bench.workload.Result;
+import com.silvertower.app.bench.workload.TimeResult;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 import com.tinkerpop.blueprints.Graph;
@@ -46,7 +46,7 @@ public class DBLoader{
 			LoadBenchThread t = new LoadBenchThread(suffix, false, initializer, ds);		
 			double [] time = Utilities.benchTask(t);
 			t.deleteUnusedDBs();
-			log.logResult(new Result(ds.getNumberVertices(), time[0], time[1]));
+			log.logResult(new TimeResult(ds.getNumberVertices(), time[0], time[1]));
 			GraphDescriptor gDesc = new GraphDescriptor(t.getFinalGraph(), ds);
 			fillGraphDescriptor(gDesc);
 			gDescs.add(gDesc);
@@ -65,7 +65,7 @@ public class DBLoader{
 			LoadBenchThread t = new LoadBenchThread(suffix, true, initializer, ds);
 			double [] time = Utilities.benchTask(t);
 			t.deleteUnusedDBs();
-			log.logResult(new Result(ds.getNumberVertices(), time[0], time[1]));
+			log.logResult(new TimeResult(ds.getNumberVertices(), time[0], time[1]));
 			System.out.println("Ended batch loading");
 		}
 		

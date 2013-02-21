@@ -7,13 +7,13 @@ import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 
-public class VerticesExplorationWorkload extends TraversalWorkload {
+public class VerticesExplorationWorkload extends Workload {
 	
 	public VerticesExplorationWorkload() {
-		super("Vertices exploration");
+		super("Vertices exploration", false);
 	}
 
-	public void operation(GraphDescriptor gDesc) {
+	public void operation(GraphDescriptor gDesc, int ... threadId) {
 		Graph g = gDesc.getGraph();
 		Iterator <Vertex> iter = g.getVertices().iterator();
 		Vertex current = null;

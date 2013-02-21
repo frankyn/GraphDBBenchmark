@@ -7,12 +7,12 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 
-public class EdgesExplorationWorkload extends TraversalWorkload {
+public class EdgesExplorationWorkload extends Workload {
 	public EdgesExplorationWorkload() {
-		super("Edges exploration");
+		super("Edges exploration", false);
 	}
 
-	public void operation(GraphDescriptor gDesc) {
+	public void operation(GraphDescriptor gDesc, int ...nbThreads) {
 		Graph g = gDesc.getGraph();
 		Iterator <Edge> iter = g.getEdges().iterator();
 		Edge current = null;

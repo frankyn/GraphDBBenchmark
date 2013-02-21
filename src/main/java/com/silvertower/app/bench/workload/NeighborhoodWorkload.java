@@ -5,16 +5,16 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 
 
-public class NeighborhoodWorkload extends TraversalWorkload {
+public class NeighborhoodWorkload extends Workload {
 	private static final int times = 100;
 	private int k;
 	
 	public NeighborhoodWorkload(int k) {
-		super("Neighborhood " + k + " " + times + " times");
+		super("Neighborhood " + k + " " + times + " times", false);
 		this.k = k;
 	}
 	
-	public void operation(GraphDescriptor gDesc) {
+	public void operation(GraphDescriptor gDesc, int ...nbThreads) {
 		Vertex entry = null;
 		while (entry == null) {
 			entry = gDesc.getGraph().getVertex(gDesc.getRandomVertexId());

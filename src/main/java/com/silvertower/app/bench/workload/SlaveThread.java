@@ -22,7 +22,7 @@ public class SlaveThread implements Callable<Void> {
 	public Void call() throws Exception {
 		long opCount = 0;
 		while (opCount < maxOpCount) {
-			w.operation(id);
+			w.operation(gDesc, id);
 			opCount ++;
 		}
 		((TransactionalGraph)gDesc.getGraph()).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);

@@ -11,7 +11,7 @@ import akka.actor.UntypedActor;
 
 public class Server extends UntypedActor {
 	private DBInitializer currentInitializer;
-	private Result lastResult;
+	private TimeResult lastResult;
 	public void onReceive(Object message) throws Exception {
 		if (message instanceof InitializeDB) {
 			this.currentInitializer = ((InitializeDB) message).getInitializer();
@@ -23,11 +23,11 @@ public class Server extends UntypedActor {
 			}
 			else {
 				Dataset d = ((FillDB) message).getDataset();
-				Result r = new Result();
 				GraphDescriptor gDesc = null;
-				r.addValues(DBLoader.normalLoadingBenchmark(d, currentInitializer, gDesc));
+				double[] times = DBLoader.normalLoadingBenchmark(d, currentInitializer, gDesc);
+				TimeResult r = new TimeResult(times[0], times[1]);
 				lastResult = r;
-				getSender().tell(new GraphDescReturned(gDesc));
+				getSender().tell(new LoadingEnded(gDesc));
 			}
 		}
 		
@@ -37,11 +37,11 @@ public class Server extends UntypedActor {
 			}
 			else {
 				Dataset d = ((FillDB) message).getDataset();
-				Result r = new Result();
 				GraphDescriptor gDesc = null;
-				r.addValues(DBLoader.batchLoadingBenchmark(d, currentInitializer, gDesc));
+				double[] times = DBLoader.batchLoadingBenchmark(d, currentInitializer, gDesc);
+				TimeResult r = new TimeResult(times[0], times[1]);
 				lastResult = r;
-				getSender().tell(new GraphDescReturned(gDesc));
+				getSender().tell(new LoadingEnded(gDesc));
 			}
 		}
 		

@@ -1,12 +1,14 @@
 package com.silvertower.app.bench.workload;
 
+import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 
-public class ReadPropIntensiveWorkload extends IntensiveWorkload {
+
+public class ReadPropIntensiveWorkload extends Workload {
 	public ReadPropIntensiveWorkload() {
-		super("Read properties intensive");
+		super("Read properties intensive", true);
 	}
 
-	public void operation(int threadId) {
+	public void operation(GraphDescriptor gDesc, int ... threadId) {
 		Object[] possibleProp = gDesc.getRandomPropertyCouple();
 		gDesc.getGraph().getVertices((String)possibleProp[0], possibleProp[1]);
 	}

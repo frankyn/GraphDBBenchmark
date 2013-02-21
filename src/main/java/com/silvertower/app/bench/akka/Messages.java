@@ -1,11 +1,10 @@
 package com.silvertower.app.bench.akka;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import com.silvertower.app.bench.datasetsgeneration.Dataset;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.silvertower.app.bench.workload.Workload;
 
 public class Messages {
 	static class InitializeDB {
@@ -38,31 +37,44 @@ public class Messages {
 		}
 	}
 	
-	static class Result {
-		private final List<Double> values;
-		public Result() {
-			this.values = new ArrayList<Double>();
+	static class AggregateResult {
+	}
+	
+	static class TimeResult {
+		private double wallTime;
+		private double cpuTime;
+	    public TimeResult(double wallTime, double cpuTime) {
+	    	this.wallTime = wallTime;
+	        this.cpuTime = cpuTime;
+	    }
+	    
+		public double getWallTime() {
+			return wallTime;
 		}
-		public void addValue(Double n) {
-			values.add(n);
-		}
-		public void addValues(double[] numbers) {
-			for (Double n: numbers) {
-				values.add(n);
-			}
-		}
-		public List<Double> getValues() {
-			return values;
+		
+		public double getCpuTime() {
+			return cpuTime;
 		}
 	}
 	
-	static class GraphDescReturned {
+	static class LoadingEnded {
 		private final GraphDescriptor gDesc;
-		public GraphDescReturned(GraphDescriptor gDesc) {
+		public LoadingEnded(GraphDescriptor gDesc) {
 			this.gDesc = gDesc;
 		}
 		public GraphDescriptor getGraphDesc() {
 			return gDesc;
+		}
+	}
+	
+	static class Work {
+		private final Workload w;
+		public Work(Workload w) {
+			this.w = w;
+		}
+		
+		public Workload getWork() {
+			return w;
 		}
 	}
 	
