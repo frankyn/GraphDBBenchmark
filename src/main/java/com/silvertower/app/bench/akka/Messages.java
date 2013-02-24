@@ -1,6 +1,9 @@
 package com.silvertower.app.bench.akka;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.silvertower.app.bench.datasetsgeneration.Dataset;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
@@ -38,14 +41,36 @@ public class Messages {
 	}
 	
 	static class AggregateResult {
+		private List<TimeResult> times;
+		public AggregateResult() {
+			this.times = new ArrayList<TimeResult>();
+		}
+		
+		public void addTime (TimeResult t) {
+			times.add(t);
+		}
+		
+		public TimeResult getMean () {
+			double cpuMeanTime = 0;
+			double wallMeanTime = 0;
+			for (TimeResult t: times) {
+				cpuMeanTime += t.getCpuTime();
+				wallMeanTime += t.getWallTime();
+			}
+			cpuMeanTime /= times.size();
+			wallMeanTime /= times.size();
+			return new TimeResult(cpuMeanTime, wallMeanTime);
+		}
 	}
 	
 	static class TimeResult {
 		private double wallTime;
 		private double cpuTime;
+		private Workload w;
 	    public TimeResult(double wallTime, double cpuTime) {
 	    	this.wallTime = wallTime;
 	        this.cpuTime = cpuTime;
+	        this.w = w;
 	    }
 	    
 		public double getWallTime() {
@@ -55,13 +80,18 @@ public class Messages {
 		public double getCpuTime() {
 			return cpuTime;
 		}
+		
+		public Workload getWorkload() {
+			return w;
+		}
 	}
 	
-	static class LoadingEnded {
+	static class GDesc {
 		private final GraphDescriptor gDesc;
-		public LoadingEnded(GraphDescriptor gDesc) {
+		public GDesc(GraphDescriptor gDesc) {
 			this.gDesc = gDesc;
 		}
+		
 		public GraphDescriptor getGraphDesc() {
 			return gDesc;
 		}
@@ -69,12 +99,34 @@ public class Messages {
 	
 	static class Work {
 		private final Workload w;
-		public Work(Workload w) {
+		private final int howManyOp;
+		private final int howManyClients;
+		public Work(Workload w, int howManyOp, int howManyClients) {
 			this.w = w;
+			this.howManyOp = howManyOp;
+			this.howManyClients = howManyClients;
 		}
 		
 		public Workload getWork() {
 			return w;
+		}
+		
+		public int getHowManyOp() {
+			return howManyOp;
+		}
+
+		public int getHowManyClients() {
+			return howManyClients;
+		}
+	}
+	
+	static class NumberOfClients {
+		private final int howManyClients;
+		public NumberOfClients(int n) {
+			this.howManyClients = n;
+		}
+		public int getHowManyClients() {
+			return howManyClients;
 		}
 	}
 	
@@ -82,6 +134,12 @@ public class Messages {
 	}
 	
 	static class VanishDB {
+	}
+	
+	static class GetNbCores {
+	}
+	
+	static class StartWork {
 	}
 	
 	static class Error {

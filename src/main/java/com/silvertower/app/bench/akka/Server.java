@@ -27,7 +27,7 @@ public class Server extends UntypedActor {
 				double[] times = DBLoader.normalLoadingBenchmark(d, currentInitializer, gDesc);
 				TimeResult r = new TimeResult(times[0], times[1]);
 				lastResult = r;
-				getSender().tell(new LoadingEnded(gDesc));
+				getSender().tell(new GDesc(gDesc));
 			}
 		}
 		
@@ -41,7 +41,7 @@ public class Server extends UntypedActor {
 				double[] times = DBLoader.batchLoadingBenchmark(d, currentInitializer, gDesc);
 				TimeResult r = new TimeResult(times[0], times[1]);
 				lastResult = r;
-				getSender().tell(new LoadingEnded(gDesc));
+				getSender().tell(new GDesc(gDesc));
 			}
 		}
 		

@@ -1,31 +1,49 @@
 package com.silvertower.app.bench.workload;
 
 
-import java.util.concurrent.Callable;
+import java.lang.management.ManagementFactory;
+import java.util.concurrent.CountDownLatch;
 
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.silvertower.app.bench.dbinitializers.*;
 
-public class SlaveThread implements Callable<Void> {
-	private IntensiveWorkload w;
+public class SlaveThread extends Thread {
+	private Workload w;
 	private GraphDescriptor gDesc;
 	private int id;
-	private long maxOpCount;
-	
-	protected SlaveThread(GraphDescriptor gDesc, int id, IntensiveWorkload w, long maxOpCount) {
+	private int maxOpCount;
+	private long timeSpentCPU;
+	private CountDownLatch startLatch;
+	private CountDownLatch stopLatch;
+	public SlaveThread(GraphDescriptor gDesc, int id, Workload w, int maxOpCount, 
+			CountDownLatch startLatch, CountDownLatch stopLatch) {
 		this.w = w;
 		this.gDesc = gDesc;
 		this.id = id;
 		this.maxOpCount = maxOpCount;
+		this.startLatch = startLatch;
+		this.stopLatch = stopLatch;
 	}
 	
-	public Void call() throws Exception {
+	public void run() {
+		try {
+			startLatch.await();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		long before = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
 		long opCount = 0;
 		while (opCount < maxOpCount) {
 			w.operation(gDesc, id);
 			opCount ++;
 		}
 		((TransactionalGraph)gDesc.getGraph()).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
-		return null;
+		long after = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();	
+		timeSpentCPU = after - before;
+		stopLatch.countDown();
+	}
+	
+	public long getTimeSpentCPU() {
+		return timeSpentCPU;
 	}
 }
