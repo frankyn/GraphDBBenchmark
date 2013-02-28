@@ -7,7 +7,6 @@ import java.util.List;
 import com.silvertower.app.bench.datasetsgeneration.Dataset;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
-import com.silvertower.app.bench.workload.DescriptableEntity;
 import com.silvertower.app.bench.workload.Workload;
 
 public class Messages {
@@ -51,10 +50,8 @@ public class Messages {
 	
 	static class AggregateResult {
 		private List<TimeResult> times;
-		private DescriptableEntity w;
-		public AggregateResult(DescriptableEntity w) {
+		public AggregateResult() {
 			this.times = new ArrayList<TimeResult>();
-			this.w = w;
 		}
 		
 		public void addTime(TimeResult t) {
@@ -70,18 +67,17 @@ public class Messages {
 			}
 			cpuMeanTime /= times.size();
 			wallMeanTime /= times.size();
-			return new TimeResult(cpuMeanTime, wallMeanTime, w);
+			return new TimeResult(cpuMeanTime, wallMeanTime);
 		}
 	}
 	
-	static class TimeResult {
+	public static class TimeResult {
 		private double wallTime;
 		private double cpuTime;
-		private DescriptableEntity e;
-	    public TimeResult(double wallTime, double cpuTime, DescriptableEntity e) {
+		private int x;
+	    public TimeResult(double wallTime, double cpuTime) {
 	    	this.wallTime = wallTime;
 	        this.cpuTime = cpuTime;
-	        this.e = e;
 	    }
 	    
 		public double getWallTime() {
@@ -92,12 +88,12 @@ public class Messages {
 			return cpuTime;
 		}
 		
-		public String toString() {
-			return String.format("Wall time: %f and CPU time: %f", wallTime, cpuTime);
+		public int getX() {
+			return x;
 		}
 		
-		public DescriptableEntity getTimedEntity() {
-			return e;
+		public String toString() {
+			return String.format("Wall time: %f and CPU time: %f", wallTime, cpuTime);
 		}
 	}
 	
@@ -112,7 +108,7 @@ public class Messages {
 		}
 	}
 	
-	static class Work implements DescriptableEntity {
+	public static class Work {
 		private final Workload w;
 		private final int howManyOp;
 		private final int howManyClients;

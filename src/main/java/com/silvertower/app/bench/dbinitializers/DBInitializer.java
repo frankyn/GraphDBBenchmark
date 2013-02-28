@@ -29,7 +29,7 @@ public abstract class DBInitializer {
 	 * @return the absolute directory path where this graph database will be stored
 	 */
 	public abstract String getDirPath();
-	
+		
 	/**
 	 * Create the directory where that will be used to store this graph(database)
 	 * @param name
@@ -54,4 +54,5 @@ public abstract class DBInitializer {
 	public Graph getLastGraphInitialized() {
 		return lastGraphInitialized;
 	}
+	
 }

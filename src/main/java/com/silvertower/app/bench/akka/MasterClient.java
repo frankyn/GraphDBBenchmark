@@ -27,7 +27,6 @@ public class MasterClient extends UntypedActor {
 	private enum State {WAITING_FOR_INFOS, READY_FOR_WORK, WORKING};
 	private State state;
 	private ActorRef resultsListener;
-	private Work currentWork;
 	
 	public void preStart() {
 		slaves = new ArrayList<SlaveReference>();
@@ -42,29 +41,35 @@ public class MasterClient extends UntypedActor {
 	public void onReceive(Object message) throws Exception {
 		
 		if (message instanceof GDesc) {
+			System.out.println("gdesc:"+getSender());
+			
 			currentGDesc = ((GDesc) message).getGraphDesc();
 			state = State.READY_FOR_WORK;
 		}
 		
 		else if (message instanceof Work) {
+			System.out.println("work:"+getSender());
 			if (state != State.READY_FOR_WORK) {
 				resultsListener.tell(new Messages.Error("Error: the master client is not ready for work!"), getSelf());
 				return;
 			}
 			
-			if (resultsListener == null) resultsListener = getSender();
+			resultsListener = getSender();
 			
-			int nCores = ((Work) message).getHowManyClients();
+			Work work = (Work) message;
+			int nCores = work.getHowManyClients();
+			int nOps = work.getHowManyOp();
+			Workload workload = work.getWorkload();
+			
 			if (nCores > coresAvailable) {
 				resultsListener.tell(new Messages.Error("Error: not enough cores/slaves available!"), getSelf());
 				return;
 			}
 			
-			currentWork = (Work) message;
-			
 			state = State.WORKING;
-			if (((Work) message).getWorkload().isMT()) {
-				assignWork();
+			
+			if (work.getWorkload().isMT()) {
+				assignWork(nCores, nOps, workload);
 				startWork();
 			}
 			
@@ -99,7 +104,7 @@ public class MasterClient extends UntypedActor {
 		Runnable task = 
 				new Runnable() { public void run() { w.operation(currentGDesc); } };
 		double[] times = Utilities.benchTask(task);
-		resultsListener.tell(new TimeResult(times[0], times[1], currentWork), getSelf());
+		resultsListener.tell(new TimeResult(times[0], times[1]), getSelf());
 	}
 
 	private int createNewSlave(final int id) {
@@ -125,9 +130,7 @@ public class MasterClient extends UntypedActor {
 		return nCores;
 	}
 
-	private void assignWork() {
-		int nCores = currentWork.getHowManyClients();
-		
+	private void assignWork(int nCores, int nOps, Workload workload) {
 		int nbrSlavesNeeded = 0;
 		int remainingCoresNeeded = nCores;
 		for (SlaveReference s: slaves) {
@@ -138,7 +141,7 @@ public class MasterClient extends UntypedActor {
 			}
 		}
 		
-		int nbrOpPerSlave = currentWork.getHowManyOp() / nbrSlavesNeeded;
+		int nbrOpPerSlave = nOps / nbrSlavesNeeded;
 		currentGDesc.setNbConcurrentThreads(nCores);
 		for (int i = 0; i < nbrSlavesNeeded; i++) {
 			SlaveReference slave = slaves.get(i);
@@ -146,7 +149,7 @@ public class MasterClient extends UntypedActor {
 			int coresUsed = 0;
 			if (coresAvailable > nCores) coresUsed = nCores;
 			else coresUsed = coresAvailable;
-			Work w = new Work(currentWork.getWorkload(), nbrOpPerSlave, coresUsed);
+			Work w = new Work(workload, nbrOpPerSlave, coresUsed);
 			slave.getSlaveRef().tell(new GDesc(currentGDesc), getSelf());
 			slave.getSlaveRef().tell(w, getSelf());
 			slave.setWorking();
@@ -168,7 +171,7 @@ public class MasterClient extends UntypedActor {
 	}
 
 	private AggregateResult aggregateResult() {
-		AggregateResult r = new AggregateResult(currentWork);
+		AggregateResult r = new AggregateResult();
 		for (SlaveReference s: slaves) {
 			if (s.isWorking()) {
 				if (s.getResultReceived() != null) {

@@ -62,7 +62,7 @@ public class SlaveClient extends UntypedActor {
 			stopLatch.await();
 			long after = System.nanoTime();
 			double meanCPUTime = getMeanCPUTime();
-			master.tell(new TimeResult((after - before / 1000000000.0), meanCPUTime, currentWork), getSelf());
+			master.tell(new TimeResult((after - before) / 1000000000.0, meanCPUTime), getSelf());
 			state = State.READY_FOR_WORK;
 		}
 		
@@ -76,7 +76,7 @@ public class SlaveClient extends UntypedActor {
 		for (SlaveThread t: individualClients) {
 			total += t.getTimeSpentCPU();
 		}
-		return ((total * 1.0) / 1000000000) / individualClients.size();
+		return (total * 1.0) / individualClients.size() / 1000000000;
 	}
 
 	public void createClientThreads() {

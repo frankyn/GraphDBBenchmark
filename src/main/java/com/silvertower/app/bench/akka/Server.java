@@ -38,7 +38,7 @@ public class Server extends UntypedActor {
 			else {
 				times = DBLoader.normalLoadingBenchmark(d, currentInitializer, gDesc);
 			}
-			TimeResult r = new TimeResult(times[0], times[1], gDesc);
+			TimeResult r = new TimeResult(times[0], times[1]);
 			lastResult = r;
 			getSender().tell(new GDesc(gDesc), getSelf());
 		}
