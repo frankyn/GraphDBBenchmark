@@ -4,16 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-
-import bb.util.Benchmark;
 
 import com.silvertower.app.bench.datasetsgeneration.Dataset;
-import com.silvertower.app.bench.utils.Logger;
 import com.silvertower.app.bench.utils.Utilities;
-import com.silvertower.app.bench.workload.TimeResult;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 import com.tinkerpop.blueprints.Graph;
@@ -21,7 +15,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.io.graphml.GraphMLReader;
 
 public class DBLoader{
- 	public static GraphDescriptor load(Dataset ds, DBInitializer graphInitializer) {
+ 	/*public static GraphDescriptor load(Dataset ds, DBInitializer graphInitializer) {
 		File datasetFile = new File(ds.getDatasetFP());
 		InputStream is;
 		Graph g = graphInitializer.initialize(ds.getDatasetName(), true);
@@ -38,6 +32,7 @@ public class DBLoader{
 		return gDesc;
 	}
 	
+ 	/*
 	public static List<GraphDescriptor> normalLoadingBenchmark(List<Dataset> datasets, DBInitializer initializer, Logger log) {
 		List<GraphDescriptor> gDescs = new ArrayList<GraphDescriptor>();
 		log.logOperation("Load time for a " + datasets.get(0).getDatasetType() + " dataset without batchloading");
@@ -46,7 +41,7 @@ public class DBLoader{
 			LoadBenchThread t = new LoadBenchThread(suffix, false, initializer, ds);		
 			double [] time = Utilities.benchTask(t);
 			t.deleteUnusedDBs();
-			log.logResult(new TimeResult(ds.getNumberVertices(), time[0], time[1]));
+			//log.logResult(new TimeResult(ds.getNumberVertices(), time[0], time[1]));
 			GraphDescriptor gDesc = new GraphDescriptor(t.getFinalGraph(), ds);
 			fillGraphDescriptor(gDesc);
 			gDescs.add(gDesc);
@@ -65,14 +60,17 @@ public class DBLoader{
 			LoadBenchThread t = new LoadBenchThread(suffix, true, initializer, ds);
 			double [] time = Utilities.benchTask(t);
 			t.deleteUnusedDBs();
-			log.logResult(new TimeResult(ds.getNumberVertices(), time[0], time[1]));
+			//log.logResult(new TimeResult(ds.getNumberVertices(), time[0], time[1]));
 			System.out.println("Ended batch loading");
 		}
 		
 		log.plotResults("Number of vertices", "Time", "Wall time", "Cpu time");
 	}
-	
-	private static void fillGraphDescriptor(GraphDescriptor gDesc) {
+	*/
+ 	
+	private static void fillGraphDescriptor(GraphDescriptor gDesc, Graph g, Dataset d) {
+		gDesc.setGraph(g);
+		gDesc.setDataset(d);
 		Iterator <Vertex> iter = gDesc.getGraph().getVertices().iterator();
 		Vertex current = iter.next();
 		Object firstVertexID = current.getId();
@@ -108,8 +106,7 @@ public class DBLoader{
 	public static double[] loadBenchmark(Dataset d, DBInitializer initializer, GraphDescriptor gDesc, LoadBenchThread t) {
 		double [] time = Utilities.benchTask(t);
 		t.deleteUnusedDBs();
-		gDesc = new GraphDescriptor(t.getFinalGraph(), d);
-		fillGraphDescriptor(gDesc);
+		fillGraphDescriptor(gDesc, t.getFinalGraph(), d);
 		return time;
 	}
 }

@@ -4,23 +4,19 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import com.silvertower.app.bench.datasetsgeneration.Dataset;
+import com.silvertower.app.bench.workload.DescriptableEntity;
 import com.tinkerpop.blueprints.Graph;
 
 
-public class GraphDescriptor {
-	private Dataset ds;
+public class GraphDescriptor implements DescriptableEntity {
+	private Dataset d;
 	private Graph g;
 	private Long firstVertexId;
 	private Long stepBetweenId;
 	private Class verticesIdClass;
 	private Random r = new Random();
 	private int nbConcurrentThread;
-	
-	public GraphDescriptor(Graph g, Dataset ds) {
-		this.g = g;
-		this.ds = ds;
-	}
-	
+		
 	public Graph getGraph() {
 		return g;
 	}
@@ -42,7 +38,7 @@ public class GraphDescriptor {
 	}
 
 	public int getNbVertices() {
-		return ds.getNumberVertices();
+		return d.getNumberVertices();
 	}
 	
 	public void setVerticesIdClass(Class verticesIdClass) {
@@ -51,6 +47,18 @@ public class GraphDescriptor {
 	
 	public void setNbConcurrentThreads(int nb) {
 		nbConcurrentThread = nb;
+	}
+	
+	public void setGraph(Graph g) {
+		this.g = g;
+	}
+	
+	public void setDataset(Dataset d) {
+		this.d = d;
+	}
+	
+	public String getDescription() {
+		return String.format("Graph: %s for DB: %s", d.getDatasetName(), g.getClass().getName());
 	}
 	
 	public Object getRandomVertexId(int threadId) {
@@ -73,7 +81,7 @@ public class GraphDescriptor {
 	}
 	
 	public Object[] getRandomPropertyCouple() {
-		ArrayList<GraphProperty> graphProperties = ds.getProperties();
+		ArrayList<GraphProperty> graphProperties = d.getProperties();
 		GraphProperty property = graphProperties.get(r.nextInt(graphProperties.size()));
 		Object fieldName = property.getFieldName();
 		Object value = property.getFieldPossibleValues().get(r.nextInt(property.getFieldPossibleValues().size()));

@@ -7,6 +7,7 @@ import java.util.List;
 import com.silvertower.app.bench.datasetsgeneration.Dataset;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.silvertower.app.bench.workload.DescriptableEntity;
 import com.silvertower.app.bench.workload.Workload;
 
 public class Messages {
@@ -22,35 +23,45 @@ public class Messages {
 	
 	static class FillDB {
 		private final Dataset d;
-		public FillDB(Dataset d) {
+		private final boolean batchLoading;
+		public FillDB(Dataset d, boolean batchLoading) {
 			this.d = d;
+			this.batchLoading = batchLoading;
 		}
+		
 		public Dataset getDataset() {
 			return d;
+		}
+		
+		public boolean isBatchLoading() {
+			return batchLoading;
 		}
 	}
 	
-	static class FillDBBatch {
-		private final Dataset d;
-		public FillDBBatch(Dataset d) {
-			this.d = d;
+	static class SlaveInfos {
+		private final int nCores;
+		public SlaveInfos(int nCores) {
+			this.nCores = nCores;
 		}
-		public Dataset getDataset() {
-			return d;
+		
+		public int getNCores() {
+			return nCores;
 		}
 	}
 	
 	static class AggregateResult {
 		private List<TimeResult> times;
-		public AggregateResult() {
+		private DescriptableEntity w;
+		public AggregateResult(DescriptableEntity w) {
 			this.times = new ArrayList<TimeResult>();
+			this.w = w;
 		}
 		
-		public void addTime (TimeResult t) {
+		public void addTime(TimeResult t) {
 			times.add(t);
 		}
 		
-		public TimeResult getMean () {
+		public TimeResult getMean() {
 			double cpuMeanTime = 0;
 			double wallMeanTime = 0;
 			for (TimeResult t: times) {
@@ -59,18 +70,18 @@ public class Messages {
 			}
 			cpuMeanTime /= times.size();
 			wallMeanTime /= times.size();
-			return new TimeResult(cpuMeanTime, wallMeanTime);
+			return new TimeResult(cpuMeanTime, wallMeanTime, w);
 		}
 	}
 	
 	static class TimeResult {
 		private double wallTime;
 		private double cpuTime;
-		private Workload w;
-	    public TimeResult(double wallTime, double cpuTime) {
+		private DescriptableEntity e;
+	    public TimeResult(double wallTime, double cpuTime, DescriptableEntity e) {
 	    	this.wallTime = wallTime;
 	        this.cpuTime = cpuTime;
-	        this.w = w;
+	        this.e = e;
 	    }
 	    
 		public double getWallTime() {
@@ -81,8 +92,12 @@ public class Messages {
 			return cpuTime;
 		}
 		
-		public Workload getWorkload() {
-			return w;
+		public String toString() {
+			return String.format("Wall time: %f and CPU time: %f", wallTime, cpuTime);
+		}
+		
+		public DescriptableEntity getTimedEntity() {
+			return e;
 		}
 	}
 	
@@ -97,7 +112,7 @@ public class Messages {
 		}
 	}
 	
-	static class Work {
+	static class Work implements DescriptableEntity {
 		private final Workload w;
 		private final int howManyOp;
 		private final int howManyClients;
@@ -107,7 +122,7 @@ public class Messages {
 			this.howManyClients = howManyClients;
 		}
 		
-		public Workload getWork() {
+		public Workload getWorkload() {
 			return w;
 		}
 		
@@ -117,6 +132,15 @@ public class Messages {
 
 		public int getHowManyClients() {
 			return howManyClients;
+		}
+
+		public String getDescription() {
+			if (w.isMT()) {
+				return String.format("%s with %d operations and %d clients", w.getName(), howManyOp, howManyClients);
+			}
+			else {
+				return String.format("%s using a single thread", w.getName());
+			}
 		}
 	}
 	

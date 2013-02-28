@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 
 import com.silvertower.app.bench.akka.Messages.*;
@@ -20,6 +21,7 @@ public class SlaveClient extends UntypedActor {
 	private int nbrCores;
 	private CountDownLatch startLatch;
 	private CountDownLatch stopLatch;
+	private Work currentWork;
 	public SlaveClient(int id) {
 		this.id = id;
 		this.individualClients = new ArrayList<SlaveThread>();
@@ -28,41 +30,39 @@ public class SlaveClient extends UntypedActor {
 	}
 	
 	public void onReceive(Object message) throws Exception {
+		ActorRef master = getSender();
+		
 		if (message instanceof GetNbCores) {
-			getSender().tell(new Integer(nbrCores));
+			master.tell(new Integer(nbrCores), getSelf());
 		}
 		
 		else if (message instanceof GDesc) {
-			if (state == State.WORKING) {
-				getSender().tell(new Messages.Error("Error: client still working!"));
-			}
-			else {
-				currentGDesc = ((GDesc) message).getGraphDesc();
-				state = State.READY_FOR_WORK;
-			}
+			currentGDesc = ((GDesc) message).getGraphDesc();
+			state = State.READY_FOR_WORK;
 		}
 		
 		else if (message instanceof Work) {
-			state = State.WORKING;
-			if (state == State.WORKING) {
-				getSender().tell(new Messages.Error("Error: client still working!"));
+			if (state != State.READY_FOR_WORK) {
+				master.tell(new Messages.Error("Error: client is not ready yet!"), getSelf());
+				return;
 			}
-			else {
-				int nbrCoresWanted = ((Work) message).getHowManyClients();
-				int nbrOpWanted = ((Work) message).getHowManyOp();
-				Workload w = ((Work) message).getWork();
-				createClientThreads(nbrCoresWanted, nbrOpWanted, w);
-				state = State.WORK_RECEIVED;
-			}
+			currentWork = (Work) message;
+			createClientThreads();
+			state = State.WORK_RECEIVED;
 		}
 		
 		else if (message instanceof StartWork) {
+			if (state != State.WORK_RECEIVED) {
+				master.tell(new Messages.Error("Error: client first needs work!"), getSelf());
+				return;
+			}
+			state = State.WORKING;
 			long before = System.nanoTime();
 			startLatch.countDown();
 			stopLatch.await();
 			long after = System.nanoTime();
 			double meanCPUTime = getMeanCPUTime();
-			getSender().tell(new TimeResult((after - before / 1000000000.0), meanCPUTime));
+			master.tell(new TimeResult((after - before / 1000000000.0), meanCPUTime, currentWork), getSelf());
 			state = State.READY_FOR_WORK;
 		}
 		
@@ -76,10 +76,13 @@ public class SlaveClient extends UntypedActor {
 		for (SlaveThread t: individualClients) {
 			total += t.getTimeSpentCPU();
 		}
-		return ((total * 1.0) / 1000000000.0) / individualClients.size();
+		return ((total * 1.0) / 1000000000) / individualClients.size();
 	}
 
-	public void createClientThreads(int nbrCoresWanted, int nbrOpWanted, Workload w) {
+	public void createClientThreads() {
+		int nbrCoresWanted = currentWork.getHowManyClients();
+		int nbrOpWanted = currentWork.getHowManyOp();
+		Workload w = currentWork.getWorkload(); 
 		startLatch = new CountDownLatch(1);
 		stopLatch = new CountDownLatch(nbrCoresWanted);
 		individualClients = new ArrayList<SlaveThread>();

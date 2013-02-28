@@ -9,6 +9,8 @@ import bb.util.Benchmark;
 
 
 public class Utilities {
+	static double threshold = 0.001;
+	
 	public static void deleteDirectory(String place) {
 		File f = new File(place);
 		if (f.isDirectory()) {
@@ -34,7 +36,7 @@ public class Utilities {
 			p.setMeasureCpuTime(true);
 			b = new Benchmark(task, p);
 			// Redo the measurement if the time was inferior to 5 seconds
-			if (b.getFirst() < 5) {
+			if (b.getFirst() < threshold) {
 				p.setManyExecutions(true);
 				p.setNumberMeasurements(3);
 				b = new Benchmark(task, p);
@@ -48,7 +50,7 @@ public class Utilities {
 			p.setMeasureCpuTime(false);
 			b = new Benchmark(task, p);
 			// Redo the measurement if the time was inferior to 5 seconds
-			if (b.getFirst() < 5) {
+			if (b.getFirst() < threshold) {
 				p.setManyExecutions(true);
 				p.setNumberMeasurements(3);
 				b = new Benchmark(task, p);
