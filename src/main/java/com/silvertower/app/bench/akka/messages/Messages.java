@@ -1,4 +1,4 @@
-package com.silvertower.app.bench.akka;
+package com.silvertower.app.bench.akka.messages;
 
 
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 import com.silvertower.app.bench.workload.Workload;
 
 public class Messages {
-	static class InitializeDB {
+	public static class InitializeDB {
 		private final DBInitializer i;
 		public InitializeDB(DBInitializer i) {
 			this.i = i;
@@ -20,7 +20,7 @@ public class Messages {
 		}
 	}
 	
-	static class FillDB {
+	public static class FillDB {
 		private final Dataset d;
 		private final boolean batchLoading;
 		public FillDB(Dataset d, boolean batchLoading) {
@@ -37,7 +37,7 @@ public class Messages {
 		}
 	}
 	
-	static class SlaveInfos {
+	public static class SlaveInfos {
 		private final int nCores;
 		public SlaveInfos(int nCores) {
 			this.nCores = nCores;
@@ -48,7 +48,7 @@ public class Messages {
 		}
 	}
 	
-	static class AggregateResult {
+	public static class AggregateResult {
 		private List<TimeResult> times;
 		public AggregateResult() {
 			this.times = new ArrayList<TimeResult>();
@@ -97,7 +97,7 @@ public class Messages {
 		}
 	}
 	
-	static class GDesc {
+	public static class GDesc {
 		private final GraphDescriptor gDesc;
 		public GDesc(GraphDescriptor gDesc) {
 			this.gDesc = gDesc;
@@ -140,7 +140,7 @@ public class Messages {
 		}
 	}
 	
-	static class NumberOfClients {
+	public static class NumberOfClients {
 		private final int howManyClients;
 		public NumberOfClients(int n) {
 			this.howManyClients = n;
@@ -150,19 +150,19 @@ public class Messages {
 		}
 	}
 	
-	static class GetResult {
+	public static class GetResult {
 	}
 	
-	static class VanishDB {
+	public static class VanishDB {
 	}
 	
-	static class GetNbCores {
+	public static class GetNbCores {
 	}
 	
-	static class StartWork {
+	public static class StartWork {
 	}
 	
-	static class Error {
+	public static class Error {
 		private final String s;
 		public Error(String s) {
 			this.s = s;

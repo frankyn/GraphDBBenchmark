@@ -1,10 +1,12 @@
-package com.silvertower.app.bench.akka;
+package com.silvertower.app.bench.main;
 
 import java.io.File;
 
 import org.apache.log4j.PropertyConfigurator;
 
-import com.silvertower.app.bench.main.BenchmarkProperties;
+import com.silvertower.app.bench.akka.centralnode.CentralNode;
+import com.silvertower.app.bench.akka.masterclient.MasterClient;
+import com.silvertower.app.bench.akka.server.Server;
 import com.silvertower.app.bench.utils.Utilities;
 
 import akka.actor.ActorRef;

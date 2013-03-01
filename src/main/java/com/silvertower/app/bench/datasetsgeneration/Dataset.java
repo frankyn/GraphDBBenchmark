@@ -56,7 +56,7 @@ public abstract class Dataset {
 	 * @return The name of this dataset (in one word without any space character).
 	 */
 	public String getDatasetName() {
-		return datasetName + nVertices;
+		return datasetName;
 	}
 
 	/**

@@ -1,11 +1,11 @@
 package com.silvertower.app.bench.utils;
 
-import com.silvertower.app.bench.akka.Messages.TimeResult;
+import com.silvertower.app.bench.akka.messages.Messages.TimeResult;
 
-public class Result {
+public class PlotResult {
 	private TimeResult t;
 	private int x;
-	public Result(TimeResult t, int x) {
+	public PlotResult(TimeResult t, int x) {
 		this.t = t;
 		this.x = x;
 	}
