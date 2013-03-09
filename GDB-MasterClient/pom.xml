@@ -1,13 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.silvertower</groupId>
-  <artifactId>GDB-MasterClient</artifactId>
+
+  <groupId>com.silvertower.app</groupId>
+  <artifactId>GraphBench</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
-  <name>GDB-MasterClient</name>
+
+  <name>GraphBench</name>
   <url>http://maven.apache.org</url>
-<properties>
+
+  <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -35,6 +38,16 @@
   <dependency>
 	  <groupId>com.typesafe.akka</groupId>
 	  <artifactId>akka-actor</artifactId>
+	  <version>2.0.1</version>
+    </dependency>
+    <dependency>
+	  <groupId>com.typesafe.akka</groupId>
+	  <artifactId>akka-remote</artifactId>
+	  <version>2.0.1</version>
+    </dependency>
+    <dependency>
+	  <groupId>com.typesafe.akka</groupId>
+	  <artifactId>akka-kernel</artifactId>
 	  <version>2.0.1</version>
     </dependency>
     <dependency>
@@ -91,20 +104,20 @@
 	</dependency>
 	<dependency>
 	   <groupId>com.thinkaurelius.titan</groupId>
-	   <artifactId>titan</artifactId>
-	   <version>0.2.0</version>
+	   <artifactId>titan-all</artifactId>
+	   <version>0.3.0-SNAPSHOT</version>
 	</dependency>
 	
 	<dependency>
 	  <groupId>com.orientechnologies</groupId>
 	  <artifactId>orient-commons</artifactId>
-	  <version>1.4.0-SNAPSHOT</version>
+	  <version>1.3.0</version>
 	  <type>bundle</type>
 	</dependency>
 	<dependency>
 	  <groupId>com.orientechnologies</groupId>
 	  <artifactId>orientdb-core</artifactId>
-	  <version>1.4.0-SNAPSHOT</version>
+	  <version>1.3.0</version>
 	  <type>bundle</type>
 	</dependency>
 	<dependency>
@@ -123,7 +136,7 @@
       <name>Maven Repository Switchboard</name>
       <url>http://repo1.maven.org/maven2</url>
     </repository>
-    <repository>
+   <repository>
   <id>sonatype-nexus-releases</id>
   <name>Sonatype Nexus Snapshots</name>
   <url>https://oss.sonatype.org/content/repositories/snapshots</url>
