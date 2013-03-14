@@ -39,9 +39,10 @@ public class SlaveThread extends Thread {
 			long opCount = 0;
 			while (opCount < maxOpCount) {
 				w.operation(gDesc, id);
+				System.out.println(opCount);
 				opCount ++;
 			}
-			((TransactionalGraph) gDesc.getGraph()).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
+			//((TransactionalGraph) gDesc.getGraph()).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
 			long after = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();	
 			totalTimeSpent += after - before;
 		}

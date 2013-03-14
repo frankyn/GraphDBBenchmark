@@ -30,9 +30,9 @@ public class CentralNode extends UntypedActor {
 	private ActorRef masterClient;
 	private ActorRef server;
 	private Timeout timeout = new Timeout(Duration.create(3600, "seconds"));
-	private int fromOps = 100000;
-	private int toOps = 400000;
-	private int stepOps = 100000;
+	private int fromOps = 10000;
+	private int toOps = 50000;
+	private int stepOps = 10000;
 	private int fromClients = 1;
 	private int toClients = 4;
 	public CentralNode(ActorRef mc, ActorRef server) {
@@ -55,12 +55,11 @@ public class CentralNode extends UntypedActor {
 	private void bench(DBInitializer i) {
 		Logger log = new Logger(String.format("%s benchmark", i.getName()));
 		
-		/*loadBenchmark(i, log);
+		load(i, 10000);
 		intensiveBenchmark(i, log, ReadIDIntensiveWorkload.class, fromOps, toOps, stepOps);
 		intensiveBenchmark(i, log, ReadPropIntensiveWorkload.class, fromOps, toOps, stepOps);
-		intensiveBenchmark(i, log, UpdateIntensiveWorkload.class, fromOps, toOps, stepOps);*/
+		intensiveBenchmark(i, log, UpdateIntensiveWorkload.class, fromOps, toOps, stepOps);
 		
-		load(i, 10000);
 		traversalBenchmark(i, log, DijkstraWorkload.class);
 		traversalBenchmark(i, log, VerticesExplorationWorkload.class);
 		traversalBenchmark(i, log, EdgesExplorationWorkload.class);

@@ -17,5 +17,4 @@ public class ServerBootstrap implements Bootable {
 	public void startup() {
 		ServerProperties.initializeProperies();
 	}
-
 }

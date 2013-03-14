@@ -128,18 +128,10 @@ public class MasterClient extends UntypedActor {
 	}
 
 	private int createNewSlave(final int id, final Address add) {
-		// TODO: check if we have enough vms remaining
-		@SuppressWarnings("serial")
-		Props prop = new Props(new UntypedActorFactory() {
-			public UntypedActor create() {
-				return new SlaveClient(id);
-			}
-		});
-		ActorRef slave = getContext().actorOf(prop.withDeploy(new Deploy(new RemoteScope(add))));
-		
+	    ActorRef slave = getContext().actorOf(new Props(SlaveClient.class).withDeploy(new Deploy(new RemoteScope(add))));
 		// We ask the slave for how many cores it has
 		int nCores = 0;
-		Object answer = askAndWait(slave, new GetNbCores());
+		Object answer = askAndWait(slave, new SlaveInitialization(id));
 		if (!(answer == null)) {
 			nCores = (Integer) answer;
 			slaves.add(new SlaveReference(slave, nCores));

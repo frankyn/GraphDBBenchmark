@@ -10,7 +10,7 @@ import com.silvertower.app.bench.utils.Utilities;
 
 
 public class ServerProperties {
-	public static final String rexsterServerIp = "127.0.0.1";
+	public static final String rexsterServerIp = "localhost";
 	public static final int rexsterServerPort = 8182;
 	public static String tempDirPath;
 	public static String datasetsDir;

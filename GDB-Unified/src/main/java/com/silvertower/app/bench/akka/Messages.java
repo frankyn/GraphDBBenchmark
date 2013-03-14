@@ -177,8 +177,16 @@ public class Messages {
 		private static final long serialVersionUID = -1624035463475420728L;
 	}
 	
-	public static class GetNbCores implements Serializable {
+	public static class SlaveInitialization implements Serializable {
 		private static final long serialVersionUID = 5895081999653072251L;
+		private final int id;
+		public SlaveInitialization(int id) {
+			this.id = id;
+		}
+		
+		public int getId() {
+			return id;
+		}
 	}
 	
 	public static class StartWork implements Serializable {

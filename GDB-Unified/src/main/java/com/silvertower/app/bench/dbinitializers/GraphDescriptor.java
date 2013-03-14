@@ -45,6 +45,9 @@ public class GraphDescriptor implements Serializable {
 		System.out.println("Connection to rexster graph: " + String.format("http://%s:%d/graphs/%s", add, port, graphName));
 		Graph g = new RexsterGraph(String.format("http://%s:%d/graphs/%s", add, port, graphName));
 		this.g = g;
+		try {
+			System.out.println(g);
+		} catch (Exception e) {}
 	}
 	
 	public Graph getGraph() {
@@ -66,8 +69,10 @@ public class GraphDescriptor implements Serializable {
 	public void scanDB() {
 		Iterator <Vertex> iter = g.getVertices().iterator();
 		ids = new ArrayList<Object>();
+		
 		while (iter.hasNext()) {
 			Object id = iter.next().getId();
+			System.out.println(id);
 			ids.add(id);
 		}
 	}

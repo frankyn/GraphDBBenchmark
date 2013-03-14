@@ -22,8 +22,13 @@ public class SlaveClient extends UntypedActor {
 	private CountDownLatch stopLatch;
 	private IntensiveWork currentWork;
 	private ActorRef master;
-	public SlaveClient(int id) {
+	/*public SlaveClient(int id) {
 		this.id = id;
+		this.clientThreads = new ArrayList<SlaveThread>();
+		this.state = State.WAITING_FOR_INFOS;
+	}*/
+	
+	public SlaveClient() {
 		this.clientThreads = new ArrayList<SlaveThread>();
 		this.state = State.WAITING_FOR_INFOS;
 	}
@@ -31,7 +36,8 @@ public class SlaveClient extends UntypedActor {
 	public void onReceive(Object message) throws Exception {
 		System.out.println("Slave:" + message);
 		master = getSender();
-		if (message instanceof GetNbCores) {
+		if (message instanceof SlaveInitialization) {
+			this.id = ((SlaveInitialization) message).getId();
 			master.tell(new Integer(Runtime.getRuntime().availableProcessors()), getSelf());
 		}
 		

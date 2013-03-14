@@ -13,6 +13,8 @@ import com.silvertower.app.bench.dbinitializers.DBInitializer;
 import com.silvertower.app.bench.dbinitializers.GraphConnectionInformations;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.TransactionalGraph;
+import com.tinkerpop.blueprints.TransactionalGraph.Conclusion;
 import com.tinkerpop.blueprints.util.io.graphml.GraphMLReader;
 
 public class DBLoader {
@@ -45,13 +47,13 @@ public class DBLoader {
 	public static GraphDescriptor loadDB(Dataset d, DBInitializer initializer) {
 		Graph g = initializer.initialize();
 		loadGraphML(g, initializeIS(d));
-		System.out.println(g);
-		System.out.println(d);
+		initializer.shutdownGraph(g);
 		return initializeGraphDescriptor(g, d, initializer);
 	}
 	
 	public static InputStream initializeIS(Dataset d) {
 		File datasetFile = new File(d.getDatasetFP());
+		System.out.println(d.getDatasetFP());
 		InputStream is = null;
 		try {
 			is = new FileInputStream(datasetFile);

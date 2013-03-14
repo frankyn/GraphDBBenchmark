@@ -1,14 +1,13 @@
 package com.silvertower.app.bench.akka;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 
-import java.io.ByteArrayOutputStream;
 import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.Executor;
-import org.apache.commons.exec.PumpStreamHandler;
 
 import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
@@ -86,13 +85,13 @@ public class Server extends UntypedActor {
 	}
 	
 	private void startRexsterServer() {
-		String command = "start -c " + currentInitializer.getName() + ".xml";
+		String command = "--start -c " + currentInitializer.getName() + ".xml";
 		String endIndicator = "Starting listener thread for shutdown requests";
 		rexsterCommand(command, endIndicator);
 	}
 
 	private void stopRexsterServer() {
-		String command = "stop";
+		String command = "--stop";
 		String endIndicator = "Rexster Server shutdown complete";
 		rexsterCommand(command, endIndicator);
 	}
@@ -104,19 +103,42 @@ public class Server extends UntypedActor {
 		if (os.indexOf("win") >= 0) isWindows = true;
 		else isWindows = false;
 		try {
-			if (isWindows) 
-				 command = "rexster.bat --" + command;
-			else command = "rexster.sh --" + command;
+			DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+			DefaultExecutor exec = new DefaultExecutor();
+			exec.setWorkingDirectory(new File(ServerProperties.rexsterDirPath));
+			CommandLine commandline;
 			
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		    DefaultExecutor exec = new DefaultExecutor();
-		    PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
-		    CommandLine commandline2 = CommandLine.parse(command);
-		    exec.setStreamHandler(streamHandler);
-		    exec.setWorkingDirectory(new File(ServerProperties.rexsterDirPath));
-		    exec.execute(commandline2);
+			if (isWindows) {
+				commandline = CommandLine.parse("cmd");
+				commandline.addArgument("/c");
+				commandline.addArgument("start");
+				commandline.addArgument("rexster.bat");
+			}
+			else {
+				commandline = CommandLine.parse("bash");
+				commandline.addArgument("rexster.sh");
+			}
+			
+			for (String arg: command.split("\\s+")) {
+				commandline.addArgument(arg);
+			}
 		    
-		    System.out.println(outputStream.toString());
+		    exec.execute(commandline, resultHandler);
+		    
+		    File f = new File(ServerProperties.rexsterDirPath + "..\\rexsteroutput.txt");
+		    BufferedReader b = new BufferedReader(new FileReader(f));
+		    StringBuilder content = new StringBuilder();
+		    String currentLine;
+		    long beforeTs = System.currentTimeMillis();
+		    while ((currentLine = b.readLine()) != null) {
+		    	content.append(currentLine);
+		    	if (content.toString().contains(endIndicator)) break;
+		    	else if ((System.currentTimeMillis() - beforeTs) > 100000) {
+		    		System.out.println("PROB");
+		    		// Handle this
+		    		System.exit(-1);
+		    	}
+		    }
 		}
 	    catch (IOException e) {
         	e.printStackTrace();

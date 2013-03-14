@@ -29,7 +29,7 @@ public class BenchmarkLauncher {
 		Address mcAddr = new Address("akka", "MCNode", masterClientAdd, masterClientPort);
 		Props mcProps = new Props(new UntypedActorFactory() {
 			 public UntypedActor create() {
-				 return new MasterClient(Arrays.copyOfRange(actorsInfos, 4, actorsInfos.length - 1));
+				 return new MasterClient(Arrays.copyOfRange(actorsInfos, 4, actorsInfos.length));
 			 }
 		});
 		final ActorRef masterClient = actorsSystem.actorOf(mcProps.withDeploy(new Deploy(new RemoteScope(mcAddr))));

@@ -20,7 +20,7 @@ public class SocialNetworkDataset extends Dataset {
 		String pyScriptPath = ServerProperties.pythonDir + "social-graph-creator.py";
 		String firstNamesFilePath = ServerProperties.pythonDir + "first_names2011.txt";
 		String lastNamesFilePath = ServerProperties.pythonDir + "last_names1990.txt";
-		datasetFP = ServerProperties.datasetsDir + "social" + nVertices;
+		datasetFP = ServerProperties.datasetsDir + "social" + nVertices + ".graphml";
 		File f = new File(datasetFP);
 		if (!f.exists()) {
 			Runtime r = Runtime.getRuntime();
