@@ -29,6 +29,10 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
       <outputDirectory>/bin</outputDirectory>
     </file>
     <file>
+      <source>src/main/resources/akka/akka.sh</source>
+      <outputDirectory>/bin</outputDirectory>
+    </file>
+    <file>
       <source>src/main/resources/akka/application.conf</source>
       <outputDirectory>/config</outputDirectory>
     </file>

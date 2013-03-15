@@ -13,7 +13,7 @@ public class CentralNodeProperties {
 		tempDirPath = System.getProperty("user.dir");;
 
 		// === Log directory initialization
-		logDir = tempDirPath + "\\log\\";
+		logDir = tempDirPath + "//log//";
 		File logDir = new File(CentralNodeProperties.logDir);
 		if (!logDir.mkdir()) {
 			Utilities.deleteDirectory(CentralNodeProperties.logDir);
@@ -21,7 +21,7 @@ public class CentralNodeProperties {
 		}
 		
 		// === Plots directory initialization
-		plotsDir = tempDirPath + "\\plots\\";
+		plotsDir = tempDirPath + "//plots//";
 		File plotsDir = new File(CentralNodeProperties.plotsDir);
 		if (!plotsDir.mkdir()) {
 			Utilities.deleteDirectory(CentralNodeProperties.plotsDir);
