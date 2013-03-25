@@ -20,7 +20,7 @@
         <graph>
             <graph-name>orient</graph-name>
             <graph-type>orientgraph</graph-type>
-            <graph-location>local:data/orient</graph-location>
+            <graph-location>local:C:/Users/Morro/Work/Unified/GDB-Unified-1/rexster/data/orient</graph-location>
             <properties>
                 <username>admin</username>
                 <password>admin</password>

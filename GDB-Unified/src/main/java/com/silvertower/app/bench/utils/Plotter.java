@@ -35,17 +35,14 @@ public class Plotter {
 	
 	public void plotResults() {
 		assert resultsVector.size() != 0: "Nothing to plot!";
-		XYSeries[] series = {new XYSeries("CPU Time"), new XYSeries("Wall Time")};
+		XYSeries s = new XYSeries("Wall Time");
 		
 		for (PlotResult r: resultsVector) {
-			series[0].add(r.getX(), r.getTime().getCpuTime());
-			series[1].add(r.getX(), r.getTime().getWallTime());
+			s.add(r.getX(), r.getTime().getWallTime());
 		}
 		
 		XYSeriesCollection dataset = new XYSeriesCollection();
-		for (XYSeries s: series) {
-			dataset.addSeries(s);
-		}
+		dataset.addSeries(s);
 		JFreeChart graphChart = ChartFactory.createXYLineChart(operation, xAxis, yAxis, dataset, 
 				PlotOrientation.VERTICAL, true, true, true);
 		graphChart.getXYPlot().setRenderer(new XYSplineRenderer());

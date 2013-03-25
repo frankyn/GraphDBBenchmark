@@ -76,37 +76,28 @@ public class Messages {
 		}
 		
 		public TimeResult getMean() {
-			double cpuMeanTime = 0;
 			double wallMeanTime = 0;
 			for (TimeResult t: times) {
-				cpuMeanTime += t.getCpuTime();
 				wallMeanTime += t.getWallTime();
 			}
-			cpuMeanTime /= times.size();
 			wallMeanTime /= times.size();
-			return new TimeResult(wallMeanTime, cpuMeanTime);
+			return new TimeResult(wallMeanTime);
 		}
 	}
 	
 	public static class TimeResult implements Serializable {
 		private static final long serialVersionUID = -3820776238428789950L;
 		private double wallTime;
-		private double cpuTime;
-	    public TimeResult(double wallTime, double cpuTime) {
+	    public TimeResult(double wallTime) {
 	    	this.wallTime = wallTime;
-	        this.cpuTime = cpuTime;
 	    }
 	    
 		public double getWallTime() {
 			return wallTime;
 		}
 		
-		public double getCpuTime() {
-			return cpuTime;
-		}
-		
 		public String toString() {
-			return String.format("Wall time: %f and CPU time: %f", wallTime, cpuTime);
+			return String.format("Wall time: %f", wallTime);
 		}
 	}
 	

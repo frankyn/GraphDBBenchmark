@@ -24,7 +24,7 @@ public abstract class DBInitializer implements Serializable {
 	 * 
 	 * @return a graph instance
 	 */
-	public abstract Graph initialize();
+	public abstract Graph initialize(boolean batchLoading);
 	
 	/**
 	 * 

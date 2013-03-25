@@ -17,12 +17,14 @@ import com.silvertower.app.bench.main.ServerProperties;
 import com.silvertower.app.bench.utils.Utilities;
 import com.silvertower.app.bench.akka.Messages.*;
 
+import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 
 public class Server extends UntypedActor {
 	private DBInitializer currentInitializer;
 	private enum State {WAITING_FOR_INFOS, READY_TO_WORK};
 	private State state;
+	private final int rexsterWaitTimeLimit = 3600000;
 	
 	public Server() {
 		this.state = State.WAITING_FOR_INFOS;
@@ -35,40 +37,47 @@ public class Server extends UntypedActor {
 		
 		else if (message instanceof Dataset) {
 			Dataset d = (Dataset) message;
+			System.out.println(String.format("Received dataset: %s", d.getDatasetName()));
+			System.out.println(String.format("Generating dataset: %s", d.getDatasetName()));
 			d.generate();
+			System.out.println(String.format("Generating dataset: %s completed", d.getDatasetName()));
 			getSender().tell(d, getSelf());
 		}
 		
 		else if (message instanceof LoadBench) {
 			if (state != State.READY_TO_WORK) {
-				getSender().tell(new Messages.Error("Error: the database initializer is not set yet!"), getSelf());
+				forwardError(getSender(), "Error: the database initializer is not set yet!");
 				return;
 			}
 			Dataset d = ((LoadBench) message).getDataset();
-			double[] times;
+			double wallTime;
 			if(((LoadBench) message).isBatchLoading()) {
-				times = DBLoader.batchLoadingBenchmark(d, currentInitializer);
+				wallTime = DBLoader.batchLoadingBenchmark(d, currentInitializer);
 			}
 			else {
-				times = DBLoader.normalLoadingBenchmark(d, currentInitializer);
+				wallTime = DBLoader.normalLoadingBenchmark(d, currentInitializer);
 			}
-			TimeResult r = new TimeResult(times[0], times[1]);
+			TimeResult r = new TimeResult(wallTime);
 			getSender().tell(r, getSelf());
 		}
 		
 		else if (message instanceof Load) {
 			if (state != State.READY_TO_WORK) {
-				getSender().tell(new Messages.Error("Error: the database initializer is not set yet!"), getSelf());
+				forwardError(getSender(), "Error: the database initializer is not set yet!");
 				return;
 			}
-			GraphDescriptor gDesc = DBLoader.loadDB(((Load) message).getDataset(), currentInitializer);
-			getSender().tell(gDesc, getSelf());
+			String dbName = currentInitializer.getName();
+			Dataset d = ((Load) message).getDataset();
+			System.out.println(String.format("Loading the DB %s with dataset: %s", dbName, d.getDatasetName()));
+			GraphDescriptor gDesc = DBLoader.loadDB(d, currentInitializer);
 			startRexsterServer();
+			System.out.println("Loading finished, sending confirmation to the master node...");
+			getSender().tell(gDesc, getSelf());
 		}
 		
 		else if (message instanceof StopCurrentDB) {
 			if (currentInitializer == null) {
-				getSender().tell(new Messages.Error("Error: the database initializer is not set yet!"), getSelf());
+				forwardError(getSender(), "Error: the database initializer is not set yet!");
 			}
 			else {
 				// Stop the rexster server and clean the working directory for this graph
@@ -87,16 +96,29 @@ public class Server extends UntypedActor {
 	private void startRexsterServer() {
 		String command = "--start -c " + currentInitializer.getName() + ".xml";
 		String endIndicator = "Starting listener thread for shutdown requests";
-		rexsterCommand(command, endIndicator);
+	    File f = new File(ServerProperties.rexsterDirPath + "..//rexsteroutput.txt");
+	    if (f.exists()) f.delete();
+	    try {
+			f.createNewFile();
+		} catch (IOException e) {}
+		rexsterCommand(command, "rexster", f, endIndicator);
 	}
 
 	private void stopRexsterServer() {
 		String command = "--stop";
 		String endIndicator = "Rexster Server shutdown complete";
-		rexsterCommand(command, endIndicator);
+		File f = new File(ServerProperties.rexsterDirPath + "..//rexsterkilloutput.txt");
+	    if (f.exists()) f.delete();
+	    try {
+			f.createNewFile();
+		} catch (IOException e) {}
+		rexsterCommand(command, "rexster-kill", f, endIndicator);
 	}
 	
-	private void rexsterCommand(String command, String endIndicator) {
+	/* 
+	 * This method was only tested on Linux and Windows
+	 */
+	private void rexsterCommand(String command, String scriptPrefixName, File outputFile, String endIndicator) {
 		Runtime r = Runtime.getRuntime();
 		String os = System.getProperty("os.name").toLowerCase();
 		boolean isWindows;
@@ -112,11 +134,11 @@ public class Server extends UntypedActor {
 				commandline = CommandLine.parse("cmd");
 				commandline.addArgument("/c");
 				commandline.addArgument("start");
-				commandline.addArgument("rexster.bat");
+				commandline.addArgument(scriptPrefixName + ".bat");
 			}
 			else {
-				commandline = CommandLine.parse("bash");
-				commandline.addArgument("rexster.sh");
+				commandline = CommandLine.parse("sh");
+				commandline.addArgument(scriptPrefixName + ".sh");
 			}
 			
 			for (String arg: command.split("\\s+")) {
@@ -125,25 +147,37 @@ public class Server extends UntypedActor {
 		    
 		    exec.execute(commandline, resultHandler);
 		    
-		    File f = new File(ServerProperties.rexsterDirPath + "..\\rexsteroutput.txt");
-		    BufferedReader b = new BufferedReader(new FileReader(f));
+		    BufferedReader b = new BufferedReader(new FileReader(outputFile));
 		    StringBuilder content = new StringBuilder();
 		    String currentLine;
 		    long beforeTs = System.currentTimeMillis();
-		    while ((currentLine = b.readLine()) != null) {
-		    	content.append(currentLine);
-		    	if (content.toString().contains(endIndicator)) break;
-		    	else if ((System.currentTimeMillis() - beforeTs) > 100000) {
-		    		System.out.println("PROB");
-		    		// Handle this
-		    		System.exit(-1);
+		    while (true) {
+		    	System.out.println("Waiting for an indication from the rexster server ...");
+		    	currentLine = b.readLine();
+		    	if (b != null) {
+			    	content.append(currentLine);
+			    	if (content.toString().contains(endIndicator)) break;
+			    	// We exit the loop if we have waited for one hour
+			    	else if ((System.currentTimeMillis() - beforeTs) > rexsterWaitTimeLimit) {
+			    		// Handle this
+			    		System.err.println("Problem while starting the rexster daemon!");
+			    		return;
+			    	}
 		    	}
+		    	try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {}
 		    }
+		    b.close();
 		}
 	    catch (IOException e) {
         	e.printStackTrace();
         	System.err.println("Rexster command error");
         	System.exit(-1);
         }
+	}
+	
+	private void forwardError(ActorRef dest, String errorMessage) {
+		dest.tell(new Messages.Error(errorMessage), getSelf());
 	}
 }

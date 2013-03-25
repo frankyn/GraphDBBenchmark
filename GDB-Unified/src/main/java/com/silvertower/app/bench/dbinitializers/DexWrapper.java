@@ -21,9 +21,12 @@ public class DexWrapper extends DBInitializer {
 		}
 	}
 
-	public Graph initialize() {
+	public Graph initialize(boolean batchLoading) {
 		String dir = getWorkDirPath();
-		return (new BatchGraph<TransactionalGraph>((TransactionalGraph) new DexGraph(dir + "dex")));
+		if (batchLoading) {
+			return (new BatchGraph<TransactionalGraph>((TransactionalGraph) new DexGraph(dir + "dex")));
+		}
+		else return new DexGraph(dir + "dex");
 	}
 
 	public String getName() {

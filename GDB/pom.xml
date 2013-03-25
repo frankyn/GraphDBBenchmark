@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.silvertower.app</groupId>
-  <artifactId>GraphBench</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <artifactId>GDB</artifactId>
+  <version>1</version>
   <packaging>jar</packaging>
 
-  <name>GraphBench</name>
+  <name>GDB</name>
   <url>http://maven.apache.org</url>
 
   <properties>

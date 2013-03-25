@@ -8,6 +8,7 @@ import com.silvertower.app.bench.dbinitializers.*;
 import com.silvertower.app.bench.utils.Logger;
 import com.silvertower.app.bench.utils.Plotter;
 import com.silvertower.app.bench.utils.PlotResult;
+import com.silvertower.app.bench.workload.DegreeInformationWorkload;
 import com.silvertower.app.bench.workload.DijkstraWorkload;
 import com.silvertower.app.bench.workload.EdgesExplorationWorkload;
 import com.silvertower.app.bench.workload.NeighborhoodWorkload;
@@ -17,6 +18,8 @@ import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.silvertower.app.bench.workload.UpdateIntensiveWorkload;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 import com.silvertower.app.bench.workload.VerticesExplorationWorkload;
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 
 import static akka.pattern.Patterns.ask;
 import akka.actor.ActorRef;
@@ -30,9 +33,9 @@ public class CentralNode extends UntypedActor {
 	private ActorRef masterClient;
 	private ActorRef server;
 	private Timeout timeout = new Timeout(Duration.create(3600, "seconds"));
-	private int fromOps = 10000;
-	private int toOps = 50000;
-	private int stepOps = 10000;
+	private int fromOps = 10;
+	private int toOps = 50;
+	private int stepOps = 10;
 	private int fromClients = 1;
 	private int toClients = 4;
 	public CentralNode(ActorRef mc, ActorRef server) {
@@ -43,27 +46,33 @@ public class CentralNode extends UntypedActor {
 	public void preStart() {
 		//DBInitializer i = new TitanWrapper();
 		//bench(i);
-		DBInitializer i = new Neo4jWrapper();
-		bench(i);
-		//DBInitializer i = new OrientWrapper(false);
-		//bench(i);
-		//DBInitializer i = new DexWrapper();
-		//bench(i);
+		//vanishDB();
+		//DBInitializer j = new Neo4jWrapper();
+		//bench(j);
+		//vanishDB();
+		//DBInitializer k = new OrientWrapper();
+		//bench(k);
+		//vanishDB();
+		DBInitializer l = new DexWrapper();
+		bench(l);
+		//vanishDB();
 		getContext().system().shutdown();
 	}
 	
 	private void bench(DBInitializer i) {
 		Logger log = new Logger(String.format("%s benchmark", i.getName()));
 		
-		load(i, 10000);
-		intensiveBenchmark(i, log, ReadIDIntensiveWorkload.class, fromOps, toOps, stepOps);
-		intensiveBenchmark(i, log, ReadPropIntensiveWorkload.class, fromOps, toOps, stepOps);
-		intensiveBenchmark(i, log, UpdateIntensiveWorkload.class, fromOps, toOps, stepOps);
+		load(i, 1000);
+		//intensiveBenchmark(i, log, ReadIDIntensiveWorkload.class, fromOps, toOps, stepOps);
+		//intensiveBenchmark(i, log, ReadPropIntensiveWorkload.class, fromOps, toOps, stepOps);
+		//intensiveBenchmark(i, log, UpdateIntensiveWorkload.class, fromOps, toOps, stepOps);
 		
-		traversalBenchmark(i, log, DijkstraWorkload.class);
+		/*traversalBenchmark(i, log, DijkstraWorkload.class);
 		traversalBenchmark(i, log, VerticesExplorationWorkload.class);
 		traversalBenchmark(i, log, EdgesExplorationWorkload.class);
-		traversalBenchmark(i, log, NeighborhoodWorkload.class);
+		traversalBenchmark(i, log, DegreeInformationWorkload.class);*/
+		//traversalBenchmark(i, log, NeighborhoodWorkload.class);
+		traversalBenchmark(i, log, DijkstraWorkload.class);
 	}
 	
 	private void load(DBInitializer i, int nbrVertices) {

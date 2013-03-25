@@ -15,6 +15,7 @@ public class UpdateIntensiveWorkload extends IntensiveWorkload implements Serial
 	public void operation(GraphDescriptor gDesc, int threadId) {
 		Object [] property = gDesc.getRandomPropertyCouple();
 		Object id = gDesc.getRandomVertexId(threadId);
+		System.out.println(id);
 		Vertex v = gDesc.getGraph().getVertex(id);
 		if (v != null) {
 			v.setProperty((String) property[0], property[1]);

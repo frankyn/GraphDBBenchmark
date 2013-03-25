@@ -10,7 +10,7 @@ import com.silvertower.app.bench.utils.Utilities;
 
 
 public class ServerProperties {
-	public static final String rexsterServerIp = "192.168.0.224";
+	public static final String rexsterServerIp = "127.0.0.1";
 	public static final int rexsterServerPort = 8182;
 	public static String tempDirPath;
 	public static String datasetsDir;
@@ -27,9 +27,6 @@ public class ServerProperties {
 	public static String dbDirTitanWork;
 	public static String dbDirOrientWork;
 	public static String pythonDir;
-	public static int meanTimes = 10;
-	public static double threshold = 5;
-	public static boolean cpuTimeRequired = true;
 	
 	public static void initializeProperies() {
 		CodeSource codeSource = BenchmarkLauncher.class.getProtectionDomain().getCodeSource();
@@ -48,6 +45,8 @@ public class ServerProperties {
 		if (!workDir.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.tempDirPath);
 			workDir.mkdir();
+			workDir.setReadable(true);
+			workDir.setWritable(true);
 		}
 		
 		// === Datasets directory initialization
@@ -56,6 +55,8 @@ public class ServerProperties {
 		if (!datasetsDir.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.datasetsDir);
 			datasetsDir.mkdir();
+			datasetsDir.setReadable(true);
+			datasetsDir.setWritable(true);
 		}
 		
 		// === Python scripts directory
@@ -67,6 +68,8 @@ public class ServerProperties {
 		if (!dbsDir.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbsDirTemp);
 			dbsDir.mkdir();
+			workDir.setReadable(true);
+			workDir.setWritable(true);
 		}
 		
 		// === Directory where the DEX temporary graphs will be stored
@@ -75,6 +78,8 @@ public class ServerProperties {
 		if (!dbDirDex.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbDirDexTemp);
 			dbDirDex.mkdir();
+			dbDirDex.setReadable(true);
+			dbDirDex.setWritable(true);
 		}
 		
 		// === Directory where the Neo4j temporary graphs will be stored
@@ -83,6 +88,8 @@ public class ServerProperties {
 		if (!dbDirNeo4j.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbDirNeo4jTemp);
 			dbDirNeo4j.mkdir();
+			dbDirNeo4j.setReadable(true);
+			dbDirNeo4j.setWritable(true);
 		}
 		
 		// === Directory where the Titan temporary graphs will be stored
@@ -91,6 +98,8 @@ public class ServerProperties {
 		if (!dbDirTitan.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbDirTitanTemp);
 			dbDirTitan.mkdir();
+			dbDirTitan.setReadable(true);
+			dbDirTitan.setWritable(true);
 		}
 		
 		// === Directory where the Orient temporary graphs will be stored
@@ -99,6 +108,8 @@ public class ServerProperties {
 		if (!dbDirOrient.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbDirOrientTemp);
 			dbDirOrient.mkdir();
+			dbDirOrient.setReadable(true);
+			dbDirOrient.setWritable(true);
 		}
 		
 		// === Rexster server directory
@@ -110,6 +121,8 @@ public class ServerProperties {
 		if (!dbsDir.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbsDirWork);
 			dbsDir.mkdir();
+			dbsDir.setReadable(true);
+			dbsDir.setWritable(true);
 		}
 		
 		// === Directory where the working DEX graph will be stored
@@ -118,6 +131,8 @@ public class ServerProperties {
 		if (!dbDirDex.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbDirDexWork);
 			dbDirDex.mkdir();
+			dbDirDex.setReadable(true);
+			dbDirDex.setWritable(true);
 		}
 
 		// === Directory where the working Neo4j graph will be stored
@@ -126,6 +141,8 @@ public class ServerProperties {
 		if (!dbDirNeo4j.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbDirNeo4jWork);
 			dbDirNeo4j.mkdir();
+			dbDirNeo4j.setReadable(true);
+			dbDirNeo4j.setWritable(true);
 		}
 		
 		// === Directory where the working Titan graph will be stored
@@ -134,6 +151,8 @@ public class ServerProperties {
 		if (!dbDirTitan.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbDirTitanWork);
 			dbDirTitan.mkdir();
+			dbDirTitan.setReadable(true);
+			dbDirTitan.setWritable(true);
 		}
 		
 		// === Directory where the working Orient graph will be stored
@@ -142,6 +161,8 @@ public class ServerProperties {
 		if (!dbDirOrient.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.dbDirOrientWork);
 			dbDirOrient.mkdir();
+			dbDirOrient.setReadable(true);
+			dbDirOrient.setWritable(true);
 		}
 	}
 }

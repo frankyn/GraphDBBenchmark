@@ -15,6 +15,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author Stephen Mallette (http://stephen.genoprime.com)
+ */
 public class GraphConfigurationContainer {
 
     protected static final Logger logger = Logger.getLogger(GraphConfigurationContainer.class);
@@ -136,9 +139,13 @@ public class GraphConfigurationContainer {
             }
 
         } catch (NoClassDefFoundError err) {
-            throw new GraphConfigurationException("GraphConfiguration [" + graphConfigurationType + "] could not instantiate a class [" + err.getMessage() + "].  Ensure that it is in Rexste's path.");
+            throw new GraphConfigurationException(String.format(
+                    "GraphConfiguration [%s] could not instantiate a class [%s].  Ensure that it is in Rexster's path.",
+                    graphConfigurationType, err.getMessage()));
         } catch (Exception ex) {
-            throw new GraphConfigurationException("GraphConfiguration could not be found or otherwise instantiated:." + graphConfigurationType, ex);
+            throw new GraphConfigurationException(String.format(
+                    "GraphConfiguration could not be found or otherwise instantiated: [%s]. Ensure that it is in Rexster's path.",
+                    graphConfigurationType), ex);
         }
 
         return graph;

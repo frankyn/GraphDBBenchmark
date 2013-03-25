@@ -19,7 +19,7 @@
     <graphs>        
         <graph>
             <graph-name>dex</graph-name>
-            <graph-type>dexgraph</graph-type>
+            <graph-type>com.tinkerpop.rexster.config.DexGraphConfiguration</graph-type>
             <graph-location>data/dex/dex</graph-location>
 			<properties>
 				<config-file>../resources/dex.cfg</config-file>

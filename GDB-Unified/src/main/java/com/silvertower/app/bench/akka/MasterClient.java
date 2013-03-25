@@ -9,7 +9,6 @@ import akka.actor.Address;
 import akka.actor.Deploy;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.actor.UntypedActorFactory;
 import akka.dispatch.Await;
 import akka.dispatch.Future;
 import akka.remote.RemoteScope;
@@ -53,7 +52,6 @@ public class MasterClient extends UntypedActor {
 			currentGDesc.setNbConcurrentThreads(coresAvailable);
 			assignGDesc();
 			currentGDesc.fetchGraph();
-			currentGDesc.scanDB();
 			state = State.READY_FOR_WORK;
 		}
 		
@@ -123,8 +121,10 @@ public class MasterClient extends UntypedActor {
 						w.operation(currentGDesc); 
 					} 
 				};
-		double[] times = Utilities.benchTask(task);
-		resultsListener.tell(new TimeResult(times[0], times[1]), getSelf());
+		
+		double wallTime = Utilities.benchTask(task, w.preciseBenchmarkingNeeded());
+
+		resultsListener.tell(new TimeResult(wallTime), getSelf());
 	}
 
 	private int createNewSlave(final int id, final Address add) {

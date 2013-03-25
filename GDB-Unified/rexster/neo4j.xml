@@ -19,7 +19,7 @@
 	<graphs>        
         <graph>
             <graph-name>neo4j</graph-name>
-            <graph-type>neo4jgraph</graph-type>
+            <graph-type>com.tinkerpop.rexster.config.Neo4jGraphConfiguration</graph-type>
             <graph-location>data/neo4j</graph-location>
             <properties>
                 <!-- Memory mapped I/O settings -->

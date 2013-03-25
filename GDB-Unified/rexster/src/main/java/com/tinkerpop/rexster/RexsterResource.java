@@ -1,6 +1,7 @@
 package com.tinkerpop.rexster;
 
 import com.tinkerpop.rexster.extension.HttpMethod;
+import com.tinkerpop.rexster.server.RexsterApplication;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -33,7 +34,7 @@ public class RexsterResource extends BaseResource {
         super(null);
     }
 
-    public RexsterResource(RexsterApplication ra) {
+    public RexsterResource(final RexsterApplication ra) {
         super(ra);
     }
 
@@ -46,8 +47,8 @@ public class RexsterResource extends BaseResource {
     public Response getRexsterRoot() {
         try {
 
-            Set<String> graphNames = this.getRexsterApplication().getGraphNames();
-            JSONArray jsonArrayNames = new JSONArray(graphNames);
+            final Set<String> graphNames = this.getRexsterApplication().getGraphNames();
+            final JSONArray jsonArrayNames = new JSONArray(graphNames);
 
             this.resultObject.put("name", "Rexster: A Graph Server");
             this.resultObject.put("graphs", jsonArrayNames);
@@ -56,7 +57,7 @@ public class RexsterResource extends BaseResource {
             return Response.ok(this.resultObject).build();
 
         } catch (JSONException ex) {
-            JSONObject error = generateErrorObject(ex.getMessage());
+            final JSONObject error = generateErrorObject(ex.getMessage());
             throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
         }
     }

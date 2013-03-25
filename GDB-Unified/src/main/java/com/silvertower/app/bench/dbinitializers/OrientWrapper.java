@@ -3,8 +3,8 @@ package com.silvertower.app.bench.dbinitializers;
 import com.orientechnologies.orient.core.Orient;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.impls.orient.OrientBatchGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.batch.OrientBatchGraph;
 
 public class OrientWrapper extends DBInitializer {
 	
@@ -22,10 +22,11 @@ public class OrientWrapper extends DBInitializer {
 		}
 	}
 	
-	public Graph initialize() {
+	public Graph initialize(boolean batchLoading) {
 		String dir = getWorkDirPath();
 		createDirectory(dir);
-		return new OrientBatchGraph("local:" + dir);
+		if (batchLoading) return new OrientBatchGraph("local:" + dir);
+		else return new OrientGraph("local:" + dir);
 	}
 
 	public String getName() {

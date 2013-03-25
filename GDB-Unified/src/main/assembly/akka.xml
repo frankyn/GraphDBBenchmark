@@ -22,6 +22,9 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
     <dependencySet>
       <outputDirectory>/lib</outputDirectory>
     </dependencySet>
+    <dependencySet>
+      <outputDirectory>/rexster/ext/titan</outputDirectory>
+    </dependencySet>
   </dependencySets>
   <files>
     <file>
@@ -49,11 +52,11 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
       <outputDirectory>/resources/python</outputDirectory>
     </file>
     <file>
-      <source>log4j.properties</source>
+      <source>src/main/resources/log4j.properties</source>
       <outputDirectory>/resources</outputDirectory>
     </file>
     <file>
-      <source>dex.cfg</source>
+      <source>src/main/resources/dex.cfg</source>
       <outputDirectory>/resources</outputDirectory>
     </file>
   </files>

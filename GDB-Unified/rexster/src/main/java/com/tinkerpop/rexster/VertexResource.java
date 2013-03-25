@@ -4,8 +4,9 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.Query;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.VertexQuery;
+import com.tinkerpop.blueprints.util.io.graphson.GraphSONMode;
 import com.tinkerpop.blueprints.util.io.graphson.GraphSONUtility;
 import com.tinkerpop.rexster.extension.ExtensionMethod;
 import com.tinkerpop.rexster.extension.ExtensionPoint;
@@ -13,6 +14,7 @@ import com.tinkerpop.rexster.extension.ExtensionResponse;
 import com.tinkerpop.rexster.extension.ExtensionSegmentSet;
 import com.tinkerpop.rexster.extension.HttpMethod;
 import com.tinkerpop.rexster.extension.RexsterExtension;
+import com.tinkerpop.rexster.server.RexsterApplication;
 import com.tinkerpop.rexster.util.ElementHelper;
 import com.tinkerpop.rexster.util.QueryProperties;
 import com.tinkerpop.rexster.util.RequestObjectHelper;
@@ -35,6 +37,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -60,7 +63,7 @@ public class VertexResource extends AbstractSubResource {
         super(null);
     }
 
-    public VertexResource(UriInfo ui, HttpServletRequest req, RexsterApplication ra) {
+    public VertexResource(final UriInfo ui, final HttpServletRequest req, final RexsterApplication ra) {
         super(ra);
         this.httpServletRequest = req;
         this.uriInfo = ui;
@@ -78,24 +81,26 @@ public class VertexResource extends AbstractSubResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_JSON, RexsterMediaType.APPLICATION_REXSTER_JSON})
-    public Response getVertices(@PathParam("graphname") String graphName) {
+    public Response getVertices(@PathParam("graphname") final String graphName) {
         return getVertices(graphName, false);
     }
 
     @GET
     @Produces({RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
-    public Response getVerticesRexsterJson(@PathParam("graphname") String graphName) {
+    public Response getVerticesRexsterJson(@PathParam("graphname") final String graphName) {
         return getVertices(graphName, true);
     }
 
     private Response getVertices(final String graphName, final boolean showTypes) {
         final RexsterApplicationGraph rag = this.getRexsterApplicationGraph(graphName);
         final Graph graph = rag.getGraph();
-        
+
+        final GraphSONMode mode = showTypes ? GraphSONMode.EXTENDED : GraphSONMode.NORMAL;
+
         final JSONObject theRequestObject = this.getRequestObject();
         final Long start = RequestObjectHelper.getStartOffset(theRequestObject);
         final Long end = RequestObjectHelper.getEndOffset(theRequestObject);
-        final List<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
+        final Set<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
 
         String key = null;
         Object value = null;
@@ -107,19 +112,19 @@ public class VertexResource extends AbstractSubResource {
         temp = theRequestObject.opt(Tokens.VALUE);
         if (null != temp)
             value = ElementHelper.getTypedPropertyValue(temp.toString());
-        
+
         final boolean filtered = key != null && value != null;
-        
+
         try {
             long counter = 0l;
             final JSONArray vertexArray = new JSONArray();
             boolean wasInSection = false;
-            
+
             final Iterable<Vertex> vertices = filtered ? graph.getVertices(key, value) : graph.getVertices();
             for (Vertex vertex : vertices) {
                 if (counter >= start && counter < end) {
                     wasInSection = true;
-                    vertexArray.put(GraphSONUtility.jsonFromElement(vertex, returnKeys, showTypes));
+                    vertexArray.put(GraphSONUtility.jsonFromElement(vertex, returnKeys, mode));
                 } else if (wasInSection) {
                     break;
                 }
@@ -139,6 +144,8 @@ public class VertexResource extends AbstractSubResource {
 
             JSONObject error = generateErrorObject(re.getMessage(), re);
             throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
+        } finally {
+            rag.tryCommit();
         }
 
         return Response.ok(this.resultObject).build();
@@ -157,34 +164,36 @@ public class VertexResource extends AbstractSubResource {
     @GET
     @Path("/{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getSingleVertex(@PathParam("graphname") String graphName, @PathParam("id") String id) {
+    public Response getSingleVertex(@PathParam("graphname") final String graphName, @PathParam("id") final String id) {
         return getSingleVertex(graphName, id, false, false);
     }
 
     @GET
     @Path("/{id}")
     @Produces({RexsterMediaType.APPLICATION_REXSTER_JSON})
-    public Response getSingleVertexRexsterJson(@PathParam("graphname") String graphName, @PathParam("id") String id) {
+    public Response getSingleVertexRexsterJson(@PathParam("graphname") final String graphName, @PathParam("id") final String id) {
         return getSingleVertex(graphName, id, false, true);
     }
 
     @GET
     @Path("/{id}")
     @Produces({RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
-    public Response getSingleVertexRexsterTypedJson(@PathParam("graphname") String graphName, @PathParam("id") String id) {
+    public Response getSingleVertexRexsterTypedJson(@PathParam("graphname") final String graphName, @PathParam("id") final String id) {
         return getSingleVertex(graphName, id, true, true);
     }
 
-    private Response getSingleVertex(String graphName, String id, boolean showTypes, boolean showHypermedia) {
-        RexsterApplicationGraph rag = this.getRexsterApplicationGraph(graphName);
-        Vertex vertex = rag.getGraph().getVertex(id);
-        if (null != vertex) {
-            try {
+    private Response getSingleVertex(final String graphName, final String id, final boolean showTypes, final boolean showHypermedia) {
+        final RexsterApplicationGraph rag = this.getRexsterApplicationGraph(graphName);
+        try {
 
-                JSONObject theRequestObject = this.getRequestObject();
-                List<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
+            final Vertex vertex = rag.getGraph().getVertex(id);
+            if (null != vertex) {
 
-                this.resultObject.put(Tokens.RESULTS, GraphSONUtility.jsonFromElement(vertex, returnKeys, showTypes));
+                final JSONObject theRequestObject = this.getRequestObject();
+                final GraphSONMode mode = showTypes ? GraphSONMode.EXTENDED : GraphSONMode.NORMAL;
+                final Set<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
+
+                this.resultObject.put(Tokens.RESULTS, GraphSONUtility.jsonFromElement(vertex, returnKeys, mode));
                 this.resultObject.put(Tokens.QUERY_TIME, this.sh.stopWatch());
 
                 if (showHypermedia) {
@@ -194,18 +203,21 @@ public class VertexResource extends AbstractSubResource {
                     }
                 }
 
-            } catch (JSONException ex) {
-                logger.error(ex);
+            } else {
+                final String msg = "Vertex with [" + id + "] cannot be found.";
+                logger.info(msg);
 
-                JSONObject error = generateErrorObjectJsonFail(ex);
-                throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
+                final JSONObject error = generateErrorObject(msg);
+                throw new WebApplicationException(Response.status(Status.NOT_FOUND).entity(error).build());
             }
-        } else {
-            String msg = "Vertex with [" + id + "] cannot be found.";
-            logger.info(msg);
 
-            JSONObject error = generateErrorObject(msg);
-            throw new WebApplicationException(Response.status(Status.NOT_FOUND).entity(error).build());
+        } catch (JSONException ex) {
+            logger.error(ex);
+
+            final JSONObject error = generateErrorObjectJsonFail(ex);
+            throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
+        } finally {
+            rag.tryCommit();
         }
 
         return Response.ok(this.resultObject).build();
@@ -214,76 +226,92 @@ public class VertexResource extends AbstractSubResource {
     @HEAD
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response headVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id, JSONObject json) {
+    public Response headVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id, final JSONObject json) {
         this.setRequestObject(json);
         return this.executeVertexExtension(graphName, id, HttpMethod.HEAD);
     }
 
     @HEAD
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
-    public Response headVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id) {
+    public Response headVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id) {
         return this.executeVertexExtension(graphName, id, HttpMethod.HEAD);
     }
 
     @PUT
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response putVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id, JSONObject json) {
+    public Response putVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id, final JSONObject json) {
         this.setRequestObject(json);
         return this.executeVertexExtension(graphName, id, HttpMethod.PUT);
     }
 
     @PUT
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
-    public Response putVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id) {
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response putVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id, final MultivaluedMap<String, String> formParams) {
+        this.setRequestObject(formParams);
+        return this.executeVertexExtension(graphName, id, HttpMethod.PUT);
+    }
+
+    @PUT
+    @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
+    public Response putVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id) {
         return this.executeVertexExtension(graphName, id, HttpMethod.PUT);
     }
 
     @OPTIONS
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response optionsVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id, JSONObject json) {
+    public Response optionsVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id, final JSONObject json) {
         this.setRequestObject(json);
         return this.executeVertexExtension(graphName, id, HttpMethod.OPTIONS);
     }
 
     @OPTIONS
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
-    public Response optionsVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id) {
+    public Response optionsVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id) {
         return this.executeVertexExtension(graphName, id, HttpMethod.OPTIONS);
     }
 
     @DELETE
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id, JSONObject json) {
+    public Response deleteVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id, final JSONObject json) {
         this.setRequestObject(json);
         return this.executeVertexExtension(graphName, id, HttpMethod.DELETE);
     }
 
     @DELETE
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
-    public Response deleteVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id) {
+    public Response deleteVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id) {
         return this.executeVertexExtension(graphName, id, HttpMethod.DELETE);
     }
 
     @POST
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response postVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id, JSONObject json) {
+    public Response postVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id, final JSONObject json) {
         this.setRequestObject(json);
         return this.executeVertexExtension(graphName, id, HttpMethod.POST);
     }
 
     @POST
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
-    public Response postVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id) {
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response postVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id, final MultivaluedMap<String, String> formParams) {
+        this.setRequestObject(formParams);
+        return this.executeVertexExtension(graphName, id, HttpMethod.POST);
+    }
+
+    @POST
+    @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
+    public Response postVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id) {
         return this.executeVertexExtension(graphName, id, HttpMethod.POST);
     }
 
     @GET
     @Path("/{id}/{extension: (?!outE)(?!bothE)(?!inE)(?!out)(?!both)(?!in)(?!query).+}")
-    public Response getVertexExtension(@PathParam("graphname") String graphName, @PathParam("id") String id) {
+    public Response getVertexExtension(@PathParam("graphname") final String graphName, @PathParam("id") final String id) {
         return this.executeVertexExtension(graphName, id, HttpMethod.GET);
     }
 
@@ -311,7 +339,7 @@ public class VertexResource extends AbstractSubResource {
                     rexsterExtensions = findExtensionClasses(extensionSegmentSet);
                 } catch (ServiceConfigurationError sce) {
                     logger.error("ServiceLoader could not find a class referenced in com.tinkerpop.rexster.extension.RexsterExtension.");
-                    JSONObject error = generateErrorObject(
+                    final JSONObject error = generateErrorObject(
                             "Class specified in com.tinkerpop.rexster.extension.RexsterExtension could not be found.",
                             sce);
                     throw new WebApplicationException(Response.status(Status.NOT_FOUND).entity(error).build());
@@ -320,7 +348,7 @@ public class VertexResource extends AbstractSubResource {
                 if (rexsterExtensions == null || rexsterExtensions.size() == 0) {
                     // extension was not found for some reason
                     logger.error("The [" + extensionSegmentSet + "] extension was not found for [" + graphName + "].  Check com.tinkerpop.rexster.extension.RexsterExtension file in META-INF.services.");
-                    JSONObject error = generateErrorObject(
+                    final JSONObject error = generateErrorObject(
                             "The [" + extensionSegmentSet + "] extension was not found for [" + graphName + "]");
                     throw new WebApplicationException(Response.status(Status.NOT_FOUND).entity(error).build());
                 }
@@ -330,8 +358,14 @@ public class VertexResource extends AbstractSubResource {
 
                 if (methodToCall == null) {
                     // extension method was not found for some reason
+                    if (httpMethodRequested == HttpMethod.OPTIONS) {
+                        // intercept the options call and return the standard business
+                        // no need to stop the transaction here
+                        return buildOptionsResponse();
+                    }
+
                     logger.error("The [" + extensionSegmentSet + "] extension was not found for [" + graphName + "] with a HTTP method of [" + httpMethodRequested.name() + "].  Check com.tinkerpop.rexster.extension.RexsterExtension file in META-INF.services.");
-                    JSONObject error = generateErrorObject(
+                    final JSONObject error = generateErrorObject(
                             "The [" + extensionSegmentSet + "] extension was not found for [" + graphName + "] with a HTTP method of [" + httpMethodRequested.name() + "]");
                     throw new WebApplicationException(Response.status(Status.NOT_FOUND).entity(error).build());
                 }
@@ -341,16 +375,19 @@ public class VertexResource extends AbstractSubResource {
 
             } catch (WebApplicationException wae) {
                 // already logged this...just throw it  up.
+                rag.tryRollback();
                 throw wae;
             } catch (Exception ex) {
                 logger.error("Dynamic invocation of the [" + extensionSegmentSet + "] extension failed.", ex);
 
                 if (ex.getCause() != null) {
-                    Throwable cause = ex.getCause();
+                    final Throwable cause = ex.getCause();
                     logger.error("It would be smart to trap this this exception within the extension and supply a good response to the user:" + cause.getMessage(), cause);
                 }
 
-                JSONObject error = generateErrorObjectJsonFail(ex);
+                rag.tryRollback();
+
+                final JSONObject error = generateErrorObjectJsonFail(ex);
                 throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
             }
 
@@ -360,20 +397,33 @@ public class VertexResource extends AbstractSubResource {
                 if (extResponse.isErrorResponse()) {
                     // an error was raised within the extension.  pass it back out as an error.
                     logger.warn("The [" + extensionSegmentSet + "] extension raised an error response.");
+
+                    if (methodToCall.getExtensionDefinition().autoCommitTransaction()) {
+                        rag.tryRollback();
+                    }
+
                     throw new WebApplicationException(Response.fromResponse(extResponse.getJerseyResponse()).build());
                 }
+
+                if (methodToCall.getExtensionDefinition().autoCommitTransaction()) {
+                    rag.tryCommit();
+                }
+
             } else {
                 // extension method is not returning the correct type...needs to be an ExtensionResponse
                 logger.error("The [" + extensionSegmentSet + "] extension does not return an ExtensionResponse.");
-                JSONObject error = generateErrorObject(
+                final JSONObject error = generateErrorObject(
                         "The [" + extensionSegmentSet + "] extension does not return an ExtensionResponse.");
+
+                rag.tryRollback();
+
                 throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
             }
 
         } else {
             // namespace was not allowed
             logger.error("The [" + extensionSegmentSet + "] extension was not configured for [" + graphName + "]");
-            JSONObject error = generateErrorObject(
+            final JSONObject error = generateErrorObject(
                     "The [" + extensionSegmentSet + "] extension was not configured for [" + graphName + "]");
             throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
         }
@@ -412,20 +462,23 @@ public class VertexResource extends AbstractSubResource {
     }
 
     private Response getVertexEdges(String graphName, String vertexId, String direction, boolean showTypes) {
-        final Vertex vertex = this.getRexsterApplicationGraph(graphName).getGraph().getVertex(vertexId);
-        if (vertex == null) {
-            final String msg = "Vertex with [" + vertexId + "] cannot be found.";
-            logger.info(msg);
-
-            final JSONObject error = generateErrorObject(msg);
-            throw new WebApplicationException(Response.status(Status.NOT_FOUND).entity(error).build());
-        }
+        final RexsterApplicationGraph rag = this.getRexsterApplicationGraph(graphName);
 
         try {
+            final Vertex vertex = rag.getGraph().getVertex(vertexId);
+            if (vertex == null) {
+                final String msg = "Vertex with [" + vertexId + "] cannot be found.";
+                logger.info(msg);
+
+                final JSONObject error = generateErrorObject(msg);
+                throw new WebApplicationException(Response.status(Status.NOT_FOUND).entity(error).build());
+            }
+
+            final GraphSONMode mode = showTypes ? GraphSONMode.EXTENDED : GraphSONMode.NORMAL;
             final JSONObject theRequestObject = this.getRequestObject();
             final Long start = RequestObjectHelper.getStartOffset(theRequestObject);
             final Long end = RequestObjectHelper.getEndOffset(theRequestObject);
-            final List<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
+            final Set<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
 
             // accept either an array of labels or just one label
             final String[] labels = getLabelsFromRequest(theRequestObject);
@@ -446,7 +499,7 @@ public class VertexResource extends AbstractSubResource {
             long counter = 0l;
             final JSONArray elementArray = new JSONArray();
 
-            Query query = vertex.query().direction(queryDirection);
+            VertexQuery query = vertex.query().direction(queryDirection);
             if (labels != null) {
                 query = query.labels(labels);
             }
@@ -463,12 +516,12 @@ public class VertexResource extends AbstractSubResource {
                 query = query.limit(limit);
             }
 
-            if (returnType == ReturnType.VERTICES || returnType == ReturnType.VERTEX_IDS){
+            if (returnType == ReturnType.VERTICES || returnType == ReturnType.VERTEX_IDS) {
                 final Iterable<Vertex> vertexQueryResults = query.vertices();
                 for (Vertex v : vertexQueryResults) {
                     if (counter >= start && counter < end) {
                         if (returnType.equals(ReturnType.VERTICES)) {
-                            elementArray.put(GraphSONUtility.jsonFromElement(v, returnKeys, showTypes));
+                            elementArray.put(GraphSONUtility.jsonFromElement(v, returnKeys, mode));
                         } else {
                             elementArray.put(v.getId());
                         }
@@ -479,7 +532,7 @@ public class VertexResource extends AbstractSubResource {
                 final Iterable<Edge> edgeQueryResults = query.edges();
                 for (Edge e : edgeQueryResults) {
                     if (counter >= start && counter < end) {
-                        elementArray.put(GraphSONUtility.jsonFromElement(e, returnKeys, showTypes));
+                        elementArray.put(GraphSONUtility.jsonFromElement(e, returnKeys, mode));
                     }
                     counter++;
                 }
@@ -509,6 +562,8 @@ public class VertexResource extends AbstractSubResource {
 
             final JSONObject error = generateErrorObject(re.getMessage(), re);
             throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
+        } finally {
+            rag.tryCommit();
         }
 
         return Response.ok(this.resultObject).build();
@@ -517,24 +572,24 @@ public class VertexResource extends AbstractSubResource {
     @POST
     @Produces({MediaType.APPLICATION_JSON, RexsterMediaType.APPLICATION_REXSTER_JSON, RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
     @Consumes({MediaType.APPLICATION_JSON, RexsterMediaType.APPLICATION_REXSTER_JSON})
-    public Response postNullVertexRexsterConsumesJson(@Context Request request, @PathParam("graphname") String graphName, JSONObject json) {
+    public Response postNullVertexRexsterConsumesJson(@Context final Request request, @PathParam("graphname") final String graphName, final JSONObject json) {
         // initializes the request object with the data POSTed to the resource.  URI parameters
         // will then be ignored when the getRequestObject is called as the request object will
         // have already been established.
         this.setRequestObject(json);
-        Variant v = request.selectVariant(producesVariantList);
+        final Variant v = request.selectVariant(producesVariantList);
         return this.postVertex(graphName, null, false, v);
     }
 
     @POST
     @Produces({MediaType.APPLICATION_JSON, RexsterMediaType.APPLICATION_REXSTER_JSON, RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
     @Consumes({RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
-    public Response postNullVertexRexsterConsumesTypedJson(@Context Request request, @PathParam("graphname") String graphName, JSONObject json) {
+    public Response postNullVertexRexsterConsumesTypedJson(@Context final Request request, @PathParam("graphname") final String graphName, final JSONObject json) {
         // initializes the request object with the data POSTed to the resource.  URI parameters
         // will then be ignored when the getRequestObject is called as the request object will
         // have already been established.
         this.setRequestObject(json);
-        Variant v = request.selectVariant(producesVariantList);
+        final Variant v = request.selectVariant(producesVariantList);
         return this.postVertex(graphName, null, true, v);
     }
 
@@ -544,8 +599,8 @@ public class VertexResource extends AbstractSubResource {
      */
     @POST
     @Produces({MediaType.APPLICATION_JSON, RexsterMediaType.APPLICATION_REXSTER_JSON, RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
-    public Response postNullVertexOnUri(@Context Request request, @PathParam("graphname") String graphName) {
-        Variant v = request.selectVariant(producesVariantList);
+    public Response postNullVertexOnUri(@Context final Request request, @PathParam("graphname") final String graphName) {
+        final Variant v = request.selectVariant(producesVariantList);
         return this.postVertex(graphName, null, true, v);
     }
 
@@ -558,12 +613,12 @@ public class VertexResource extends AbstractSubResource {
     @Path("/{id}")
     @Produces({MediaType.APPLICATION_JSON, RexsterMediaType.APPLICATION_REXSTER_JSON, RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
     @Consumes({MediaType.APPLICATION_JSON, RexsterMediaType.APPLICATION_REXSTER_JSON})
-    public Response postVertexConsumesJson(@Context Request request, @PathParam("graphname") String graphName, @PathParam("id") String id, JSONObject json) {
+    public Response postVertexConsumesJson(@Context final Request request, @PathParam("graphname") final String graphName, @PathParam("id") final String id, final JSONObject json) {
         // initializes the request object with the data POSTed to the resource.  URI parameters
         // will then be ignored when the getRequestObject is called as the request object will
         // have already been established.
         this.setRequestObject(json);
-        Variant v = request.selectVariant(producesVariantList);
+        final Variant v = request.selectVariant(producesVariantList);
         return this.postVertex(graphName, id, false, v);
     }
 
@@ -571,12 +626,12 @@ public class VertexResource extends AbstractSubResource {
     @Path("/{id}")
     @Produces({MediaType.APPLICATION_JSON, RexsterMediaType.APPLICATION_REXSTER_JSON, RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
     @Consumes({RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
-    public Response postVertexRexsterConsumesTypedJson(@Context Request request, @PathParam("graphname") String graphName, @PathParam("id") String id, JSONObject json) {
+    public Response postVertexRexsterConsumesTypedJson(@Context final Request request, @PathParam("graphname") final String graphName, @PathParam("id") final String id, final JSONObject json) {
         // initializes the request object with the data POSTed to the resource.  URI parameters
         // will then be ignored when the getRequestObject is called as the request object will
         // have already been established.
         this.setRequestObject(json);
-        Variant v = request.selectVariant(producesVariantList);
+        final Variant v = request.selectVariant(producesVariantList);
         return this.postVertex(graphName, id, true, v);
     }
 
@@ -588,8 +643,8 @@ public class VertexResource extends AbstractSubResource {
     @POST
     @Path("/{id}")
     @Produces({MediaType.APPLICATION_JSON, RexsterMediaType.APPLICATION_REXSTER_JSON, RexsterMediaType.APPLICATION_REXSTER_TYPED_JSON})
-    public Response postVertexOnUri(@Context Request request, @PathParam("graphname") String graphName, @PathParam("id") String id) {
-        Variant v = request.selectVariant(producesVariantList);
+    public Response postVertexOnUri(@Context final Request request, @PathParam("graphname") final String graphName, @PathParam("id") final String id) {
+        final Variant v = request.selectVariant(producesVariantList);
         return postVertex(graphName, id, true, v);
     }
 
@@ -628,10 +683,11 @@ public class VertexResource extends AbstractSubResource {
                 }
             }
 
-            final List<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
-            final JSONObject elementJson = GraphSONUtility.jsonFromElement(vertex, returnKeys, showTypes);
+            final GraphSONMode mode = showTypes ? GraphSONMode.EXTENDED : GraphSONMode.NORMAL;
+            final Set<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
+            final JSONObject elementJson = GraphSONUtility.jsonFromElement(vertex, returnKeys, mode);
 
-            rag.tryStopTransactionSuccess();
+            rag.tryCommit();
 
             // some graph implementations close scope at the close of the transaction so we generate the
             // JSON before the transaction but set the id after for graphs that don't generate the id
@@ -649,14 +705,14 @@ public class VertexResource extends AbstractSubResource {
 
             this.resultObject.put(Tokens.QUERY_TIME, sh.stopWatch());
         } catch (JSONException ex) {
-            rag.tryStopTransactionFailure();
+            rag.tryRollback();
 
             logger.error(ex);
 
             JSONObject error = generateErrorObjectJsonFail(ex);
             throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
         } catch (RuntimeException re) {
-            rag.tryStopTransactionFailure();
+            rag.tryRollback();
 
             logger.error(re);
 
@@ -745,14 +801,15 @@ public class VertexResource extends AbstractSubResource {
                 }
             }
 
-            rag.tryStopTransactionSuccess();
+            rag.tryCommit();
 
             // some graph implementations close scope at the close of the transaction so this has to be
             // reconstituted
             final Vertex reconstitutedElement = graph.getVertex(vertex.getId());
 
-            final List<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
-            this.resultObject.put(Tokens.RESULTS, GraphSONUtility.jsonFromElement(reconstitutedElement, returnKeys, showTypes));
+            final GraphSONMode mode = showTypes ? GraphSONMode.EXTENDED : GraphSONMode.NORMAL;
+            final Set<String> returnKeys = RequestObjectHelper.getReturnKeys(theRequestObject);
+            this.resultObject.put(Tokens.RESULTS, GraphSONUtility.jsonFromElement(reconstitutedElement, returnKeys, mode));
 
             if (showHypermedia) {
                 final JSONArray extensionsList = rag.getExtensionHypermedia(ExtensionPoint.VERTEX, this.getUriPath());
@@ -763,14 +820,14 @@ public class VertexResource extends AbstractSubResource {
 
             this.resultObject.put(Tokens.QUERY_TIME, sh.stopWatch());
         } catch (JSONException ex) {
-            rag.tryStopTransactionFailure();
+            rag.tryRollback();
 
             logger.error(ex);
 
             JSONObject error = generateErrorObjectJsonFail(ex);
             throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
         } catch (RuntimeException re) {
-            rag.tryStopTransactionFailure();
+            rag.tryRollback();
 
             logger.error(re);
 
@@ -818,11 +875,11 @@ public class VertexResource extends AbstractSubResource {
                 throw new WebApplicationException(Response.status(Status.NOT_FOUND).entity(error).build());
             }
 
-            rag.tryStopTransactionSuccess();
+            rag.tryCommit();
             this.resultObject.put(Tokens.QUERY_TIME, sh.stopWatch());
         } catch (JSONException ex) {
 
-            rag.tryStopTransactionFailure();
+            rag.tryRollback();
 
             logger.error(ex);
 
@@ -830,7 +887,7 @@ public class VertexResource extends AbstractSubResource {
             throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build());
         } catch (RuntimeException re) {
 
-            rag.tryStopTransactionFailure();
+            rag.tryRollback();
 
             logger.error(re);
 
@@ -862,15 +919,16 @@ public class VertexResource extends AbstractSubResource {
         return labels;
     }
 
-    private enum ReturnType { VERTICES, EDGES, COUNT, VERTEX_IDS }
+    private enum ReturnType {VERTICES, EDGES, COUNT, VERTEX_IDS}
+
     private final class VertexQueryArguments {
 
         private final Direction queryDirection;
         private final ReturnType returnType;
         private final boolean countOnly;
 
-        public VertexQueryArguments(String directionSegment){
-            if (directionSegment.equals(Tokens.OUT_E)){
+        public VertexQueryArguments(String directionSegment) {
+            if (directionSegment.equals(Tokens.OUT_E)) {
                 returnType = ReturnType.EDGES;
                 queryDirection = Direction.OUT;
                 countOnly = false;

@@ -31,11 +31,11 @@ public class TitanWrapper extends DBInitializer {
 		return "titan";
 	}
 
-	public Graph initialize() {
+	public Graph initialize(boolean batchLoading) {
 		String dir = getWorkDirPath();
 		createDirectory(dir);
 		Configuration config = new BaseConfiguration();
-		config.setProperty("storage.batch-loading", "true");
+		if (batchLoading) config.setProperty("storage.batch-loading", "true");
 		config.setProperty("storage.directory", dir);
 		return TitanFactory.open(config);
 	}

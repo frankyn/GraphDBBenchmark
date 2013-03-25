@@ -2,13 +2,11 @@ package com.silvertower.app.bench.dbinitializers;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
 import com.silvertower.app.bench.datasets.Dataset;
 import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.rexster.RexsterGraph;
 
 
@@ -17,10 +15,11 @@ public class GraphDescriptor implements Serializable {
 	private Dataset d;
 	private int nbConcurrentThread;
 	private Random r;
-	private List<Object> ids;
+	public List<Object> ids;
 	private GraphConnectionInformations gi;
 	private Graph g;
-	public GraphDescriptor(Dataset d, GraphConnectionInformations gi) {
+	public GraphDescriptor(List<Object> ids, Dataset d, GraphConnectionInformations gi) {
+		this.ids = ids;
 		this.d = d;
 		this.gi = gi;
 		this.r = new Random();
@@ -64,17 +63,6 @@ public class GraphDescriptor implements Serializable {
 		Object fieldName = property.getFieldName();
 		Object value = property.getFieldPossibleValues().get(r.nextInt(property.getFieldPossibleValues().size()));
 		return new Object[]{fieldName, value};
-	}
-	
-	public void scanDB() {
-		Iterator <Vertex> iter = g.getVertices().iterator();
-		ids = new ArrayList<Object>();
-		
-		while (iter.hasNext()) {
-			Object id = iter.next().getId();
-			System.out.println(id);
-			ids.add(id);
-		}
 	}
 	
 	public Object getRandomVertexId(int threadId) {

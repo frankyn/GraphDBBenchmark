@@ -9,6 +9,7 @@ import akka.actor.UntypedActor;
 
 import com.silvertower.app.bench.akka.Messages.*;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 
@@ -22,12 +23,6 @@ public class SlaveClient extends UntypedActor {
 	private CountDownLatch stopLatch;
 	private IntensiveWork currentWork;
 	private ActorRef master;
-	/*public SlaveClient(int id) {
-		this.id = id;
-		this.clientThreads = new ArrayList<SlaveThread>();
-		this.state = State.WAITING_FOR_INFOS;
-	}*/
-	
 	public SlaveClient() {
 		this.clientThreads = new ArrayList<SlaveThread>();
 		this.state = State.WAITING_FOR_INFOS;
@@ -38,13 +33,13 @@ public class SlaveClient extends UntypedActor {
 		master = getSender();
 		if (message instanceof SlaveInitialization) {
 			this.id = ((SlaveInitialization) message).getId();
+			System.out.println(String.format("I have %d cores available", Runtime.getRuntime().availableProcessors()));
 			master.tell(new Integer(Runtime.getRuntime().availableProcessors()), getSelf());
 		}
 		
 		else if (message instanceof GraphDescriptor) {
 			currentGDesc = (GraphDescriptor) message;
 			currentGDesc.fetchGraph();
-			currentGDesc.scanDB();
 			state = State.READY_FOR_WORK;
 			master.tell(new Ack());
 		}
@@ -70,9 +65,8 @@ public class SlaveClient extends UntypedActor {
 			startLatch.countDown();
 			stopLatch.await();
 			long after = System.nanoTime();
-			double meanCPUTime = getMeanCPUTime();
-			double meanWallTime = (after - before) / 1000000000.0 / ServerProperties.meanTimes;
-			master.tell(new TimeResult(meanWallTime, meanCPUTime), getSelf());
+			double meanWallTime = (after - before) / 1000000000.0 / ClientProperties.intensiveMeanTimes;
+			master.tell(new TimeResult(meanWallTime), getSelf());
 			state = State.READY_FOR_WORK;
 		}
 		
@@ -81,14 +75,6 @@ public class SlaveClient extends UntypedActor {
 		}
 	}
 	
-	private double getMeanCPUTime() {
-		long total = 0;
-		for (SlaveThread t: clientThreads) {
-			total += t.getTimeSpentCPU();
-		}
-		return (total * 1.0) / clientThreads.size() / 1000000000;
-	}
-
 	public void createClientThreads() {
 		int nbrCoresWanted = currentWork.getHowManyClients();
 		int nbrOpWanted = currentWork.getHowManyOp();

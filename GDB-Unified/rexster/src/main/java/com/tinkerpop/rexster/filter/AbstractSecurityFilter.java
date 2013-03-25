@@ -1,13 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.tinkerpop.rexster.filter;
 
 import com.sun.jersey.core.util.Base64;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
-import com.tinkerpop.rexster.RexsterApplicationImpl;
+import com.tinkerpop.rexster.Tokens;
 import com.tinkerpop.rexster.protocol.msg.ErrorResponseMessage;
 import com.tinkerpop.rexster.protocol.msg.RexProMessage;
 import com.tinkerpop.rexster.protocol.msg.SessionRequestMessage;
@@ -20,6 +16,7 @@ import org.glassfish.grizzly.filterchain.NextAction;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -37,6 +34,8 @@ import java.util.Map;
  * This is a bit of sketchy implementation of two semi-related bits of Grizzly/Jersey.  Trying to unify the
  * implementation of security within the system for RexPro/REST/Dog House.  Could be a better way to do this,
  * but it's not clear just yet.
+ *
+ * @author Stephen Mallette (http://stephen.genoprime.com)
  */
 public abstract class AbstractSecurityFilter extends BaseFilter implements ContainerRequestFilter {
 
@@ -50,6 +49,9 @@ public abstract class AbstractSecurityFilter extends BaseFilter implements Conta
 
     @Context
     protected HttpServletRequest httpServletRequest;
+
+    @Context
+    protected HttpServletResponse httpServletResponse;
 
     private boolean isConfigured = false;
 
@@ -89,7 +91,7 @@ public abstract class AbstractSecurityFilter extends BaseFilter implements Conta
         if (message instanceof SessionRequestMessage && !message.hasSession()) {
             final SessionRequestMessage specificMessage = (SessionRequestMessage) message;
 
-            if (specificMessage.Flag == SessionRequestMessage.FLAG_NEW_SESSION) {
+            if (!specificMessage.metaGetKillSession()) {
                 final String username = specificMessage.Username;
                 final String password = specificMessage.Password;
                 if (!authenticate(username, password)) {
@@ -98,7 +100,7 @@ public abstract class AbstractSecurityFilter extends BaseFilter implements Conta
                     errorMessage.setSessionAsUUID(RexProMessage.EMPTY_SESSION);
                     errorMessage.Request = specificMessage.Request;
                     errorMessage.ErrorMessage = "Invalid username or password.";
-                    errorMessage.Flag = ErrorResponseMessage.FLAG_ERROR_AUTHENTICATION_FAILURE;
+                    errorMessage.metaSetFlag(ErrorResponseMessage.AUTH_FAILURE_ERROR);
 
                     ctx.write(errorMessage);
 
@@ -182,7 +184,7 @@ public abstract class AbstractSecurityFilter extends BaseFilter implements Conta
     private Response generateErrorResponse(final String message) {
         final Map<String, String> errorEntity = new HashMap<String, String>() {{
             put("message", message);
-            put("version", RexsterApplicationImpl.getVersion());
+            put(Tokens.VERSION, Tokens.REXSTER_VERSION);
         }};
 
         return Response.status(Response.Status.UNAUTHORIZED)

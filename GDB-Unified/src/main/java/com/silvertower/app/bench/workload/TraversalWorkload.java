@@ -16,4 +16,6 @@ public abstract class TraversalWorkload implements Serializable {
 	}
 	
 	public abstract void operation(GraphDescriptor gDesc);
+
+	public abstract boolean preciseBenchmarkingNeeded();
 }

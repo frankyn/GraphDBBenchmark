@@ -1,18 +1,18 @@
 package com.tinkerpop.rexster;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Query;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.DefaultQuery;
+import com.tinkerpop.blueprints.VertexQuery;
+import com.tinkerpop.blueprints.util.DefaultVertexQuery;
+import com.tinkerpop.blueprints.util.MultiIterable;
+import com.tinkerpop.blueprints.util.VerticesFromEdgesIterable;
 import com.tinkerpop.gremlin.pipes.filter.LabelFilterPipe;
 import com.tinkerpop.pipes.Pipe;
 import com.tinkerpop.pipes.filter.FilterPipe;
-import com.tinkerpop.blueprints.util.VerticesFromEdgesIterable;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.util.MultiIterable;
-import java.util.Arrays;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -51,6 +51,11 @@ public class MockVertex implements Vertex {
 
     public Object removeProperty(String key) {
         return this.properties.remove(key);
+    }
+
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException();
     }
 
     public void setProperty(String key, Object value) {
@@ -92,7 +97,12 @@ public class MockVertex implements Vertex {
     }
 
 
-    public Query query() {
-        return new DefaultQuery(this);
+    public VertexQuery query() {
+        return new DefaultVertexQuery(this);
+    }
+
+    @Override
+    public Edge addEdge(String label, Vertex vertex) {
+        throw new UnsupportedOperationException();
     }
 }

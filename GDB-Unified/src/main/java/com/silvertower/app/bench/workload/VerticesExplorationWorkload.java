@@ -22,6 +22,9 @@ public class VerticesExplorationWorkload extends TraversalWorkload implements Se
 		while (iter.hasNext()) {
 			current = iter.next();
 		}
-		((TransactionalGraph)g).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
+	}
+
+	public boolean preciseBenchmarkingNeeded() {
+		return false;
 	}
 }
