@@ -2,7 +2,7 @@ package com.silvertower.app.bench.main;
 
 import java.util.Arrays;
 
-import com.silvertower.app.bench.akka.CentralNode;
+import com.silvertower.app.bench.akka.BenchRunner;
 import com.silvertower.app.bench.akka.MasterClient;
 import com.silvertower.app.bench.akka.Server;
 import com.typesafe.config.ConfigFactory;
@@ -38,9 +38,10 @@ public class BenchmarkLauncher {
 		Props servProps = new Props(Server.class).withDeploy(new Deploy(new RemoteScope(servAddr)));
 		final ActorRef server = actorsSystem.actorOf(servProps);
 		
+		final Benchmark b = new Benchmark();
 		ActorRef listener = actorsSystem.actorOf(new Props(new UntypedActorFactory() {
 			 public UntypedActor create() {
-				 return new CentralNode(masterClient, server);
+				 return new BenchRunner(masterClient, server, b);
 			 }
 		}), "ResultListener");
 	}
@@ -77,7 +78,7 @@ public class BenchmarkLauncher {
 	}
 	
 	public static void initiateBenchmark() {
-		CentralNodeProperties.initializeProperties();
+		BenchRunnerProperties.initializeProperties();
 	}
 	
 	private static boolean checkIp (String ip) {

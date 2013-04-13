@@ -7,6 +7,8 @@ import java.lang.management.ThreadMXBean;
 
 import org.apache.commons.io.FileUtils;
 
+import com.silvertower.app.bench.akka.Messages.AggregateResult;
+import com.silvertower.app.bench.akka.Messages.TimeResult;
 import com.silvertower.app.bench.main.ClientProperties;
 
 import bb.util.Benchmark;
@@ -45,37 +47,15 @@ public class Utilities {
 	    }
 	}
 	
-	public static double benchTask(Runnable task, boolean preciseBenchmarking) {
-		if (preciseBenchmarking) {
-			Benchmark b = null;
-			Benchmark.Params p = new Benchmark.Params();
-			double wallTimeMean = 0;
-			try {
-				p.setManyExecutions(true);
-				p.setNumberMeasurements(numberOfMeasurements);
-				b = new Benchmark(task, p);
-				wallTimeMean = b.getMean();
-				
-			} catch (IllegalArgumentException | IllegalStateException e) { 
-				System.err.println("Error while benchmarking");
-				e.printStackTrace(); 
-			} catch (Exception e) {
-				System.err.println("Error while benchmarking");
-				e.printStackTrace(); 
-			}
-			return wallTimeMean;
-		}
-		
-		else {
+	public static AggregateResult benchTask(Runnable task, int repeat) {
+		AggregateResult r = new AggregateResult();
+		for (int i = 0; i < repeat; i++) {
 			long wall1 = System.nanoTime();
-			ThreadMXBean mxbean = ManagementFactory.getThreadMXBean();
-			for (int i = 0; i < ClientProperties.traversalMeanTimes; i++) {
-				task.run();
-			}
+			task.run();
 			long wall2 = System.nanoTime();
-			double wallSpentMean = (wall2-wall1)/ClientProperties.traversalMeanTimes/nanoToSFactor;
-			return wallSpentMean;
+			double timeSpent = (wall2-wall1)/nanoToSFactor;
+			r.addTime(new TimeResult(timeSpent));
 		}
-		
+		return r;
 	}
 }

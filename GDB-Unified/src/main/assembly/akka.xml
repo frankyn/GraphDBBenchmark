@@ -48,6 +48,10 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
       <outputDirectory>/resources/python</outputDirectory>
     </file>
     <file>
+      <source>src/python/cities.txt</source>
+      <outputDirectory>/resources/python</outputDirectory>
+    </file>
+    <file>
       <source>src/python/social-graph-creator.py</source>
       <outputDirectory>/resources/python</outputDirectory>
     </file>

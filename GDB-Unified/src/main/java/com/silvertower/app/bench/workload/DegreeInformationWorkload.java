@@ -9,6 +9,8 @@ import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 
 public class DegreeInformationWorkload extends TraversalWorkload {
+	private static final long serialVersionUID = 2785969268528966034L;
+
 	public DegreeInformationWorkload() {
 		super("Degree information workload");
 	}
@@ -40,5 +42,11 @@ public class DegreeInformationWorkload extends TraversalWorkload {
 
 	public boolean preciseBenchmarkingNeeded() {
 		return false;
+	}
+
+	@Override
+	public void operation(Vertex from, Vertex to) {
+		// TODO Auto-generated method stub
+		
 	}
 }

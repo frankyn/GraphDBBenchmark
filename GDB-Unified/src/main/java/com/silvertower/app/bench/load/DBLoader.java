@@ -15,19 +15,25 @@ import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 import com.silvertower.app.bench.dbinitializers.GraphConnectionInformations;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.silvertower.app.bench.dbinitializers.GraphProperty;
+import com.thinkaurelius.titan.core.TitanGraph;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.KeyIndexableGraph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.util.io.graphml.GraphMLReader;
+import com.tinkerpop.blueprints.util.wrappers.WrapperGraph;
 
 public class DBLoader {
  	
-	private static GraphDescriptor initializeGraphDescriptor(Graph g, List<Object> ids, Dataset d, DBInitializer i) {
+	private static GraphDescriptor initializeGraphDescriptor(Graph g, List<Object> vIds, List<Object> eIds, 
+			Dataset d, DBInitializer i) {
 		String rexsterServerIp = ServerProperties.rexsterServerIp;
 		int rexsterServerPort = ServerProperties.rexsterServerPort;
 		GraphConnectionInformations gi = new GraphConnectionInformations(rexsterServerIp, rexsterServerPort, i.getName());
-		return new GraphDescriptor(ids, d, gi);
+		return new GraphDescriptor(vIds, eIds, d, gi);
 	}
 	
 	public static double batchLoadingBenchmark(Dataset d, DBInitializer initializer) {
@@ -44,32 +50,71 @@ public class DBLoader {
 	
 	public static double loadBenchmark(Dataset d, DBInitializer initializer, LoadBenchThread t) {
 		double time;
-		if (d.getNumberVertices() < 6000) time = Utilities.benchTask(t, true);
-		else time = Utilities.benchTask(t, false);
+		if (d.getNumberVertices() < 6000) time = Utilities.benchTask(t, 5).getMean().getTime();
+		else time = Utilities.benchTask(t, 1).getMean().getTime();
 		t.deleteUnusedDBs();
 		return time;
 	}
 	
 	public static GraphDescriptor loadDB(Dataset d, DBInitializer initializer) {
 		Graph g = initializer.initialize(true);
+		// Create vertices and edges indices:
+		if (g.getFeatures().supportsVertexKeyIndex) { 
+			for (GraphProperty p: d.getVertexProperties()) {
+				Graph rawGraph;
+				if (g instanceof WrapperGraph) rawGraph = ((WrapperGraph) g).getBaseGraph();
+				else rawGraph = g;
+					((KeyIndexableGraph) rawGraph).createKeyIndex(p.getFieldName(), Vertex.class);
+			}
+		}
+		
+//		if (g.getFeatures().supportsEdgeKeyIndex) {
+//			for (GraphProperty p: d.getEdgesProperties()) {
+//				Graph rawGraph = ((BatchGraph) g).getBaseGraph();
+//				((KeyIndexableGraph) rawGraph).createKeyIndex(p.getFieldName(), Edge.class);
+//			}
+//		}
+		
 		loadGraphML(g, initializeIS(d));
 		initializer.shutdownGraph(g);
 		g = initializer.initialize(false);
-		List<Object> ids = scanDB(g);
+		List<Object> vIds = scanVertices(g);
+		List<Object> eIds = scanEdges(g);
 		initializer.shutdownGraph(g);
-		return initializeGraphDescriptor(g, ids, d, initializer);
+		return initializeGraphDescriptor(g, vIds, eIds, d, initializer);
 	}
 	
-	private static List<Object> scanDB(Graph g) {
+	private static List<Object> scanVertices(Graph g) {
 		// As OrientDB does not use the same id for RexsterGraph and the raw graph, we need to send
 		// to tbe client the string representation of the vertices ids.
-		boolean isOrientDB = g instanceof OrientGraph;
+		boolean needStringRep = g instanceof OrientGraph;
 		Iterator <Vertex> iter = g.getVertices().iterator();
 		ArrayList<Object> ids = new ArrayList<Object>();
+		int count = 0;
 		while (iter.hasNext()) {
 			Object id = iter.next().getId();
-			if (isOrientDB) ids.add(id.toString());
+			if (needStringRep) ids.add(id.toString());
 			else ids.add(id);
+			count++;
+			if (count == 500000) break; // We limit the scan to 500000 vertices
+		}
+		((TransactionalGraph) g).commit();
+		return ids;
+	}
+	
+	private static List<Object> scanEdges(Graph g) {
+		// As OrientDB does not use the same id for RexsterGraph and the raw graph, we need to send
+		// to tbe client the string representation of the vertices ids.
+		boolean needStringRep = g instanceof OrientGraph || g instanceof TitanGraph;
+		Iterator <Edge> iter = g.getEdges().iterator();
+		ArrayList<Object> ids = new ArrayList<Object>();
+		int count = 0;
+		while (iter.hasNext()) {
+			Object id = iter.next().getId();
+			if (needStringRep) ids.add(id.toString());
+			else ids.add(id);
+			count++;
+			if (count == 500000) break; // We limit the scan to 500000 edges
 		}
 		((TransactionalGraph) g).commit();
 		return ids;

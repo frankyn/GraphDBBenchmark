@@ -3,7 +3,7 @@ package com.silvertower.app.bench.dbinitializers;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.impls.neo4j.Neo4jGraph;
-import com.tinkerpop.blueprints.impls.neo4jbatch.Neo4jBatchGraph;
+import com.tinkerpop.blueprints.impls.neo4j.batch.Neo4jBatchGraph;
 
 public class Neo4jWrapper extends DBInitializer {
 

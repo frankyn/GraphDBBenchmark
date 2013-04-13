@@ -1,11 +1,10 @@
 package com.silvertower.app.bench.akka;
 
 
-import java.lang.management.ManagementFactory;
+
 import java.util.concurrent.CountDownLatch;
 
 import com.silvertower.app.bench.dbinitializers.*;
-import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 
 public class SlaveThread extends Thread {
@@ -13,7 +12,6 @@ public class SlaveThread extends Thread {
 	private GraphDescriptor gDesc;
 	private int id;
 	private int maxOpCount;
-	private long timeSpentCPU;
 	private CountDownLatch startLatch;
 	private CountDownLatch stopLatch;
 	public SlaveThread(GraphDescriptor gDesc, int id, IntensiveWorkload w, int maxOpCount, 
@@ -32,23 +30,11 @@ public class SlaveThread extends Thread {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		long totalTimeSpent = 0;
-		for (int i = 0; i < ClientProperties.intensiveMeanTimes; i++) {
-			long before = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
-			long opCount = 0;
-			while (opCount < maxOpCount) {
-				w.operation(gDesc, id);
-				opCount ++;
-			}
-			//((TransactionalGraph) gDesc.getGraph()).stopTransaction(TransactionalGraph.Conclusion.SUCCESS);
-			long after = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();	
-			totalTimeSpent += after - before;
+		long opCount = 0;
+		while (opCount < maxOpCount) {
+			w.operation(gDesc, id);
+			opCount ++;
 		}
-		timeSpentCPU = totalTimeSpent / ClientProperties.intensiveMeanTimes;
 		stopLatch.countDown();
-	}
-	
-	public long getTimeSpentCPU() {
-		return timeSpentCPU;
 	}
 }

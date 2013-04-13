@@ -1,7 +1,14 @@
 package com.silvertower.app.bench.akka;
 
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import akka.actor.ActorRef;
@@ -18,9 +25,10 @@ import static akka.pattern.Patterns.ask;
 
 import com.silvertower.app.bench.akka.Messages.*;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
-import com.silvertower.app.bench.utils.Utilities;
+import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
+import com.tinkerpop.blueprints.Vertex;
 
 public class MasterClient extends UntypedActor {
 	private int slavesAvailable;
@@ -43,6 +51,7 @@ public class MasterClient extends UntypedActor {
 			coresAvailable += coresAdded;
 		}
 		state = State.WAITING_FOR_INFOS;
+		ClientProperties.initializeProperties();
 	}
 	
 	public void onReceive(Object message) throws Exception {
@@ -76,10 +85,10 @@ public class MasterClient extends UntypedActor {
 			state = State.WORKING;
 			assignWork(nCores, nOps, workload);
 			startWork();
+			System.out.println("Starting intensive work");
 		}
 		
 		else if (message instanceof TraversalWork) {
-			System.out.println("work:"+getSender());
 			if (state != State.READY_FOR_WORK) {
 				forwardError("Error: the master client is not ready for work!");
 				return;
@@ -87,19 +96,22 @@ public class MasterClient extends UntypedActor {
 			resultsListener = getSender();
 			
 			state = State.WORKING;
-			benchWorkload(((TraversalWork) message).getWorkload());
+			System.out.println("Starting traversal work");
+			resultsListener.tell(benchWorkload(((TraversalWork) message).getWorkload()), getSelf());
+			System.out.println("Traversal work complete");
 			state = State.READY_FOR_WORK;
 		}
 		
-		else if (message instanceof TimeResult) {
+		else if (message instanceof AggregateResult) {
 			for (SlaveReference s: slaves) {
 				if (s.getSlaveRef().equals(getSender())) {
-					s.setResultReceived((TimeResult) message);
+					s.setResultReceived((AggregateResult) message);
 				}
 			}
 			AggregateResult r = aggregateResult();
 			if (r != null) {
 				resultsListener.tell(r, getSelf());
+				System.out.println("Intensive work complete");
 				resetState();
 				state = State.READY_FOR_WORK;
 			}
@@ -114,17 +126,83 @@ public class MasterClient extends UntypedActor {
 		}
 	}
 	
-	private void benchWorkload(final TraversalWorkload w) {
-		Runnable task = 
-				new Runnable() { 
-					public void run() { 
-						w.operation(currentGDesc); 
-					} 
-				};
+	private AggregateResult benchWorkload(TraversalWorkload w) {
+		File inputFile = new File(ClientProperties.tempDir + w.getName() + currentGDesc.getNbVertices());
+		if (!inputFile.exists()) {
+			generateInputFile(inputFile, w);
+		}
 		
-		double wallTime = Utilities.benchTask(task, w.preciseBenchmarkingNeeded());
+		AggregateResult r = new AggregateResult();
+		List<String> props = readPairs(inputFile);
+		if (props.isEmpty()) {
+			System.err.println("Unable to perform traversal workload");
+		}
+		
+		for (int i = 0; i < props.size(); i+=2) {
+			Vertex from = findVertexWithProps(props.get(i).split(" "));
+			Vertex to = findVertexWithProps(props.get(i+1).split(" "));
+			if (from == null || to == null) {
+				System.err.println("Unable to perform traversal workload");
+				break;
+			}
+			long wall1 = System.nanoTime();
+			w.operation(from, to);
+			long wall2 = System.nanoTime();
+			double timeSpent = (wall2-wall1) / 1000000000.0;
+			System.out.println("Time:" + timeSpent);
+			r.addTime(new TimeResult(timeSpent));
+		}
+		
+		return r;
+	}
+	
+	private Vertex findVertexWithProps(String[] props) {
+		Iterator<Vertex> iter = currentGDesc.getGraph().getVertices(props[0], props[1]).iterator();
+		while (iter.hasNext()) {
+			Vertex v = iter.next();
+			boolean hasAllProps = true;
+			for (int i = 2; i < props.length; i+=2) {
+				if (!v.getProperty(props[i]).equals(props[i+1])) hasAllProps = false;
+			}
+			if (hasAllProps) return v;
+		}
+		return null;
+	}
 
-		resultsListener.tell(new TimeResult(wallTime), getSelf());
+	private void generateInputFile(File f, TraversalWorkload w) {
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+			for (int i = 0; i < 2*ClientProperties.traversalMeanTimes; i++) {
+				Vertex v = currentGDesc.getGraph().getVertex(currentGDesc.getRandomVertexId());
+				for (String key: v.getPropertyKeys()) {
+					bw.write(key);
+					bw.write(32);
+					bw.write(v.getProperty(key).toString());
+					bw.write(32);
+				}
+				bw.newLine();
+			}
+			bw.close();
+		} catch (IOException e) {
+			System.err.println("Error while generating input file for traversal workload");
+			e.printStackTrace();
+		}
+	}
+	
+	private List<String> readPairs(File f) {
+		List<String> pairs = new ArrayList<String>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(f));
+			String line;
+			while ((line = br.readLine()) != null && !line.equals("\n")) {
+				pairs.add(line);
+			}
+			br.close();
+		} catch (IOException e) {
+			System.err.println("Error while reading input file for traversal workload");
+			e.printStackTrace();
+		}
+		return pairs;
 	}
 
 	private int createNewSlave(final int id, final Address add) {
@@ -189,7 +267,7 @@ public class MasterClient extends UntypedActor {
 		AggregateResult r = new AggregateResult();
 		for (SlaveReference s: slaves) {
 			if (s.isWorking()) {
-				if (s.getResultReceived() != null) r.addTime(s.getResultReceived());
+				if (s.getResultReceived() != null) r.mergeWith(s.getResultReceived());
 				else return null;
 			}
 		}
@@ -219,5 +297,9 @@ public class MasterClient extends UntypedActor {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public void postStop() {
+		System.exit(-1);
 	}
 }

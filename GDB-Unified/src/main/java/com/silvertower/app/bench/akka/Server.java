@@ -29,6 +29,7 @@ public class Server extends UntypedActor {
 	public Server() {
 		this.state = State.WAITING_FOR_INFOS;
 	}
+	
 	public void onReceive(Object message) throws Exception {
 		if (message instanceof DBInitializer) {
 			state = State.READY_TO_WORK;
@@ -119,7 +120,6 @@ public class Server extends UntypedActor {
 	 * This method was only tested on Linux and Windows
 	 */
 	private void rexsterCommand(String command, String scriptPrefixName, File outputFile, String endIndicator) {
-		Runtime r = Runtime.getRuntime();
 		String os = System.getProperty("os.name").toLowerCase();
 		boolean isWindows;
 		if (os.indexOf("win") >= 0) isWindows = true;
@@ -151,8 +151,8 @@ public class Server extends UntypedActor {
 		    StringBuilder content = new StringBuilder();
 		    String currentLine;
 		    long beforeTs = System.currentTimeMillis();
+		    System.out.println("Waiting for an indication from the rexster server ...");
 		    while (true) {
-		    	System.out.println("Waiting for an indication from the rexster server ...");
 		    	currentLine = b.readLine();
 		    	if (b != null) {
 			    	content.append(currentLine);
@@ -165,7 +165,7 @@ public class Server extends UntypedActor {
 			    	}
 		    	}
 		    	try {
-					Thread.sleep(1000);
+					Thread.sleep(100);
 				} catch (InterruptedException e) {}
 		    }
 		    b.close();
@@ -179,5 +179,9 @@ public class Server extends UntypedActor {
 	
 	private void forwardError(ActorRef dest, String errorMessage) {
 		dest.tell(new Messages.Error(errorMessage), getSelf());
+	}
+	
+	public void postStop() {
+		System.exit(-1);
 	}
 }

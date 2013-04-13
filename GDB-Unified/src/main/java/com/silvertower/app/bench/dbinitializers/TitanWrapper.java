@@ -10,33 +10,38 @@ import com.tinkerpop.blueprints.Graph;
 public class TitanWrapper extends DBInitializer {
 	
 	private static final long serialVersionUID = 5735385409119575934L;
-
+	private String backend;
+	
+	public TitanWrapper(String backend) {
+		this.backend = backend;
+	}
+	
 	public Graph initialize(String name, boolean batchLoading) {
 		String dir = getTempDirPath();
 		createDirectory(dir + name);
 		
-		if (batchLoading) {
-			Configuration config = new BaseConfiguration();
-			config.setProperty("storage.batch-loading", "true");
+		Configuration config = new BaseConfiguration();
+		if (batchLoading) config.setProperty("storage.batch-loading", "true");
+		if (backend.equals("local")) {
 			config.setProperty("storage.directory", dir + name);
-			return TitanFactory.open(config);
 		}
-		
-		else {
-			return TitanFactory.open(dir + name);
-		}
+		config.setProperty("storage.backend", backend);
+		return TitanFactory.open(config);
 	}
 
 	public String getName() {
-		return "titan";
+		return "titan"+backend;
 	}
 
 	public Graph initialize(boolean batchLoading) {
-		String dir = getWorkDirPath();
+		String dir = ServerProperties.dbsDirWork + getName();
 		createDirectory(dir);
 		Configuration config = new BaseConfiguration();
 		if (batchLoading) config.setProperty("storage.batch-loading", "true");
-		config.setProperty("storage.directory", dir);
+		if (backend.equals("local")) {
+			config.setProperty("storage.directory", dir);
+		}
+		config.setProperty("storage.backend", backend);
 		return TitanFactory.open(config);
 	}
 

@@ -20,6 +20,7 @@ public class SocialNetworkDataset extends Dataset {
 		String pyScriptPath = ServerProperties.pythonDir + "social-graph-creator.py";
 		String firstNamesFilePath = ServerProperties.pythonDir + "first_names2011.txt";
 		String lastNamesFilePath = ServerProperties.pythonDir + "last_names1990.txt";
+		String citiesFilePath = ServerProperties.pythonDir + "cities.txt";
 		datasetFP = ServerProperties.datasetsDir + "social" + nVertices + ".graphml";
 		File f = new File(datasetFP);
 		if (!f.exists()) {
@@ -30,10 +31,11 @@ public class SocialNetworkDataset extends Dataset {
 						+ nVertices + " " 
 						+ firstNamesFilePath + " " 
 						+ lastNamesFilePath + " "
+						+ citiesFilePath + " "
 						+ datasetFP;
 				Process p = r.exec(command);
 	            p.waitFor();
-	            fillInfos(firstNamesFilePath, lastNamesFilePath);
+	            fillInfos(firstNamesFilePath, lastNamesFilePath, citiesFilePath);
 	        }
 	        catch (IOException | InterruptedException e) {
 	        	e.printStackTrace();
@@ -41,42 +43,31 @@ public class SocialNetworkDataset extends Dataset {
 	        	System.exit(-1);
 	        }
 		}
-		else fillInfos(firstNamesFilePath, lastNamesFilePath);
+		else fillInfos(firstNamesFilePath, lastNamesFilePath, citiesFilePath);
 	}
 	
-	private void fillInfos(String firstNamesFilePath, String lastNamesFilePath) {
+	private void fillInfos(String firstNamesFP, String lastNamesFP, String citiesFP) {
         ArrayList<Object> firstNames = new ArrayList<Object>();
     	ArrayList<Object> lastNames = new ArrayList<Object>();
-	    fillFirstNamesList(firstNames, firstNamesFilePath);
-	    fillLastNamesList(lastNames, lastNamesFilePath);
-        properties.add(new GraphProperty("Firstname", firstNames));
-        properties.add(new GraphProperty("Lastname", lastNames));
+    	ArrayList<Object> citiesNames = new ArrayList<Object>();
+    	fillPropertyList(firstNames, firstNamesFP);
+    	fillPropertyList(lastNames, lastNamesFP);
+    	fillPropertyList(citiesNames, citiesFP);
+        vertexProperties.add(new GraphProperty("Firstname", firstNames));
+        vertexProperties.add(new GraphProperty("Lastname", lastNames));
+        edgesProperties.add(new GraphProperty("In city", citiesNames));
 	}
 	
 	public boolean isDirected() {
 		return true;
 	}
 	
-	private void fillFirstNamesList(ArrayList<Object> firstNames, String firstNamesFilePath) {
+	private void fillPropertyList(ArrayList<Object> list, String fp) {
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(firstNamesFilePath));
+			BufferedReader reader = new BufferedReader(new FileReader(fp));
 			String current = null;
 			while ((current = reader.readLine()) != null) {
-				firstNames.add(current);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-        	System.err.println("Error while generating the dataset: " + datasetName);
-        	System.exit(-1);
-		}
-	}
-	
-	private void fillLastNamesList(ArrayList<Object> lastNames, String lastNamesFilePath) {
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(lastNamesFilePath));
-			String current = null;
-			while ((current = reader.readLine()) != null) {
-				lastNames.add(current);
+				list.add(current);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

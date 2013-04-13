@@ -14,19 +14,29 @@ public class DexWrapper extends DBInitializer {
 	public Graph initialize(String name, boolean batchLoading) {
 		String dir = getTempDirPath();
 		if (batchLoading) {
-			return (new BatchGraph<TransactionalGraph>((TransactionalGraph) new DexGraph(dir + name)));
+			DexGraph g = new DexGraph(dir + name, ServerProperties.resourcesDirPath + "dex.cfg");
+			g.label.set("default");
+			return (new BatchGraph<TransactionalGraph>(g));
 		}
 		else {
-			return (new DexGraph(dir + name));
+			DexGraph g = new DexGraph(dir + name, ServerProperties.resourcesDirPath + "dex.cfg");
+			g.label.set("default");
+			return g;
 		}
 	}
 
 	public Graph initialize(boolean batchLoading) {
 		String dir = getWorkDirPath();
 		if (batchLoading) {
-			return (new BatchGraph<TransactionalGraph>((TransactionalGraph) new DexGraph(dir + "dex")));
+			DexGraph g = new DexGraph(dir + "dex", ServerProperties.resourcesDirPath + "dex.cfg");
+			g.label.set("default");
+			return (new BatchGraph<TransactionalGraph>(g));
 		}
-		else return new DexGraph(dir + "dex");
+		else {
+			DexGraph g = new DexGraph(dir + "dex", ServerProperties.resourcesDirPath + "dex.cfg");
+			g.label.set("default");
+			return g;
+		}
 	}
 
 	public String getName() {

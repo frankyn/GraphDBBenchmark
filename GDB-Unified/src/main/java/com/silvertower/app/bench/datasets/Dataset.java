@@ -17,13 +17,15 @@ public abstract class Dataset implements Serializable {
 	protected String datasetFP;
 	protected String datasetType;
 	protected String datasetName;
-	protected ArrayList<GraphProperty> properties;
+	protected ArrayList<GraphProperty> vertexProperties;
+	protected ArrayList<GraphProperty> edgesProperties;
 	
 	public Dataset(int nVertices, String datasetType) {
 		this.nVertices = nVertices;
 		this.datasetType = datasetType;
 		this.datasetName = datasetType + nVertices;
-		this.properties = new ArrayList<GraphProperty>();
+		this.vertexProperties = new ArrayList<GraphProperty>();
+		this.edgesProperties = new ArrayList<GraphProperty>();
 	}
 
 	/**
@@ -64,11 +66,20 @@ public abstract class Dataset implements Serializable {
 
 	/**
 	 * 
-	 * @return A list of all the properties that are present in the graph. A property represents
+	 * @return A list of all the vertex properties that are present in the graph. A property represents
 	 * a pair (Field, {Possible values for this field})
 	 */
-	public ArrayList<GraphProperty> getProperties() {
-		return properties;
+	public ArrayList<GraphProperty> getVertexProperties() {
+		return vertexProperties;
+	}
+	
+	/**
+	 * 
+	 * @return A list of all the edges properties that are present in the graph. A property represents
+	 * a pair (Field, {Possible values for this field})
+	 */
+	public ArrayList<GraphProperty> getEdgesProperties() {
+		return edgesProperties;
 	}
 	
 	/**
@@ -76,7 +87,7 @@ public abstract class Dataset implements Serializable {
 	 * @return True if this dataset contains at least one property.
 	 */
 	public boolean isPropertyGraph() {
-		return properties.size()!=0;
+		return vertexProperties.size()!=0 || edgesProperties.size()!=0;
 	}
 	
 	/**

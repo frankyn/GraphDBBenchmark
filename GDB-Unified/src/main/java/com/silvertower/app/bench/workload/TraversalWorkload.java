@@ -2,11 +2,12 @@ package com.silvertower.app.bench.workload;
 
 import java.io.Serializable;
 
-import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.tinkerpop.blueprints.Vertex;
 
 public abstract class TraversalWorkload implements Serializable {
 	private static final long serialVersionUID = -4387044308237183728L;
 	private String name;
+	protected int numberOfElementsInThePipe;
 	public TraversalWorkload(String name) {
 		this.name = name;
 	}
@@ -15,7 +16,9 @@ public abstract class TraversalWorkload implements Serializable {
 		return name;
 	}
 	
-	public abstract void operation(GraphDescriptor gDesc);
-
-	public abstract boolean preciseBenchmarkingNeeded();
+	public int getNumberOfElementsInThePipe() {
+		return numberOfElementsInThePipe;
+	}
+	
+	public abstract void operation(Vertex from, Vertex to);
 }

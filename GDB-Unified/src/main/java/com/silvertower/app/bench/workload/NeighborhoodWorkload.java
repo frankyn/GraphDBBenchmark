@@ -25,26 +25,22 @@ public class NeighborhoodWorkload extends TraversalWorkload implements Serializa
 		this.k = 7;
 	}
 	
-	public void operation(GraphDescriptor gDesc) {
-		Graph g = gDesc.getGraph();
-		Vertex entry = null;
-		while (entry == null) {
-			entry = gDesc.getGraph().getVertex(gDesc.getRandomVertexId());
-		}
+	public void operation(Vertex from, Vertex to) {
+		numberOfElementsInThePipe = 0;
 		GremlinPipeline p = new GremlinPipeline();
-		p.start(g.getVertex(entry.getId())).out().gather().loop(1, new PipeFunction<LoopBundle,Boolean>() {
+		p = p.start(from).out().gather().scatter().loop(1, new PipeFunction<LoopBundle,Boolean>() {
 			public Boolean compute(LoopBundle argument) {
-				    return argument.getLoops() <= k;
+				return argument.getLoops() <= k;
 			}
 		});
-		List l = p.toList();
-		for (Object o: l) {
-			// Evaluate each element inside the pipe
-			o.toString();
+		while (p.hasNext()) {
+			p.next();
+			numberOfElementsInThePipe++;
 		}
+		System.out.println(numberOfElementsInThePipe);
 	}
 
 	public boolean preciseBenchmarkingNeeded() {
-		return true;
+		return false;
 	}
 }

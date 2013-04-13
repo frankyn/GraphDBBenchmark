@@ -75,13 +75,56 @@ public class Messages {
 			times.add(t);
 		}
 		
+		public void mergeWith(AggregateResult r) {
+			for (TimeResult t: r.getAllTimes()) {
+				times.add(t);
+			}
+		}
+		
 		public TimeResult getMean() {
 			double wallMeanTime = 0;
 			for (TimeResult t: times) {
-				wallMeanTime += t.getWallTime();
+				wallMeanTime += t.getTime();
 			}
 			wallMeanTime /= times.size();
 			return new TimeResult(wallMeanTime);
+		}
+		
+		public TimeResult getMin() {
+			double min = Double.MAX_VALUE;
+			for (TimeResult t: times) {
+				min = t.getTime() < min ? t.getTime() : min;
+			}
+			return new TimeResult(min);
+		}
+		
+		public TimeResult getMax() {
+			double max = Double.MIN_VALUE;
+			for (TimeResult t: times) {
+				max = t.getTime() > max ? t.getTime() : max;
+			}
+			return new TimeResult(max);
+		}
+		
+		public List<TimeResult> getAllTimes() {
+			return times;
+		}
+		
+		public String toString() {
+			StringBuilder s = new StringBuilder();
+			for (TimeResult r: times) {
+				s.append("Measure: " + r.toString() + "\n");
+			}
+			s.append(String.format("Min %s - Mean %s - Max %s", getMin().toString(), getMean().toString(), getMax().toString()));
+			return s.toString();
+		}
+		
+		public List<Double> getAllResultsAsDouble() {
+			List<Double> results = new ArrayList<Double>();
+			for (TimeResult r: times) {
+				results.add(r.getTime());
+			}
+			return results;
 		}
 	}
 	
@@ -92,12 +135,12 @@ public class Messages {
 	    	this.wallTime = wallTime;
 	    }
 	    
-		public double getWallTime() {
+		public double getTime() {
 			return wallTime;
 		}
 		
 		public String toString() {
-			return String.format("Wall time: %f", wallTime);
+			return String.format("Time: %f", wallTime);
 		}
 	}
 	
@@ -166,6 +209,10 @@ public class Messages {
 	
 	public static class StopCurrentDB implements Serializable {
 		private static final long serialVersionUID = -1624035463475420728L;
+	}
+	
+	public static class ShutdownMessage implements Serializable {
+		private static final long serialVersionUID = 143585913399369423L;
 	}
 	
 	public static class SlaveInitialization implements Serializable {

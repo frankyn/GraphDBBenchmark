@@ -10,7 +10,6 @@ import akka.actor.UntypedActor;
 import com.silvertower.app.bench.akka.Messages.*;
 import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 import com.silvertower.app.bench.main.ClientProperties;
-import com.silvertower.app.bench.main.ServerProperties;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 
 public class SlaveClient extends UntypedActor {
@@ -50,7 +49,7 @@ public class SlaveClient extends UntypedActor {
 				return;
 			}
 			currentWork = (IntensiveWork) message;
-			createClientThreads();
+			createAndStartClientThreads();
 			state = State.WORK_RECEIVED;
 			master.tell(new Ack());
 		}
@@ -61,12 +60,19 @@ public class SlaveClient extends UntypedActor {
 				return;
 			}
 			state = State.WORKING;
-			long before = System.nanoTime();
-			startLatch.countDown();
-			stopLatch.await();
-			long after = System.nanoTime();
-			double meanWallTime = (after - before) / 1000000000.0 / ClientProperties.intensiveMeanTimes;
-			master.tell(new TimeResult(meanWallTime), getSelf());
+			
+			AggregateResult r = new AggregateResult();
+			for (int i = 0; i < ClientProperties.intensiveMeanTimes; i++) {
+				if (i != 0) createAndStartClientThreads();
+				long before = System.nanoTime();
+				startLatch.countDown();
+				stopLatch.await();
+				long after = System.nanoTime();
+				double time = (after - before) / 1000000000.0;
+				r.addTime(new TimeResult(time));
+			}
+			
+			master.tell(r, getSelf());
 			state = State.READY_FOR_WORK;
 		}
 		
@@ -75,10 +81,10 @@ public class SlaveClient extends UntypedActor {
 		}
 	}
 	
-	public void createClientThreads() {
+	private void createAndStartClientThreads() {
 		int nbrCoresWanted = currentWork.getHowManyClients();
 		int nbrOpWanted = currentWork.getHowManyOp();
-		IntensiveWorkload w = currentWork.getWorkload(); 
+		IntensiveWorkload w = currentWork.getWorkload();
 		startLatch = new CountDownLatch(1);
 		stopLatch = new CountDownLatch(nbrCoresWanted);
 		clientThreads = new ArrayList<SlaveThread>();
@@ -92,5 +98,9 @@ public class SlaveClient extends UntypedActor {
 	
 	private void forwardError(String errorMessage) {
 		master.tell(new Messages.Error(errorMessage), getSelf());
+	}
+	
+	public void postStop() {
+		System.exit(-1);
 	}
 }

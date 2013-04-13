@@ -1,6 +1,7 @@
 package com.silvertower.app.bench.akka;
 
 
+import com.silvertower.app.bench.akka.Messages.AggregateResult;
 import com.silvertower.app.bench.akka.Messages.TimeResult;
 
 import akka.actor.ActorRef;
@@ -9,7 +10,7 @@ public class SlaveReference {
 	private ActorRef slaveRef;
 	private int nbCoresAvailable;
 	private boolean working;
-	private TimeResult resultReceived;
+	private AggregateResult resultReceived;
 	public SlaveReference(ActorRef slaveRef, int nbCoresAvailable) {
 		this.slaveRef = slaveRef;
 		this.nbCoresAvailable = nbCoresAvailable;
@@ -36,11 +37,11 @@ public class SlaveReference {
 		return working;
 	}
 	
-	public TimeResult getResultReceived() {
+	public AggregateResult getResultReceived() {
 		return resultReceived;
 	}
 
-	public void setResultReceived(TimeResult resultReceived) {
+	public void setResultReceived(AggregateResult resultReceived) {
 		this.resultReceived = resultReceived;
 	}
 }

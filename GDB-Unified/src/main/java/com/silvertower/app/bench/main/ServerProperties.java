@@ -42,22 +42,25 @@ public class ServerProperties {
 		
 		tempDirPath = jarFile.getParentFile().getPath() + "//..//temp//";
 		File workDir = new File(tempDirPath);
-		if (!workDir.mkdir()) {
+		workDir.mkdir();
+		/*if (!workDir.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.tempDirPath);
 			workDir.mkdir();
 			workDir.setReadable(true);
 			workDir.setWritable(true);
-		}
+		}*/
 		
 		// === Datasets directory initialization
 		datasetsDir = tempDirPath + "datasets//";
 		File datasetsDir = new File(ServerProperties.datasetsDir);
-		if (!datasetsDir.mkdir()) {
+		datasetsDir.mkdir();
+		/*if (!datasetsDir.mkdir()) {
 			Utilities.deleteDirectory(ServerProperties.datasetsDir);
 			datasetsDir.mkdir();
 			datasetsDir.setReadable(true);
 			datasetsDir.setWritable(true);
 		}
+		*/
 		
 		// === Python scripts directory
 		pythonDir = resourcesDirPath + "python//";
