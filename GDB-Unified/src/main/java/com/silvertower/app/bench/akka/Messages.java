@@ -71,6 +71,14 @@ public class Messages {
 			this.times = new ArrayList<TimeResult>();
 		}
 		
+		public AggregateResult(List<Double> results) {
+			this.times = new ArrayList<TimeResult>();
+			for (Double d: results) {
+				TimeResult r = new TimeResult(d);
+				times.add(r);
+			}
+		}
+		
 		public void addTime(TimeResult t) {
 			times.add(t);
 		}

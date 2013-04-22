@@ -8,8 +8,6 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 
 import com.silvertower.app.bench.akka.Messages.*;
-import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
-import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 
 public class SlaveClient extends UntypedActor {
@@ -61,18 +59,10 @@ public class SlaveClient extends UntypedActor {
 			}
 			state = State.WORKING;
 			
-			AggregateResult r = new AggregateResult();
-			for (int i = 0; i < ClientProperties.intensiveMeanTimes; i++) {
-				if (i != 0) createAndStartClientThreads();
-				long before = System.nanoTime();
-				startLatch.countDown();
-				stopLatch.await();
-				long after = System.nanoTime();
-				double time = (after - before) / 1000000000.0;
-				r.addTime(new TimeResult(time));
-			}
+			startLatch.countDown();
+			stopLatch.await();
 			
-			master.tell(r, getSelf());
+			master.tell(new Ack(), getSelf());
 			state = State.READY_FOR_WORK;
 		}
 		

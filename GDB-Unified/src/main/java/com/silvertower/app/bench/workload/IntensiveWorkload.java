@@ -3,7 +3,7 @@ package com.silvertower.app.bench.workload;
 
 import java.io.Serializable;
 
-import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.silvertower.app.bench.akka.GraphDescriptor;
 
 public abstract class IntensiveWorkload implements Serializable {
 	private static final long serialVersionUID = 8599937655942079452L;

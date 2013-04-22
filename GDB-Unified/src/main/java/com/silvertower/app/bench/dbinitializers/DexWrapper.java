@@ -11,29 +11,14 @@ public class DexWrapper extends DBInitializer {
 
 	private static final long serialVersionUID = 4694503791969544756L;
 
-	public Graph initialize(String name, boolean batchLoading) {
-		String dir = getTempDirPath();
+	public Graph initialize(String storageDir, boolean batchLoading) {
 		if (batchLoading) {
-			DexGraph g = new DexGraph(dir + name, ServerProperties.resourcesDirPath + "dex.cfg");
+			DexGraph g = new DexGraph(storageDir + "dex", ServerProperties.resourcesDirPath + "dex.cfg");
 			g.label.set("default");
 			return (new BatchGraph<TransactionalGraph>(g));
 		}
 		else {
-			DexGraph g = new DexGraph(dir + name, ServerProperties.resourcesDirPath + "dex.cfg");
-			g.label.set("default");
-			return g;
-		}
-	}
-
-	public Graph initialize(boolean batchLoading) {
-		String dir = getWorkDirPath();
-		if (batchLoading) {
-			DexGraph g = new DexGraph(dir + "dex", ServerProperties.resourcesDirPath + "dex.cfg");
-			g.label.set("default");
-			return (new BatchGraph<TransactionalGraph>(g));
-		}
-		else {
-			DexGraph g = new DexGraph(dir + "dex", ServerProperties.resourcesDirPath + "dex.cfg");
+			DexGraph g = new DexGraph(storageDir + "dex", ServerProperties.resourcesDirPath + "dex.cfg");
 			g.label.set("default");
 			return g;
 		}

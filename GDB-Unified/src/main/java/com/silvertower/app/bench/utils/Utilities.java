@@ -2,16 +2,8 @@ package com.silvertower.app.bench.utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 
 import org.apache.commons.io.FileUtils;
-
-import com.silvertower.app.bench.akka.Messages.AggregateResult;
-import com.silvertower.app.bench.akka.Messages.TimeResult;
-import com.silvertower.app.bench.main.ClientProperties;
-
-import bb.util.Benchmark;
 
 
 public class Utilities {
@@ -45,17 +37,5 @@ public class Utilities {
 	            }
 	        }
 	    }
-	}
-	
-	public static AggregateResult benchTask(Runnable task, int repeat) {
-		AggregateResult r = new AggregateResult();
-		for (int i = 0; i < repeat; i++) {
-			long wall1 = System.nanoTime();
-			task.run();
-			long wall2 = System.nanoTime();
-			double timeSpent = (wall2-wall1)/nanoToSFactor;
-			r.addTime(new TimeResult(timeSpent));
-		}
-		return r;
 	}
 }

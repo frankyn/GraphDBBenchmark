@@ -11,17 +11,20 @@ import com.silvertower.app.bench.main.ServerProperties;
 
 public class SocialNetworkDataset extends Dataset {
 	private static final long serialVersionUID = 7857644860840840667L;
+	private String firstNamesFilePath;
+	private String lastNamesFilePath;
+	private String citiesFilePath;
 
 	public SocialNetworkDataset(int nVertices) {
 		super(nVertices, "Social");
 	}
 	
-	public void generate() {
+	public File generate() {
+		this.firstNamesFilePath = ServerProperties.pythonDir + "first_names2011.txt";
+		this.lastNamesFilePath = ServerProperties.pythonDir + "last_names1990.txt";
+		this.citiesFilePath = ServerProperties.pythonDir + "cities.txt";
 		String pyScriptPath = ServerProperties.pythonDir + "social-graph-creator.py";
-		String firstNamesFilePath = ServerProperties.pythonDir + "first_names2011.txt";
-		String lastNamesFilePath = ServerProperties.pythonDir + "last_names1990.txt";
-		String citiesFilePath = ServerProperties.pythonDir + "cities.txt";
-		datasetFP = ServerProperties.datasetsDir + "social" + nVertices + ".graphml";
+		String datasetFP = ServerProperties.datasetsDir + "social" + nVertices + ".graphml";
 		File f = new File(datasetFP);
 		if (!f.exists()) {
 			Runtime r = Runtime.getRuntime();
@@ -35,7 +38,7 @@ public class SocialNetworkDataset extends Dataset {
 						+ datasetFP;
 				Process p = r.exec(command);
 	            p.waitFor();
-	            fillInfos(firstNamesFilePath, lastNamesFilePath, citiesFilePath);
+	            fillProperties();
 	        }
 	        catch (IOException | InterruptedException e) {
 	        	e.printStackTrace();
@@ -43,16 +46,18 @@ public class SocialNetworkDataset extends Dataset {
 	        	System.exit(-1);
 	        }
 		}
-		else fillInfos(firstNamesFilePath, lastNamesFilePath, citiesFilePath);
+		else fillProperties();
+		
+		return f;
 	}
 	
-	private void fillInfos(String firstNamesFP, String lastNamesFP, String citiesFP) {
+	public void fillProperties() {
         ArrayList<Object> firstNames = new ArrayList<Object>();
     	ArrayList<Object> lastNames = new ArrayList<Object>();
     	ArrayList<Object> citiesNames = new ArrayList<Object>();
-    	fillPropertyList(firstNames, firstNamesFP);
-    	fillPropertyList(lastNames, lastNamesFP);
-    	fillPropertyList(citiesNames, citiesFP);
+    	fillPropertyList(firstNames, firstNamesFilePath);
+    	fillPropertyList(lastNames, lastNamesFilePath);
+    	fillPropertyList(citiesNames, citiesFilePath);
         vertexProperties.add(new GraphProperty("Firstname", firstNames));
         vertexProperties.add(new GraphProperty("Lastname", lastNames));
         edgesProperties.add(new GraphProperty("In city", citiesNames));

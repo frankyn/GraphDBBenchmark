@@ -21,7 +21,7 @@ public class BenchmarkLauncher {
 			ConfigFactory.load().getConfig("LocalSys"));
 	
 	public static void startActors(final String[] actorsInfos) {
-		String serverAdd = actorsInfos[0];
+		final String serverAdd = actorsInfos[0];
 		int serverPort = Integer.parseInt(actorsInfos[1]);
 		String masterClientAdd = actorsInfos[2];
 		int masterClientPort = Integer.parseInt(actorsInfos[3]);
@@ -41,7 +41,7 @@ public class BenchmarkLauncher {
 		final Benchmark b = new Benchmark();
 		ActorRef listener = actorsSystem.actorOf(new Props(new UntypedActorFactory() {
 			 public UntypedActor create() {
-				 return new BenchRunner(masterClient, server, b);
+				 return new BenchRunner(masterClient, server, b, serverAdd);
 			 }
 		}), "ResultListener");
 	}

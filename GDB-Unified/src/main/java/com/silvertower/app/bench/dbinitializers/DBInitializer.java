@@ -13,18 +13,10 @@ public abstract class DBInitializer implements Serializable {
 	 * 
 	 * Initialize a temporary Graph instance in a particular way depending on the nature of the graph.
 	 * 
-	 * @param name The (directory) name where the Graph(database) will be stored
+	 * @param path The directory path where the Graph(database) will be stored
 	 * @return a graph instance
 	 */
-	public abstract Graph initialize(String name, boolean batchLoading);
-	
-	/**
-	 * 
-	 * Initialize a working Graph instance in a particular way depending on the nature of the graph.
-	 * 
-	 * @return a graph instance
-	 */
-	public abstract Graph initialize(boolean batchLoading);
+	public abstract Graph initialize(String path, boolean batchLoading);
 	
 	/**
 	 * 

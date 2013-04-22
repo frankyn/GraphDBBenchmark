@@ -2,7 +2,7 @@ package com.silvertower.app.bench.workload;
 
 import java.io.Serializable;
 
-import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.silvertower.app.bench.akka.GraphDescriptor;
 import com.tinkerpop.blueprints.Edge;
 
 public class UpdateEdgesIntensiveWorkload extends IntensiveWorkload implements Serializable {

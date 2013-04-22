@@ -9,20 +9,10 @@ public class Neo4jWrapper extends DBInitializer {
 
 	private static final long serialVersionUID = -7001472988542034752L;
 
-	public Graph initialize(String name, boolean batchLoading) {
-		String dir = getTempDirPath();
-		createDirectory(dir + name);
-		if (batchLoading) 
-			return new Neo4jBatchGraph(dir + name);
-		else 
-			return new Neo4jGraph(dir + name);
-	}
-
-	public Graph initialize(boolean batchLoading) {
-		String dir = getWorkDirPath();
-		createDirectory(dir);
-		if (batchLoading) return new Neo4jBatchGraph(dir);
-		else return new Neo4jGraph(dir);
+	public Graph initialize(String storageDir, boolean batchLoading) {
+		createDirectory(storageDir);
+		if (batchLoading) return new Neo4jBatchGraph(storageDir);
+		else return new Neo4jGraph(storageDir);
 	}
 
 	public String getName() {

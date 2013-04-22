@@ -16,14 +16,13 @@ public class TitanWrapper extends DBInitializer {
 		this.backend = backend;
 	}
 	
-	public Graph initialize(String name, boolean batchLoading) {
-		String dir = getTempDirPath();
-		createDirectory(dir + name);
+	public Graph initialize(String storageDir, boolean batchLoading) {
+		createDirectory(storageDir);
 		
 		Configuration config = new BaseConfiguration();
 		if (batchLoading) config.setProperty("storage.batch-loading", "true");
 		if (backend.equals("local")) {
-			config.setProperty("storage.directory", dir + name);
+			config.setProperty("storage.directory", storageDir);
 		}
 		config.setProperty("storage.backend", backend);
 		return TitanFactory.open(config);
@@ -31,18 +30,6 @@ public class TitanWrapper extends DBInitializer {
 
 	public String getName() {
 		return "titan"+backend;
-	}
-
-	public Graph initialize(boolean batchLoading) {
-		String dir = ServerProperties.dbsDirWork + getName();
-		createDirectory(dir);
-		Configuration config = new BaseConfiguration();
-		if (batchLoading) config.setProperty("storage.batch-loading", "true");
-		if (backend.equals("local")) {
-			config.setProperty("storage.directory", dir);
-		}
-		config.setProperty("storage.backend", backend);
-		return TitanFactory.open(config);
 	}
 
 	public String getTempDirPath() {

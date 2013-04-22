@@ -2,7 +2,6 @@ package com.silvertower.app.bench.main;
 
 import java.io.File;
 
-import com.silvertower.app.bench.utils.Utilities;
 
 public class BenchRunnerProperties {
 	public static String tempDirPath;

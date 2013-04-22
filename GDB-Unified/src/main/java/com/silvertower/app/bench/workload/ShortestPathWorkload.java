@@ -3,7 +3,7 @@ package com.silvertower.app.bench.workload;
 import java.io.Serializable;
 import java.util.List;
 
-import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.silvertower.app.bench.akka.GraphDescriptor;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.gremlin.java.GremlinPipeline;

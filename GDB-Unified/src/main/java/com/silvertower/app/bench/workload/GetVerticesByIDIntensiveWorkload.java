@@ -3,7 +3,7 @@ package com.silvertower.app.bench.workload;
 
 import java.io.Serializable;
 
-import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
+import com.silvertower.app.bench.akka.GraphDescriptor;
 
 
 public class GetVerticesByIDIntensiveWorkload extends IntensiveWorkload implements Serializable {

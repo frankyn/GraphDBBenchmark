@@ -1,5 +1,7 @@
 package com.silvertower.app.bench.datasets;
 
+import java.io.File;
+
 
 public class RoadNetworkDataset extends Dataset {
 	private static final long serialVersionUID = 6346344739974032046L;
@@ -8,13 +10,13 @@ public class RoadNetworkDataset extends Dataset {
 		super(nVertices, "Road");
 	}
 
-	public void generate() {
+	public File generate() {
 		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
-	public boolean isDirected() {
+	public void fillProperties() {
 		// TODO Auto-generated method stub
-		return false;
 	}
 }

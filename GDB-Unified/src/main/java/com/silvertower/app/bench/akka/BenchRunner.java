@@ -5,6 +5,7 @@ import com.silvertower.app.bench.akka.Messages.*;
 import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.*;
 import com.silvertower.app.bench.main.Benchmark;
+import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.utils.Logger;
 import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
@@ -24,46 +25,61 @@ public class BenchRunner extends UntypedActor {
 	private Timeout timeout;
 	private Logger log;
 	private Benchmark b;
-	public BenchRunner(ActorRef mc, ActorRef server, Benchmark b) {
+	private String serverAdd;
+	public BenchRunner(ActorRef mc, ActorRef server, Benchmark b, String serverAdd) {
 		this.masterClient = mc;
 		this.server = server;
 		this.timeout = new Timeout(Duration.create(3600, "seconds"));
 		this.log = new Logger();
 		this.b = b;
+		this.serverAdd = serverAdd;
 	}
 	
 	public void preStart() {
 		b.start(this);
 	}
 	
-	public void load(DBInitializer i, Dataset givenD) {
-		Dataset d = assignDataset(givenD);
+	public void assignInitializer(DBInitializer i) {
 		server.tell(i, getSelf());
-		if (loadDB(d)) {
-			log.logDB(i.getName());
-			log.logMessage(String.format("Dataset %s loaded", d.getDatasetName()));
-		}
-		else {
-			log.logMessage(String.format("Error while loading DB", i.getName()));
-			shutdownSystem();
-		}
+		log.logDB(i.getName());
 	}
 	
+	public AggregateResult startLoadBench(Dataset d) {
+		AggregateResult r = new AggregateResult();
+		if (loadDB(d)) {
+			log.logMessage(String.format("Dataset %s loaded", d.getDatasetName()));
+			Future<Object> answer = ask(server, new GetResult(), timeout);
+			try {
+				r = (AggregateResult) Await.result(answer, timeout.duration());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			log.logResult(r);
+		}
+		else {
+			log.logMessage("Error while loading DB");
+			shutdownSystem();
+		}
+		return r;
+	}
 	
 	public AggregateResult startWorkBench(IntensiveWorkload w, int nOps, int nClients) {
 		IntensiveWork work = new IntensiveWork(w, nOps, nClients);
-		Object answer = sendWorkAndWaitAnswer(work);
-		if (answer == null) {
-			log.logMessage(String.format("Error while executing the workload %s with %d operations " +
-					"and %d clients", w.getName(), nOps, nClients));
-			return null;
+		AggregateResult aggregate = new AggregateResult();
+		for (int i = 0; i < ClientProperties.intensiveMeanTimes; i++) {
+			Object answer = sendWorkAndWaitAnswer(work);
+			if (answer == null) {
+				log.logMessage(String.format("Error while executing the workload %s with %d operations " +
+						"and %d clients", w.getName(), nOps, nClients));
+			}
+			else {
+				TimeResult r = (TimeResult) answer;
+				log.logOp(String.format("Workload %s with %d operations and %d clients", w.getName(), nOps, nClients));
+				log.logResult(r);
+				aggregate.addTime(r);
+			}
 		}
-		else {
-			AggregateResult r = (AggregateResult) answer;
-			log.logOp(String.format("Workload %s with %d operations and %d clients", w.getName(), nOps, nClients));
-			log.logResult(r);
-			return r;
-		}
+		return aggregate;
 	}
 	
 	public AggregateResult startWorkBench(TraversalWorkload w) {
@@ -80,24 +96,6 @@ public class BenchRunner extends UntypedActor {
 		}
 	}
 	
-	public TimeResult startLoadBench(DBInitializer i, Dataset d, boolean batchLoading) {
-		server.tell(i, getSelf());
-		log.logDB(i.getName());
-		Dataset d2 = assignDataset(d);
-		Future<Object> timeAnswer = ask(server, new LoadBench(d2, batchLoading), timeout);
-		TimeResult t = null;
-		try {
-			t = (TimeResult) Await.result(timeAnswer, timeout.duration());
-			log.logOp(String.format("Loading of dataset %s [batchloading=%b]", d.getDatasetName(), batchLoading));
-			log.logResult(t);
-			return t;
-		} catch (Exception e) {
-			log.logMessage("Error during load benchmark");
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
 	public void shutdownSystem() {
 		Duration d = Duration.create(10, "seconds");
 		Future<Boolean> sStopped = gracefulStop(server, d, getContext().system());
@@ -111,23 +109,14 @@ public class BenchRunner extends UntypedActor {
 		getContext().system().shutdown();
 		System.exit(-1);
 	}
-
-	private Dataset assignDataset(Dataset d) {
-		Dataset dFilled = null;
-		try {
-			Future<Object> datasetAnswer = ask(server, d, timeout);
-			dFilled = (Dataset) Await.result(datasetAnswer, timeout.duration());
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		return dFilled;
-	}
 	
 	private boolean loadDB(Dataset d) {
 		Future<Object> answer = ask(server, new Load(d), timeout);
 		GraphDescriptor gDesc = null;
 		try {
 			gDesc = (GraphDescriptor) Await.result(answer, timeout.duration());
+			gDesc.setServerAdd(serverAdd);
+			gDesc.setServerPort(8182);
 			masterClient.tell(gDesc, getSelf());
 			return true;
 		} catch (Exception e) {

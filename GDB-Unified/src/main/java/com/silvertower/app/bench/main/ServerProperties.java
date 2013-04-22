@@ -10,8 +10,6 @@ import com.silvertower.app.bench.utils.Utilities;
 
 
 public class ServerProperties {
-	public static final String rexsterServerIp = "127.0.0.1";
-	public static final int rexsterServerPort = 8182;
 	public static String tempDirPath;
 	public static String datasetsDir;
 	public static String rexsterDirPath;
@@ -27,6 +25,8 @@ public class ServerProperties {
 	public static String dbDirTitanWork;
 	public static String dbDirOrientWork;
 	public static String pythonDir;
+	public static long maxLoadTimeInNS = 60000000000L;
+	public static int maxNVerticesMultiLoad = 50000;
 	
 	public static void initializeProperies() {
 		CodeSource codeSource = BenchmarkLauncher.class.getProtectionDomain().getCodeSource();

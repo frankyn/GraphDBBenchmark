@@ -11,7 +11,6 @@ import org.apache.commons.exec.DefaultExecutor;
 
 import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
-import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 import com.silvertower.app.bench.load.DBLoader;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.silvertower.app.bench.utils.Utilities;
@@ -22,58 +21,75 @@ import akka.actor.UntypedActor;
 
 public class Server extends UntypedActor {
 	private DBInitializer currentInitializer;
-	private enum State {WAITING_FOR_INFOS, READY_TO_WORK};
+	private enum State {DB_HOSTED, NO_DB_HOSTED};
 	private State state;
 	private final int rexsterWaitTimeLimit = 3600000;
 	
 	public Server() {
-		this.state = State.WAITING_FOR_INFOS;
+		this.state = State.NO_DB_HOSTED;
 	}
 	
 	public void onReceive(Object message) throws Exception {
+		System.out.println("Server:" + message);
 		if (message instanceof DBInitializer) {
-			state = State.READY_TO_WORK;
 			currentInitializer = (DBInitializer) message;
 		}
 		
-		else if (message instanceof Dataset) {
-			Dataset d = (Dataset) message;
-			System.out.println(String.format("Received dataset: %s", d.getDatasetName()));
-			System.out.println(String.format("Generating dataset: %s", d.getDatasetName()));
-			d.generate();
-			System.out.println(String.format("Generating dataset: %s completed", d.getDatasetName()));
-			getSender().tell(d, getSelf());
-		}
+//		else if (message instanceof Dataset) {
+//			Dataset d = (Dataset) message;
+//			System.out.println(String.format("Received dataset: %s", d.getDatasetName()));
+//			System.out.println(String.format("Generating dataset: %s", d.getDatasetName()));
+//			File f = d.generate();
+//			System.out.println(String.format("Generating dataset: %s completed", d.getDatasetName()));
+//			getSender().tell(d, getSelf());
+//		}
 		
-		else if (message instanceof LoadBench) {
-			if (state != State.READY_TO_WORK) {
-				forwardError(getSender(), "Error: the database initializer is not set yet!");
-				return;
-			}
-			Dataset d = ((LoadBench) message).getDataset();
-			double wallTime;
-			if(((LoadBench) message).isBatchLoading()) {
-				wallTime = DBLoader.batchLoadingBenchmark(d, currentInitializer);
-			}
-			else {
-				wallTime = DBLoader.normalLoadingBenchmark(d, currentInitializer);
-			}
-			TimeResult r = new TimeResult(wallTime);
-			getSender().tell(r, getSelf());
-		}
+//		else if (message instanceof LoadBench) {
+//			if (state != State.READY_TO_WORK) {
+//				forwardError(getSender(), "Error: the database initializer is not set yet!");
+//				return;
+//			}
+//			Dataset d = ((LoadBench) message).getDataset();
+//			double wallTime;
+//			if(((LoadBench) message).isBatchLoading()) {
+//				wallTime = DBLoader.batchLoadingBenchmark(d, currentInitializer);
+//			}
+//			else {
+//				wallTime = DBLoader.normalLoadingBenchmark(d, currentInitializer);
+//			}
+//			startRexsterServer();
+//			TimeResult r = new TimeResult(wallTime);
+//			getSender().tell(r, getSelf());
+//		}
+//		
+//		else if (message instanceof LoadBench) {
+//			if (state != State.READY_TO_WORK) {
+//				forwardError(getSender(), "Error: the database initializer is not set yet!");
+//				return;
+//			}
+//		}
 		
 		else if (message instanceof Load) {
-			if (state != State.READY_TO_WORK) {
-				forwardError(getSender(), "Error: the database initializer is not set yet!");
-				return;
+			if (state == State.DB_HOSTED) {
+				stopRexsterServer();
+				deleteDBDirectory();
 			}
+			
+			Load loadMessage = (Load) message;
+			Dataset d = loadMessage.getDataset();
 			String dbName = currentInitializer.getName();
-			Dataset d = ((Load) message).getDataset();
+			System.out.println(String.format("Received dataset: %s", d.getDatasetName()));
+			System.out.println(String.format("Generating dataset: %s", d.getDatasetName()));
+			File f = d.generate();
 			System.out.println(String.format("Loading the DB %s with dataset: %s", dbName, d.getDatasetName()));
-			GraphDescriptor gDesc = DBLoader.loadDB(d, currentInitializer);
+			GraphDescriptor gDesc = DBLoader.loadDB(f, d, currentInitializer);
 			startRexsterServer();
 			System.out.println("Loading finished, sending confirmation to the master node...");
 			getSender().tell(gDesc, getSelf());
+		}
+		
+		else if (message instanceof GetResult) {
+			getSender().tell(new AggregateResult(DBLoader.loadTimes), getSelf());
 		}
 		
 		else if (message instanceof StopCurrentDB) {
@@ -84,14 +100,18 @@ public class Server extends UntypedActor {
 				// Stop the rexster server and clean the working directory for this graph
 				// db implementation
 				stopRexsterServer();
-				File dir = new File(currentInitializer.getWorkDirPath());
-				Utilities.deleteDirectoryContent(dir);
+				deleteDBDirectory();
 			}
 		}
 		
 		else {
 			unhandled(message);
 		}
+	}
+	
+	private void deleteDBDirectory() {
+		File dir = new File(currentInitializer.getWorkDirPath());
+		Utilities.deleteDirectoryContent(dir);
 	}
 	
 	private void startRexsterServer() {

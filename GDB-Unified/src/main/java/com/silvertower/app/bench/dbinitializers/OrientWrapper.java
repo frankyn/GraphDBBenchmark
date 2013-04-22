@@ -10,23 +10,15 @@ public class OrientWrapper extends DBInitializer {
 	
 	private static final long serialVersionUID = -1546694471943663510L;
 
-	public Graph initialize(String name, boolean batchLoading) {
-		String dir = getWorkDirPath();
-		createDirectory(dir + name);
+	public Graph initialize(String storageDir, boolean batchLoading) {
+		createDirectory(storageDir);
 		if (batchLoading) {
-			return new OrientBatchGraph("local:" + dir + name);
+			return new OrientBatchGraph("local:" + storageDir);
 		}
 		
 		else {
-			return new OrientGraph("local:" + dir + name);
+			return new OrientGraph("local:" + storageDir);
 		}
-	}
-	
-	public Graph initialize(boolean batchLoading) {
-		String dir = getWorkDirPath();
-		createDirectory(dir);
-		if (batchLoading) return new OrientBatchGraph("local:" + dir);
-		else return new OrientGraph("local:" + dir);
 	}
 
 	public String getName() {

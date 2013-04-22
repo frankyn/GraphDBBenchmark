@@ -1,5 +1,6 @@
 package com.silvertower.app.bench.datasets;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -14,7 +15,6 @@ import com.silvertower.app.bench.dbinitializers.GraphProperty;
 public abstract class Dataset implements Serializable {
 	private static final long serialVersionUID = 4308905129972298707L;
 	protected int nVertices;
-	protected String datasetFP;
 	protected String datasetType;
 	protected String datasetName;
 	protected ArrayList<GraphProperty> vertexProperties;
@@ -29,24 +29,17 @@ public abstract class Dataset implements Serializable {
 	}
 
 	/**
-	 * Generate a GraphML file that represents a graph. The path of this file is datasetFP.
+	 * Generate a GraphML file that represents a graph.
 	 * 
 	 */
-	public abstract void generate();
-	
+	public abstract File generate();
+		
 	/**
-	 * 
-	 * @return True if the graph contained in the GraphML file represents a directed graph.
+	 * Fill the vertexProperties (resp. edgesProperties) list with all the possible vertex
+	 * properties (resp. edges properties) that may be present in this dataset.
+	 * A graph property is a pair composed of a field and all its possible values.
 	 */
-	public abstract boolean isDirected();
-
-	/**
-	 * 
-	 * @return The complete file path where this dataset is located.
-	 */
-	public String getDatasetFP() {
-		return datasetFP;
-	}
+	public abstract void fillProperties();
 	
 	/**
 	 * 

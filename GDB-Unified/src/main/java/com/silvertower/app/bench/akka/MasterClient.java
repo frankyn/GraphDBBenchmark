@@ -24,7 +24,6 @@ import akka.util.Timeout;
 import static akka.pattern.Patterns.ask;
 
 import com.silvertower.app.bench.akka.Messages.*;
-import com.silvertower.app.bench.dbinitializers.GraphDescriptor;
 import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
@@ -35,13 +34,17 @@ public class MasterClient extends UntypedActor {
 	private GraphDescriptor currentGDesc;
 	private List<SlaveReference> slaves;
 	private int coresAvailable;
+	private int numberOfWorkingSlaves;
 	private enum State {WAITING_FOR_INFOS, READY_FOR_WORK, WORKING};
 	private State state;
 	private ActorRef resultsListener;
 	private Timeout t = new Timeout(Duration.create(3600, "seconds"));
+	private List<Ack> ackBuffer;
+	private long intensiveWorkloadStartTs;
 	public MasterClient(String[] slavesInfos) {
 		this.slavesAvailable = slavesInfos.length/2;
 		this.slaves = new ArrayList<SlaveReference>(slavesAvailable);
+		this.ackBuffer = new ArrayList<Ack>();
 		// Create the slave (workers)
 		for (int i = 1; i <= slavesAvailable; i++) {
 			String ipAddress = slavesInfos[(i-1)*2];
@@ -84,6 +87,7 @@ public class MasterClient extends UntypedActor {
 			
 			state = State.WORKING;
 			assignWork(nCores, nOps, workload);
+			intensiveWorkloadStartTs = System.nanoTime();
 			startWork();
 			System.out.println("Starting intensive work");
 		}
@@ -102,14 +106,11 @@ public class MasterClient extends UntypedActor {
 			state = State.READY_FOR_WORK;
 		}
 		
-		else if (message instanceof AggregateResult) {
-			for (SlaveReference s: slaves) {
-				if (s.getSlaveRef().equals(getSender())) {
-					s.setResultReceived((AggregateResult) message);
-				}
-			}
-			AggregateResult r = aggregateResult();
-			if (r != null) {
+		else if (message instanceof Ack) {
+			ackBuffer.add((Ack) message);
+			if (ackBuffer.size() == numberOfWorkingSlaves) {
+				long intensiveWorkloadEndTs = System.nanoTime();
+				TimeResult r = new TimeResult( (intensiveWorkloadEndTs - intensiveWorkloadStartTs) / 1000000000.0);
 				resultsListener.tell(r, getSelf());
 				System.out.println("Intensive work complete");
 				resetState();
@@ -236,6 +237,8 @@ public class MasterClient extends UntypedActor {
 			}
 		}
 		
+		numberOfWorkingSlaves = nbrSlavesNeeded;
+		
 		int nbrOpPerSlave = nOps / nbrSlavesNeeded;
 		
 		// Assign the work to as much slaves as necessary
@@ -259,21 +262,10 @@ public class MasterClient extends UntypedActor {
 	private void resetState() {
 		for (SlaveReference s: slaves) {
 			s.unsetWorking();
-			s.setResultReceived(null);
 		}
+		ackBuffer = new ArrayList<Ack>();
 	}
 
-	private AggregateResult aggregateResult() {
-		AggregateResult r = new AggregateResult();
-		for (SlaveReference s: slaves) {
-			if (s.isWorking()) {
-				if (s.getResultReceived() != null) r.mergeWith(s.getResultReceived());
-				else return null;
-			}
-		}
-		return r;
-	}
-	
 	private void forwardError(String errorMessage) {
 		resultsListener.tell(new Messages.Error(errorMessage), getSelf());
 	}
