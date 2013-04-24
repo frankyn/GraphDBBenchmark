@@ -29,7 +29,7 @@ public class BenchRunner extends UntypedActor {
 	public BenchRunner(ActorRef mc, ActorRef server, Benchmark b, String serverAdd) {
 		this.masterClient = mc;
 		this.server = server;
-		this.timeout = new Timeout(Duration.create(3600, "seconds"));
+		this.timeout = new Timeout(Duration.create(Integer.MAX_VALUE, "seconds"));
 		this.log = new Logger();
 		this.b = b;
 		this.serverAdd = serverAdd;

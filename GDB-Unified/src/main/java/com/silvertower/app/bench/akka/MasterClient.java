@@ -38,7 +38,7 @@ public class MasterClient extends UntypedActor {
 	private enum State {WAITING_FOR_INFOS, READY_FOR_WORK, WORKING};
 	private State state;
 	private ActorRef resultsListener;
-	private Timeout t = new Timeout(Duration.create(3600, "seconds"));
+	private Timeout t = new Timeout(Duration.create(Integer.MAX_VALUE, "seconds"));
 	private List<Ack> ackBuffer;
 	private long intensiveWorkloadStartTs;
 	public MasterClient(String[] slavesInfos) {

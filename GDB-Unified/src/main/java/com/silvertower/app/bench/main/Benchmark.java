@@ -2,6 +2,7 @@ package com.silvertower.app.bench.main;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import com.silvertower.app.bench.akka.BenchRunner;
 import com.silvertower.app.bench.akka.Messages.AggregateResult;
@@ -44,17 +45,17 @@ public class Benchmark {
 	}
 	
 	private void addInitializers(List<DBInitializer> initializers) {
-		initializers.add(new Neo4jWrapper());
-		initializers.add(new DexWrapper());
+//		initializers.add(new Neo4jWrapper());
+//		initializers.add(new DexWrapper());
 		initializers.add(new TitanWrapper("local"));
-		initializers.add(new TitanWrapper("cassandra"));
-		initializers.add(new OrientWrapper());
+//		initializers.add(new TitanWrapper("cassandra"));
+//		initializers.add(new OrientWrapper());
 	}
 	
 	private void benchmark() {
-		SocialNetworkDataset d = new SocialNetworkDataset(300000);
+		SocialNetworkDataset d = new SocialNetworkDataset(250000);
 		PointSeries bps0 = new PointSeries(String.format("Loading DB with a %s dataset", d.getDatasetType()), currentDBName, "Time");
-		bps0.addResult("300000 vertices", loadBench(d));
+		bps0.addResult("250000 vertices", 250000, loadBench(d));
 		plotter.addXYPointsSeries(bps0);
 		
 //		PointSeries bps = new PointSeries("Shortest paths search", currentDBName, "Time");
@@ -68,15 +69,16 @@ public class Benchmark {
 //		bps1.addResult("3 hops limit", workBench(new NeighborhoodWorkload(3)));
 //		bps1.addResult("4 hops limit", workBench(new NeighborhoodWorkload(4)));
 //		plotter.addBPSeries(bps1);
-//		
+		
 		IntensiveWorkload w1 = new GetVerticesByIDIntensiveWorkload();
 		
 		PointSeries bps2 = new PointSeries("Read ID Intensive 1 client", currentDBName, "Time");
-		bps2.addResult("100 reads", workBench(w1, 100, 1));
-		bps2.addResult("200 reads", workBench(w1, 200, 1));
-		bps2.addResult("300 reads", workBench(w1, 300, 1));
-		bps2.addResult("400 reads", workBench(w1, 400, 1));
+		bps2.addResult("100 reads", 100, workBench(w1, 100, 1));
+		bps2.addResult("200 reads", 200, workBench(w1, 200, 1));
+		bps2.addResult("300 reads", 300, workBench(w1, 300, 1));
+		bps2.addResult("400 reads", 400, workBench(w1, 400, 1));
 		plotter.addBPSeries(bps2);
+		plotter.addXYPointsSeries(bps2);
 		
 		PointSeries bps3 = new PointSeries("Read by ID Intensive 200 ops", currentDBName, "Clients", "Time");
 		bps3.addResult("1 client", 1, workBench(w1, 200, 1));
@@ -86,39 +88,41 @@ public class Benchmark {
 		plotter.addBPSeries(bps3);
 		plotter.addXYPointsSeries(bps3);
 		
-		IntensiveWorkload w2 = new GetVerticesByPropIntensiveWorkload();
-		
-		PointSeries bps4 = new PointSeries("Read by property Intensive 1 client", currentDBName, "Time");
-		bps4.addResult("100 reads", workBench(w2, 100, 1));
-		bps4.addResult("200 reads", workBench(w2, 200, 1));
-		bps4.addResult("300 reads", workBench(w2, 300, 1));
-		bps4.addResult("400 reads", workBench(w2, 400, 1));
-		plotter.addBPSeries(bps4);
-		
-		PointSeries bps5 = new PointSeries("Read by property Intensive 200 ops", currentDBName, "Clients", "Time");
-		bps5.addResult("1 client", 1, workBench(w2, 200, 1));
-		bps5.addResult("2 clients", 2, workBench(w2, 200, 2));
-		bps5.addResult("3 clients", 3, workBench(w2, 200, 3));
-		bps5.addResult("4 clients", 4, workBench(w2, 200, 4));
-		plotter.addBPSeries(bps5);
-		plotter.addXYPointsSeries(bps5);
-		
-		IntensiveWorkload w3 = new UpdateVerticesIntensiveWorkload();
-		
-		PointSeries bps6 = new PointSeries("Read Write Intensive 1 client", currentDBName, "Time");
-		bps6.addResult("100 reads", workBench(w3, 100, 1));
-		bps6.addResult("200 reads", workBench(w3, 200, 1));
-		bps6.addResult("300 reads", workBench(w3, 300, 1));
-		bps6.addResult("400 reads", workBench(w3, 400, 1));
-		plotter.addBPSeries(bps6);
-		
-		PointSeries bps7 = new PointSeries("Read Write Intensive 200 ops", currentDBName, "Clients", "Time");
-		bps7.addResult("1 client", 1, workBench(w3, 200, 1));
-		bps7.addResult("2 clients", 2, workBench(w3, 200, 2));
-		bps7.addResult("3 clients", 3, workBench(w3, 200, 3));
-		bps7.addResult("4 clients", 4, workBench(w3, 200, 4));
-		plotter.addBPSeries(bps7);
-		plotter.addXYPointsSeries(bps7);
+//		IntensiveWorkload w2 = new GetVerticesByPropIntensiveWorkload();
+//		
+//		PointSeries bps4 = new PointSeries("Read by property Intensive 1 client", currentDBName, "Time");
+//		bps4.addResult("100 reads", 100, workBench(w2, 100, 1));
+//		bps4.addResult("200 reads", 200, workBench(w2, 200, 1));
+//		bps4.addResult("300 reads", 300, workBench(w2, 300, 1));
+//		bps4.addResult("400 reads", 400, workBench(w2, 400, 1));
+//		plotter.addBPSeries(bps4);
+//		plotter.addXYPointsSeries(bps4);
+//		
+//		PointSeries bps5 = new PointSeries("Read by property Intensive 200 ops", currentDBName, "Clients", "Time");
+//		bps5.addResult("1 client", 1, workBench(w2, 200, 1));
+//		bps5.addResult("2 clients", 2, workBench(w2, 200, 2));
+//		bps5.addResult("3 clients", 3, workBench(w2, 200, 3));
+//		bps5.addResult("4 clients", 4, workBench(w2, 200, 4));
+//		plotter.addBPSeries(bps5);
+//		plotter.addXYPointsSeries(bps5);
+//		
+//		IntensiveWorkload w3 = new UpdateVerticesIntensiveWorkload();
+//		
+//		PointSeries bps6 = new PointSeries("Read Write Intensive 1 client", currentDBName, "Time");
+//		bps6.addResult("100 reads", 100, workBench(w3, 100, 1));
+//		bps6.addResult("200 reads", 200, workBench(w3, 200, 1));
+//		bps6.addResult("300 reads", 300, workBench(w3, 300, 1));
+//		bps6.addResult("400 reads", 400, workBench(w3, 400, 1));
+//		plotter.addBPSeries(bps6);
+//		plotter.addXYPointsSeries(bps6);
+//		
+//		PointSeries bps7 = new PointSeries("Read Write Intensive 200 ops", currentDBName, "Clients", "Time");
+//		bps7.addResult("1 client", 1, workBench(w3, 200, 1));
+//		bps7.addResult("2 clients", 2, workBench(w3, 200, 2));
+//		bps7.addResult("3 clients", 3, workBench(w3, 200, 3));
+//		bps7.addResult("4 clients", 4, workBench(w3, 200, 4));
+//		plotter.addBPSeries(bps7);
+//		plotter.addXYPointsSeries(bps7);
 	}
 	
 	private AggregateResult loadBench(Dataset d) {

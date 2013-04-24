@@ -9,13 +9,13 @@ public class PointSeries {
 	private String dbName;
 	private String xAxis;
 	private String yAxis;
-	private ArrayList<BoxPlotResult> resultsCollection;
+	private ArrayList<PlotResult> resultsCollection;
 
 	public PointSeries(String name, String dbName, String yAxis) {
 		this.name = name;
 		this.dbName = dbName;
 		this.yAxis = yAxis;
-		this.resultsCollection = new ArrayList<BoxPlotResult>();
+		this.resultsCollection = new ArrayList<PlotResult>();
 	}
 	
 	public PointSeries(String name, String dbName, String xAxis, String yAxis) {
@@ -23,15 +23,15 @@ public class PointSeries {
 		this.dbName = dbName;
 		this.xAxis = xAxis;
 		this.yAxis = yAxis;
-		this.resultsCollection = new ArrayList<BoxPlotResult>();
+		this.resultsCollection = new ArrayList<PlotResult>();
 	}
 
 	public void addResult(String label, AggregateResult results) {
-		resultsCollection.add(new BoxPlotResult(label, results));
+		resultsCollection.add(new PlotResult(label, results));
 	}
 	
 	public void addResult(String label, double xValue, AggregateResult results) {
-		resultsCollection.add(new BoxPlotResult(label, xValue, results));
+		resultsCollection.add(new PlotResult(label, xValue, results));
 	}
 	
 	public String getName() {
@@ -50,21 +50,21 @@ public class PointSeries {
 		return yAxis;
 	}
 
-	public ArrayList<BoxPlotResult> getResultsCollection() {
+	public ArrayList<PlotResult> getResultsCollection() {
 		return resultsCollection;
 	}
 	
-	public class BoxPlotResult {
+	public class PlotResult {
 		private String label;
 		private double xValue;
 		private AggregateResult results;
 
-		public BoxPlotResult(String label, AggregateResult results) {
+		public PlotResult(String label, AggregateResult results) {
 			this.label = label;
 			this.results = results;
 		}
 		
-		public BoxPlotResult(String label, double xValue, AggregateResult results) {
+		public PlotResult(String label, double xValue, AggregateResult results) {
 			this.label = label;
 			this.xValue = xValue;
 			this.results = results;
