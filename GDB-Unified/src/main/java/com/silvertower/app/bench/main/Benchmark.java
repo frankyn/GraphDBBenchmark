@@ -53,7 +53,7 @@ public class Benchmark {
 	}
 	
 	private void benchmark() {
-		SocialNetworkDataset d = new SocialNetworkDataset(250000);
+		SocialNetworkDataset d = new SocialNetworkDataset(60000);
 		PointSeries bps0 = new PointSeries(String.format("Loading DB with a %s dataset", d.getDatasetType()), currentDBName, "Time");
 		bps0.addResult("250000 vertices", 250000, loadBench(d));
 		plotter.addXYPointsSeries(bps0);

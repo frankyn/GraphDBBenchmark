@@ -12,7 +12,7 @@ public abstract class IntensiveWorkload implements Serializable {
 		this.name = name;
 	}
 	
-	public String getName() {
+	public String toString() {
 		return name;
 	}
 	

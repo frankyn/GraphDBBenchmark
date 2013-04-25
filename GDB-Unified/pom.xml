@@ -59,6 +59,11 @@
 			<version>1</version>
 		</dependency>
 		<dependency>
+			<groupId>com.asciitable.com</groupId>
+			<artifactId>asciitable</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
 			<groupId>com.commons.exec</groupId>
 			<artifactId>exec</artifactId>
 			<version>1.1</version>

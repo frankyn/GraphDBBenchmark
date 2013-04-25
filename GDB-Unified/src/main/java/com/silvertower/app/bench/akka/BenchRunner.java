@@ -7,6 +7,7 @@ import com.silvertower.app.bench.dbinitializers.*;
 import com.silvertower.app.bench.main.Benchmark;
 import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.utils.Logger;
+import com.silvertower.app.bench.utils.Statistics;
 import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 
@@ -23,7 +24,7 @@ public class BenchRunner extends UntypedActor {
 	private ActorRef masterClient;
 	private ActorRef server;
 	private Timeout timeout;
-	private Logger log;
+	public Logger log;
 	private Benchmark b;
 	private String serverAdd;
 	public BenchRunner(ActorRef mc, ActorRef server, Benchmark b, String serverAdd) {
@@ -70,11 +71,11 @@ public class BenchRunner extends UntypedActor {
 			Object answer = sendWorkAndWaitAnswer(work);
 			if (answer == null) {
 				log.logMessage(String.format("Error while executing the workload %s with %d operations " +
-						"and %d clients", w.getName(), nOps, nClients));
+						"and %d clients", w.toString(), nOps, nClients));
 			}
 			else {
 				TimeResult r = (TimeResult) answer;
-				log.logOp(String.format("Workload %s with %d operations and %d clients", w.getName(), nOps, nClients));
+				log.logOp(String.format("Workload %s with %d operations and %d clients", w.toString(), nOps, nClients));
 				log.logResult(r);
 				aggregate.addTime(r);
 			}
@@ -85,12 +86,12 @@ public class BenchRunner extends UntypedActor {
 	public AggregateResult startWorkBench(TraversalWorkload w) {
 		Object answer = sendWorkAndWaitAnswer(new TraversalWork(w));
 		if (answer == null) {
-			log.logMessage(String.format("Error while executing the workload %s", w.getName()));
+			log.logMessage(String.format("Error while executing the workload %s", w.toString()));
 			return null;
 		}
 		else {
 			AggregateResult r = (AggregateResult) answer;
-			log.logOp(String.format("Workload %s", w.getName()));
+			log.logOp(String.format("Workload %s", w.toString()));
 			log.logResult(r);
 			return r;
 		}

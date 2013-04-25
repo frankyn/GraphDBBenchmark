@@ -176,7 +176,7 @@ public class Messages {
 		}
 
 		public String getDescription() {
-			return String.format("%s with %d operations and %d clients", w.getName(), howManyOp, howManyClients);
+			return String.format("%s with %d operations and %d clients", w.toString(), howManyOp, howManyClients);
 		}
 	}
 	
@@ -192,7 +192,7 @@ public class Messages {
 		}
 		
 		public String getDescription() {
-			return w.getName();
+			return w.toString();
 		}
 	}
 	

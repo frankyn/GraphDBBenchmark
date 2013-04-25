@@ -12,7 +12,7 @@ public abstract class TraversalWorkload implements Serializable {
 		this.name = name;
 	}
 	
-	public String getName() {
+	public String toString() {
 		return name;
 	}
 	

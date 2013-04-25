@@ -128,7 +128,7 @@ public class MasterClient extends UntypedActor {
 	}
 	
 	private AggregateResult benchWorkload(TraversalWorkload w) {
-		File inputFile = new File(ClientProperties.tempDir + w.getName() + currentGDesc.getNbVertices());
+		File inputFile = new File(ClientProperties.tempDir + w.toString() + currentGDesc.getNbVertices());
 		if (!inputFile.exists()) {
 			generateInputFile(inputFile, w);
 		}

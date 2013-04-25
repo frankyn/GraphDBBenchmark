@@ -21,14 +21,13 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import com.silvertower.app.bench.akka.Messages.AggregateResult;
-import com.silvertower.app.bench.akka.Messages.TimeResult;
 import com.silvertower.app.bench.main.BenchRunnerProperties;
 import com.silvertower.app.bench.utils.PointSeries.PlotResult;
 
 public class Plotter {
 	private ArrayList<PointSeries> boxPlotSeriesCollection;
 	private ArrayList<PointSeries> xyPlotSeriesCollection;
-	private static int counter = 0;
+	private static int chartsCounter = 0;
 	
 	public Plotter() {
 		this.boxPlotSeriesCollection = new ArrayList<PointSeries>();
@@ -76,7 +75,6 @@ public class Plotter {
 			}
 		}
 		datasets.add(0, combinedDataset);
-		System.out.println(datasets.size());
 		return datasets;
     }
 	
@@ -85,20 +83,27 @@ public class Plotter {
 		for (PointSeries s: xyPlotSeriesCollection) {
 			String currentSerieName = s.getName();
         	if (bpNames.indexOf(currentSerieName) < 0) {
-        		boolean[] possibilities = {true, false};
-        		for (boolean b: possibilities) {
-        			XYSeries[] series = createXYPlotDataset(currentSerieName, b);
-            		XYSeriesCollection dataset = new XYSeriesCollection();
-            		for (XYSeries serie: series) {
-            			dataset.addSeries(serie);
-            			XYSeriesCollection datasetSingle = new XYSeriesCollection();
-            			datasetSingle.addSeries(serie);
-            			String chartName = b ? currentSerieName + " corrected" : currentSerieName;
-            			createXYChart(chartName, s.getXAxis(), s.getYAxis(), datasetSingle);
-            		}
-            		String chartName = b ? currentSerieName + " corrected" : currentSerieName;
-            		createXYChart(chartName, s.getXAxis(), s.getYAxis(), dataset);
+        		XYSeries[] medianSeries = createXYPlotDataset(currentSerieName, true);
+        		String chartName = String.format("%s %s", currentSerieName, "using median");
+        		XYSeriesCollection dataset = new XYSeriesCollection();
+        		for (XYSeries serie: medianSeries) {
+        			dataset.addSeries(serie);
+        			XYSeriesCollection datasetSingle = new XYSeriesCollection();
+        			datasetSingle.addSeries(serie);
+        			createXYChart(chartName, s.getXAxis(), s.getYAxis(), datasetSingle);
         		}
+        		createXYChart(chartName, s.getXAxis(), s.getYAxis(), dataset);
+        		
+        		XYSeries[] meanSeries = createXYPlotDataset(currentSerieName, false);
+        		chartName = String.format("%s %s", currentSerieName, "using mean");
+        		dataset = new XYSeriesCollection();
+        		for (XYSeries serie: meanSeries) {
+        			dataset.addSeries(serie);
+        			XYSeriesCollection datasetSingle = new XYSeriesCollection();
+        			datasetSingle.addSeries(serie);
+        			createXYChart(chartName, s.getXAxis(), s.getYAxis(), datasetSingle);
+        		}
+        		createXYChart(chartName, s.getXAxis(), s.getYAxis(), dataset);
         		
         		bpNames.add(currentSerieName);
         	}
@@ -112,14 +117,14 @@ public class Plotter {
         saveAsPng(chartName, chart);
 	}
     
-	private XYSeries[] createXYPlotDataset(String currentSerieName, boolean correctedMeanDesired) {
+	private XYSeries[] createXYPlotDataset(String currentSerieName, boolean medianOrMeanDesired) {
 		List<XYSeries> series = new ArrayList<XYSeries>();
 		List<String> dbNames = new ArrayList<String>();
 		for (PointSeries s1: xyPlotSeriesCollection) {
 			if (s1.getName().equals(currentSerieName) && dbNames.indexOf(s1.getDbName()) < 0) {
 				XYSeries s = new XYSeries(s1.getDbName());
 				for (PlotResult r: s1.getResultsCollection()) {
-					if (correctedMeanDesired) s.add(r.getXValue(), getCorrectedMean(r.getResults()));
+					if (medianOrMeanDesired) s.add(r.getXValue(), getMedian(r.getResults()));
 					else s.add(r.getXValue(), r.getResults().getMean().getTime());
 				}
 				series.add(s);
@@ -132,8 +137,8 @@ public class Plotter {
 	private void saveAsPng(String fileName, JFreeChart chart) {
 		try {
 			ChartUtilities.saveChartAsPNG(new File(BenchRunnerProperties.plotsDir + fileName + 
-					counter + ".png"), chart, 500, 500);
-			counter++;
+					chartsCounter + ".png"), chart, 500, 500);
+			chartsCounter++;
 		} catch (IOException e) {
 			System.err.println("Unable to plot the chart");
 		}
@@ -147,34 +152,41 @@ public class Plotter {
 		xyPlotSeriesCollection.add(s);
 	}
 	
-	private double getCorrectedMean(AggregateResult r) {
-		double mean = 0;
-		List<Double> values = filterAggregate(r).getAllResultsAsDouble();
-		
-		for (double v: values) {
-			mean += v;
-		}
-		return mean / values.size();
-	}
-	
-	private AggregateResult filterAggregate(AggregateResult r) {
+	private double getMedian(AggregateResult r) {
 		List<Double> values = r.getAllResultsAsDouble();
 		Collections.sort(values);
-		int nbr = values.size();
-		double q1 = nbr%4==0 ? values.get((nbr/4)-1) : (values.get(nbr/4) + values.get(nbr/4)+1)/2;
-		double q2 = nbr*3%4==0 ? values.get(nbr*3/4) : (values.get(nbr*3/4) + values.get((nbr*3/4)+1))/2;
-		double iq = q2 - q1;
-		double multipliedIq = iq * 1.5;
-		double lowLimit = q1 - multipliedIq;
-		double highLimit = q2 + multipliedIq;
-		
-		AggregateResult modified = new AggregateResult();
-		for (Double v: values) {
-			System.out.println("value:" + v);
-			if (v >= lowLimit && v <= highLimit) modified.addTime(new TimeResult(v));
-			else System.out.println("ejected");
-		}
-		
-		return modified;
+		if (values.size()%2!=0) return values.get(values.size()/2);
+		else return (values.get((values.size()/2)-1) + values.get(values.size()/2)) / 2;
 	}
+	
+//	private double getCorrectedMean(AggregateResult r) {
+//		double mean = 0;
+//		List<Double> values = filterAggregate(r).getAllResultsAsDouble();
+//		
+//		for (double v: values) {
+//			mean += v;
+//		}
+//		return mean / values.size();
+//	}
+//	
+//	private AggregateResult filterAggregate(AggregateResult r) {
+//		List<Double> values = r.getAllResultsAsDouble();
+//		Collections.sort(values);
+//		int nbr = values.size();
+//		double q1 = nbr%4==0 ? values.get((nbr/4)-1) : (values.get(nbr/4) + values.get(nbr/4)+1)/2;
+//		double q2 = nbr*3%4==0 ? values.get(nbr*3/4) : (values.get(nbr*3/4) + values.get((nbr*3/4)+1))/2;
+//		double iq = q2 - q1;
+//		double multipliedIq = iq * 1.5;
+//		double lowLimit = q1 - multipliedIq;
+//		double highLimit = q2 + multipliedIq;
+//		
+//		AggregateResult modified = new AggregateResult();
+//		for (Double v: values) {
+//			System.out.println("value:" + v);
+//			if (v >= lowLimit && v <= highLimit) modified.addTime(new TimeResult(v));
+//			else System.out.println("ejected");
+//		}
+//		
+//		return modified;
+//	}
 }
