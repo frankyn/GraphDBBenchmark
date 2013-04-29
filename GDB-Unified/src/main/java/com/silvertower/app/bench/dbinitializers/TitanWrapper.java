@@ -5,6 +5,7 @@ import org.apache.commons.configuration.Configuration;
 
 import com.silvertower.app.bench.main.ServerProperties;
 import com.thinkaurelius.titan.core.TitanFactory;
+import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Graph;
 
 public class TitanWrapper extends DBInitializer {
@@ -23,9 +24,15 @@ public class TitanWrapper extends DBInitializer {
 		if (batchLoading) config.setProperty("storage.batch-loading", "true");
 		if (backend.equals("local")) {
 			config.setProperty("storage.directory", storageDir);
+			config.setProperty("storage.backend", backend);
 		}
-		config.setProperty("storage.backend", backend);
-		return TitanFactory.open(config);
+		
+		else if (backend.equals("cassandra")) {
+			config.setProperty("storage.backend", "embeddedcassandra");
+			config.setProperty("storage.cassandra-config-dir", "cassandra.yaml");
+		}
+		
+		return TitanFactory.open(config);	
 	}
 
 	public String getName() {
@@ -33,10 +40,10 @@ public class TitanWrapper extends DBInitializer {
 	}
 
 	public String getTempDirPath() {
-		return ServerProperties.dbDirTitanTemp;
+		return ServerProperties.dbDirTitanTemp + "/titan" + backend + "/";
 	}
 
 	public String getWorkDirPath() {
-		return ServerProperties.dbDirTitanWork;
+		return ServerProperties.dbDirTitanWork + "/titan" + backend + "/";
 	}
 }

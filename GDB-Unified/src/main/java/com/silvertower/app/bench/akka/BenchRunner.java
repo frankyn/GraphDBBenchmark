@@ -4,8 +4,8 @@ package com.silvertower.app.bench.akka;
 import com.silvertower.app.bench.akka.Messages.*;
 import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.*;
+import com.silvertower.app.bench.main.BenchRunnerProperties;
 import com.silvertower.app.bench.main.Benchmark;
-import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.utils.Logger;
 import com.silvertower.app.bench.utils.Statistics;
 import com.silvertower.app.bench.workload.TraversalWorkload;
@@ -27,6 +27,7 @@ public class BenchRunner extends UntypedActor {
 	public Logger log;
 	private Benchmark b;
 	private String serverAdd;
+	private String currentDBName;
 	public BenchRunner(ActorRef mc, ActorRef server, Benchmark b, String serverAdd) {
 		this.masterClient = mc;
 		this.server = server;
@@ -37,12 +38,13 @@ public class BenchRunner extends UntypedActor {
 	}
 	
 	public void preStart() {
-		b.start(this);
+		b.start(this, log);
 	}
 	
 	public void assignInitializer(DBInitializer i) {
 		server.tell(i, getSelf());
 		log.logDB(i.getName());
+		currentDBName = i.getName();
 	}
 	
 	public AggregateResult startLoadBench(Dataset d) {
@@ -64,10 +66,12 @@ public class BenchRunner extends UntypedActor {
 		return r;
 	}
 	
-	public AggregateResult startWorkBench(IntensiveWorkload w, int nOps, int nClients) {
-		IntensiveWork work = new IntensiveWork(w, nOps, nClients);
+	public AggregateResult startWorkBench(IntensiveWorkload w, int nOps, int nClients, boolean batchMode) {
+		IntensiveWork work = new IntensiveWork(w, nOps, nClients, batchMode);
 		AggregateResult aggregate = new AggregateResult();
-		for (int i = 0; i < ClientProperties.intensiveMeanTimes; i++) {
+		long timeBefore = System.nanoTime();
+		int count = 0;
+		while (System.nanoTime() - timeBefore < BenchRunnerProperties.maxWorkTimeInNS && count < 10) {
 			Object answer = sendWorkAndWaitAnswer(work);
 			if (answer == null) {
 				log.logMessage(String.format("Error while executing the workload %s with %d operations " +
@@ -75,11 +79,14 @@ public class BenchRunner extends UntypedActor {
 			}
 			else {
 				TimeResult r = (TimeResult) answer;
-				log.logOp(String.format("Workload %s with %d operations and %d clients", w.toString(), nOps, nClients));
+				log.logOp(String.format("Workload %s with %d operations and %d clients, batchmode=%b", 
+						w.toString(), nOps, nClients, batchMode));
 				log.logResult(r);
 				aggregate.addTime(r);
 			}
+			count ++;
 		}
+		log.logMessage(Statistics.addStatEntry(aggregate, currentDBName, w, nOps, nClients).toString());
 		return aggregate;
 	}
 	
@@ -98,7 +105,7 @@ public class BenchRunner extends UntypedActor {
 	}
 	
 	public void shutdownSystem() {
-		Duration d = Duration.create(10, "seconds");
+		Duration d = Duration.create(2, "seconds");
 		Future<Boolean> sStopped = gracefulStop(server, d, getContext().system());
 		Future<Boolean> mStopped = gracefulStop(masterClient, d, getContext().system());
 		try {

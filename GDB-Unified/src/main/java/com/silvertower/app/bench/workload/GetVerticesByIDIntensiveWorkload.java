@@ -13,6 +13,21 @@ public class GetVerticesByIDIntensiveWorkload extends IntensiveWorkload implemen
 		super("Get vertices by ID intensive");
 	}
 
+	public String generateRequest(GraphDescriptor gDesc, int threadId, int number) {
+		StringBuilder b = new StringBuilder();
+		for (int i = 0; i < number; i++) {
+			Object id = gDesc.getRandomVertexId(threadId);
+			String idRepr = id instanceof String ? "\"" + id + "\"" : id.toString();
+			if (i == 0) b.append(String.format("g.v(%s)", idRepr));
+			else {
+				b.deleteCharAt(b.length()-1);
+				b.append(String.format(",%s)", idRepr));
+			}
+		}
+		
+		return b.toString();
+	}
+	
 	public void operation(GraphDescriptor gDesc, int threadId) {
 		gDesc.getGraph().getVertex(gDesc.getRandomVertexId(threadId));
 	}

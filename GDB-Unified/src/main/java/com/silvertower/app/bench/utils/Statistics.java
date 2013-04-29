@@ -12,7 +12,7 @@ import com.silvertower.app.bench.workload.IntensiveWorkload;
 public class Statistics {
 	public static List<StatisticsEntry> stats = new ArrayList<StatisticsEntry>();
 	
-	class StatisticsEntry <T> {
+	public static class StatisticsEntry <T> {
 		private AggregateResult result;
 		private String dbName;
 		private T workload;
@@ -32,13 +32,14 @@ public class Statistics {
 				int nbrClients, StatisticsReport report) {
 			this.result = result;
 			this.dbName = dbName;
+			this.workload = workload;
 			this.nbrOps = nbrOps;
 			this.nbrClients = nbrClients;
 			this.report = report;
 		}
 	}
 	
-	class StatisticsReport {
+	public static class StatisticsReport {
 		private double mean;
 		private double median;
 		private double stdDeviation;
@@ -53,9 +54,14 @@ public class Statistics {
 			this.min = min;
 			this.max = max;
 		}
+		
+		public String toString() {
+			return String.format("Mean: %f\nMedian: %f\nStandard deviation:%f\nMin:%f\nMax:%f", 
+					mean, median, stdDeviation, min, max);
+		}
 	}
 	
-	class ComparisonReport {
+	public static class ComparisonReport {
 		private List<List<StatisticsEntry>> compReport;
 		
 		public ComparisonReport() {
@@ -92,7 +98,7 @@ public class Statistics {
 				data.add(meanLine);
 				
 				List<String> relativeMeanLine = new ArrayList<String>();
-				relativeMeanLine.add(String.format("Mean vs %s", relativeDB));
+				relativeMeanLine.add(String.format("vs %s", relativeDB));
 				data.add(relativeMeanLine);
 				
 				List<String> medianLine = new ArrayList<String>();
@@ -100,7 +106,7 @@ public class Statistics {
 				data.add(medianLine);
 				
 				List<String> relativeMedianLine = new ArrayList<String>();
-				relativeMedianLine.add(String.format("Median vs %s", relativeDB));
+				relativeMedianLine.add(String.format("vs %s", relativeDB));
 				data.add(relativeMedianLine);
 				
 				List<String> stdDevLine = new ArrayList<String>();
@@ -108,7 +114,7 @@ public class Statistics {
 				data.add(stdDevLine);
 				
 				List<String> relativeStdDevLine = new ArrayList<String>();
-				relativeStdDevLine.add(String.format("Standard vs %s", relativeDB));
+				relativeStdDevLine.add(String.format("vs %s", relativeDB));
 				data.add(relativeStdDevLine);
 				
 				List<String> minLine = new ArrayList<String>();
@@ -116,7 +122,7 @@ public class Statistics {
 				data.add(minLine);
 				
 				List<String> relativeMinLine = new ArrayList<String>();
-				relativeMinLine.add(String.format("Min vs %s", relativeDB));
+				relativeMinLine.add(String.format("vs %s", relativeDB));
 				data.add(relativeMinLine);
 				
 				List<String> maxLine = new ArrayList<String>();
@@ -124,7 +130,7 @@ public class Statistics {
 				data.add(maxLine);
 				
 				List<String> relativeMaxLine = new ArrayList<String>();
-				relativeMaxLine.add(String.format("Max vs %s", relativeDB));
+				relativeMaxLine.add(String.format("vs %s", relativeDB));
 				data.add(relativeMaxLine);
 				
 				for (StatisticsEntry e: entries) {
@@ -160,7 +166,10 @@ public class Statistics {
 				int secondDim = data.get(0).size();
 				int headerArraySize = headerObjs.size();
 				ASCIITableHeader[] headerArray = headerObjs.toArray(new ASCIITableHeader[headerArraySize]);
-				String[][] dataArray = data.toArray(new String[firstDim][secondDim]);
+				String[][] dataArray = new String[firstDim][];
+				for (int i = 0; i < dataArray.length; i++) {
+					dataArray[i] = data.get(i).toArray(new String[data.get(i).size()]);
+				}
 				
 				report.append(ASCIITable.getInstance().getTable(headerArray, dataArray));
 				report.append("\n\n");
@@ -169,10 +178,13 @@ public class Statistics {
 		}
 	}
 	
-	public ComparisonReport computeReport() {
+	public static ComparisonReport computeReport() {
 		ComparisonReport r = new ComparisonReport();
 		List<String> alreadyAddedToReport = new ArrayList<String>();
 		for (StatisticsEntry e: stats) {
+			System.out.println(e.workload);
+			System.out.println(e.nbrClients);
+			System.out.println(e.nbrOps);
 			String workloadFullName = e.workload.toString() + e.nbrClients + e.nbrOps;
 			if (!alreadyAddedToReport.contains(workloadFullName)) {
 				List<StatisticsEntry> relatedEntries = new ArrayList<StatisticsEntry>();
@@ -188,7 +200,7 @@ public class Statistics {
 		return r;
 	}
 	
-	public StatisticsReport addStatEntry(AggregateResult r, String dbName, 
+	public static StatisticsReport addStatEntry(AggregateResult r, String dbName, 
 			IntensiveWorkload workload, int nbrOps, int nbrClients) {
 		double mean = computeMean(r);
 		double median = compteMedian(r);
@@ -202,7 +214,7 @@ public class Statistics {
 		return report;
 	}
 
-	private double computeMax(AggregateResult r) {
+	private static double computeMax(AggregateResult r) {
 		double max = Double.MIN_VALUE;
 		for (Double value: r.getAllResultsAsDouble()) {
 			max = value > max ? value : max;
@@ -210,7 +222,7 @@ public class Statistics {
 		return max;
 	}
 
-	private double computeMin(AggregateResult r) {
+	private static double computeMin(AggregateResult r) {
 		double min = Double.MAX_VALUE;
 		for (Double value: r.getAllResultsAsDouble()) {
 			min = value < min ? value : min;
@@ -218,7 +230,7 @@ public class Statistics {
 		return min;
 	}
 
-	private double computeStdDeviation(AggregateResult r) {
+	private static double computeStdDeviation(AggregateResult r) {
 		List<Double> values = r.getAllResultsAsDouble();
 		double mean = computeMean(r);
 		double deviationSum = 0;
@@ -228,14 +240,14 @@ public class Statistics {
 		return deviationSum / values.size();
 	}
 
-	private double compteMedian(AggregateResult r) {
+	private static double compteMedian(AggregateResult r) {
 		List<Double> values = r.getAllResultsAsDouble();
 		Collections.sort(values);
 		if (values.size()%2!=0) return values.get(values.size()/2);
 		else return (values.get((values.size()/2)-1) + values.get(values.size()/2)) / 2;
 	}
 
-	private double computeMean(AggregateResult r) {
+	private static double computeMean(AggregateResult r) {
 		List<Double> values = r.getAllResultsAsDouble();
 		double total = 0;
 		for (Double value: values) {

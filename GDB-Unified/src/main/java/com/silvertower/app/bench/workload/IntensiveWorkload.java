@@ -16,5 +16,7 @@ public abstract class IntensiveWorkload implements Serializable {
 		return name;
 	}
 	
+	public abstract String generateRequest(GraphDescriptor gDesc, int threadId, int number);
+	
 	public abstract void operation(GraphDescriptor gDesc, int threadId);
 }

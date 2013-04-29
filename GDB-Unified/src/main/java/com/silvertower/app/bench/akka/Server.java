@@ -15,6 +15,8 @@ import com.silvertower.app.bench.load.DBLoader;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.silvertower.app.bench.utils.Utilities;
 import com.silvertower.app.bench.akka.Messages.*;
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.TransactionalGraph;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;

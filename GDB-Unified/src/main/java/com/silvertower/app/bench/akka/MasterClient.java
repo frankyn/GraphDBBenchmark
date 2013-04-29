@@ -79,6 +79,7 @@ public class MasterClient extends UntypedActor {
 			int nCores = work.getHowManyClients();
 			int nOps = work.getHowManyOp();
 			IntensiveWorkload workload = work.getWorkload();
+			boolean isBatchMode = work.isBatchMode();
 			
 			if (nCores > coresAvailable) {
 				forwardError("Error: not enough cores/slaves available!");
@@ -86,7 +87,7 @@ public class MasterClient extends UntypedActor {
 			}
 			
 			state = State.WORKING;
-			assignWork(nCores, nOps, workload);
+			assignWork(nCores, nOps, workload,isBatchMode);
 			intensiveWorkloadStartTs = System.nanoTime();
 			startWork();
 			System.out.println("Starting intensive work");
@@ -226,7 +227,7 @@ public class MasterClient extends UntypedActor {
 		}
 	}
 
-	private void assignWork(int nCores, int nOps, IntensiveWorkload workload) {
+	private void assignWork(int nCores, int nOps, IntensiveWorkload workload, boolean isBatchMode) {
 		int nbrSlavesNeeded = 0;
 		int remainingCoresNeeded = nCores;
 		for (SlaveReference s: slaves) {
@@ -246,7 +247,7 @@ public class MasterClient extends UntypedActor {
 			SlaveReference slave = slaves.get(i);
 			int coresAvailable = slave.getNbCoresAvailable();
 			int coresUsed = coresAvailable > nCores ? nCores : coresAvailable;
-			IntensiveWork work = new IntensiveWork(workload, nbrOpPerSlave, coresUsed);
+			IntensiveWork work = new IntensiveWork(workload, nbrOpPerSlave, coresUsed, isBatchMode);
 			askAndWait(slave.getSlaveRef(), work);
 			slave.setWorking();
 			nCores -= coresUsed;
@@ -257,6 +258,9 @@ public class MasterClient extends UntypedActor {
 		for (SlaveReference s: slaves) {
 			if (s.isWorking()) s.getSlaveRef().tell(new StartWork(), getSelf());
 		}
+		
+//		Iterator <Vertex> vs = currentGDesc.getGraph().getVertices().iterator();
+//		while (vs.hasNext()) {Vertex v = vs.next(); System.out.println(v.getProperty("Firstname")); System.out.println(v.getProperty("Lastname"));}
 	}
 	
 	private void resetState() {

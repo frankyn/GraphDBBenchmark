@@ -5,7 +5,7 @@ import java.net.URISyntaxException;
 import java.security.CodeSource;
 
 public class ClientProperties {
-	public static int intensiveMeanTimes = 10;
+	public static int intensiveMeanTimes = 100;
 	public static int traversalMeanTimes = 50;
 	public static String tempDir;
 	

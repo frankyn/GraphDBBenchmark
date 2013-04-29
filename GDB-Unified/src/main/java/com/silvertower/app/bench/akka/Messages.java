@@ -157,10 +157,12 @@ public class Messages {
 		private final IntensiveWorkload w;
 		private final int howManyOp;
 		private final int howManyClients;
-		public IntensiveWork(IntensiveWorkload w, int howManyOp, int howManyClients) {
+		private final boolean batchMode;
+		public IntensiveWork(IntensiveWorkload w, int howManyOp, int howManyClients, boolean batchMode) {
 			this.w = w;
 			this.howManyOp = howManyOp;
 			this.howManyClients = howManyClients;
+			this.batchMode = batchMode;
 		}
 		
 		public IntensiveWorkload getWorkload() {
@@ -177,6 +179,10 @@ public class Messages {
 
 		public String getDescription() {
 			return String.format("%s with %d operations and %d clients", w.toString(), howManyOp, howManyClients);
+		}
+		
+		public boolean isBatchMode() {
+			return batchMode;
 		}
 	}
 	

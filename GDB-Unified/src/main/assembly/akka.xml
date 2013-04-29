@@ -63,5 +63,9 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
       <source>src/main/resources/dex.cfg</source>
       <outputDirectory>/resources</outputDirectory>
     </file>
+        <file>
+      <source>src/main/resources/cassandra.yaml</source>
+      <outputDirectory>/resources</outputDirectory>
+    </file>
   </files>
 </assembly>

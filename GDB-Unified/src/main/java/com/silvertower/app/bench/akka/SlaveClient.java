@@ -80,7 +80,8 @@ public class SlaveClient extends UntypedActor {
 		clientThreads = new ArrayList<SlaveThread>();
 		int nbrOpPerThread = nbrOpWanted / nbrCoresWanted;
 		for (int i = 0; i < nbrCoresWanted; i++) {
-			SlaveThread t = new SlaveThread(currentGDesc, id + i, w, nbrOpPerThread, startLatch, stopLatch);
+			SlaveThread t = new SlaveThread(currentGDesc, id + i, w, nbrOpPerThread, startLatch, 
+					stopLatch, currentWork.isBatchMode());
 			clientThreads.add(t);
 			t.start();
 		}

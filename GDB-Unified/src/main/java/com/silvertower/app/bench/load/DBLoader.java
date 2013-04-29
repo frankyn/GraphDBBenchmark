@@ -71,8 +71,10 @@ public class DBLoader {
 		loadGraphML(g, initializeIS(f));
 		long after = System.nanoTime();
 		loadTimes.add((after - before) / 1000000000.0);
+		
 		initializer.shutdownGraph(g);
 		g = initializer.initialize(initializer.getWorkDirPath(), false);
+		
 		List<Object> vIds = scanVertices(g);
 		List<Object> eIds = scanEdges(g);
 		initializer.shutdownGraph(g);
