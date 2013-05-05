@@ -72,17 +72,18 @@ public class Benchmark {
 //		plotter.addXYPointsSeries(bps0);
 		
 		PointSeries bps = new PointSeries("Shortest paths search", currentDBName, "Time");
-//		bps.addResult("2 hops limit", workBench(new ShortestPathWorkload(2)));
-//		bps.addResult("3 hops limit", workBench(new ShortestPathWorkload(3)));
-//		bps.addResult("4 hops limit", workBench(new ShortestPathWorkload(4)));
-		bps.addResult("5 hops limit", workBench(new ShortestPathWorkload(5)));
+		bps.addResult("1 hops limit", workBench(new ShortestPathWorkload(1)));
+		bps.addResult("2 hops limit", workBench(new ShortestPathWorkload(2)));
+		bps.addResult("3 hops limit", workBench(new ShortestPathWorkload(3)));
+		bps.addResult("4 hops limit", workBench(new ShortestPathWorkload(4)));
 		plotter.addBPSeries(bps);
-//		
-//		PointSeries bps1 = new PointSeries("Neighborhood breadth-first exploration", currentDBName, "Time");
-//		bps1.addResult("2 hops limit", workBench(new NeighborhoodWorkload(2)));
-//		bps1.addResult("3 hops limit", workBench(new NeighborhoodWorkload(3)));
-//		bps1.addResult("4 hops limit", workBench(new NeighborhoodWorkload(4)));
-//		plotter.addBPSeries(bps1);
+		
+		PointSeries bps1 = new PointSeries("Neighborhood breadth-first exploration", currentDBName, "Time");
+		bps1.addResult("3 hops limit", workBench(new NeighborhoodWorkload(3)));
+		bps1.addResult("4 hops limit", workBench(new NeighborhoodWorkload(4)));
+		bps1.addResult("5 hops limit", workBench(new NeighborhoodWorkload(5)));
+		bps1.addResult("6 hops limit", workBench(new NeighborhoodWorkload(6)));
+		plotter.addBPSeries(bps1);
 //		
 //		IntensiveWorkload w1 = new GetVerticesByIDIntensiveWorkload();
 //		

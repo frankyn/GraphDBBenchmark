@@ -28,6 +28,8 @@ import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.gremlin.java.GremlinPipeline;
 
 public class MasterClient extends UntypedActor {
 	private int slavesAvailable;
@@ -136,14 +138,17 @@ public class MasterClient extends UntypedActor {
 		}
 		
 		AggregateResult r = new AggregateResult();
-		List<String> props = readPairs(inputFile);
-		if (props.isEmpty()) {
+		List<String> pairs = readPairs(inputFile);
+		if (pairs.isEmpty()) {
 			System.err.println("Unable to perform traversal workload");
 		}
 		
-		for (int i = 0; i < props.size(); i+=2) {
-			Vertex from = findVertexWithProps(props.get(i).split(" "));
-			Vertex to = findVertexWithProps(props.get(i+1).split(" "));
+		for (String pair: pairs) {
+			String[] cids = pair.split(" ");
+			long before = System.nanoTime();
+			Vertex from = currentGDesc.getGraph().getVertices("cid", cids[0]).iterator().next();
+			Vertex to = currentGDesc.getGraph().getVertices("cid", cids[1]).iterator().next();
+			System.out.println((System.nanoTime() - before)/1000000000.0);
 			if (from == null || to == null) {
 				System.err.println("Unable to perform traversal workload");
 				break;
@@ -157,39 +162,6 @@ public class MasterClient extends UntypedActor {
 		}
 		
 		return r;
-	}
-	
-	private Vertex findVertexWithProps(String[] props) {
-		Iterator<Vertex> iter = currentGDesc.getGraph().getVertices(props[0], props[1]).iterator();
-		while (iter.hasNext()) {
-			Vertex v = iter.next();
-			boolean hasAllProps = true;
-			for (int i = 2; i < props.length; i+=2) {
-				if (!v.getProperty(props[i]).equals(props[i+1])) hasAllProps = false;
-			}
-			if (hasAllProps) return v;
-		}
-		return null;
-	}
-
-	private void generateInputFile(File f, TraversalWorkload w) {
-		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-			for (int i = 0; i < 2*ClientProperties.traversalMeanTimes; i++) {
-				Vertex v = currentGDesc.getGraph().getVertex(currentGDesc.getRandomVertexId());
-				for (String key: v.getPropertyKeys()) {
-					bw.write(key);
-					bw.write(32);
-					bw.write(v.getProperty(key).toString());
-					bw.write(32);
-				}
-				bw.newLine();
-			}
-			bw.close();
-		} catch (IOException e) {
-			System.err.println("Error while generating input file for traversal workload");
-			e.printStackTrace();
-		}
 	}
 	
 	private List<String> readPairs(File f) {
@@ -208,6 +180,27 @@ public class MasterClient extends UntypedActor {
 		return pairs;
 	}
 
+	private void generateInputFile(File f, TraversalWorkload w) {
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+			for (int i = 0; i < ClientProperties.traversalMeanTimes; i++) {
+				Vertex v = currentGDesc.getGraph().getVertex(currentGDesc.getRandomVertexId());
+				bw.write(v.getProperty("cid").toString());
+				bw.write(32);
+				Vertex v1 = null;
+				while (v1 == null || v.equals(v1)) {
+					v1 = currentGDesc.getGraph().getVertex(currentGDesc.getRandomVertexId());
+				}
+				bw.write(v1.getProperty("cid").toString());
+				bw.newLine();
+			}
+			bw.close();
+		} catch (IOException e) {
+			System.err.println("Error while generating input file for traversal workload");
+			e.printStackTrace();
+		}
+	}
+	
 	private int createNewSlave(final int id, final Address add) {
 	    ActorRef slave = getContext().actorOf(new Props(SlaveClient.class).withDeploy(new Deploy(new RemoteScope(add))));
 		// We ask the slave for how many cores it has

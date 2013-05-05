@@ -18,9 +18,13 @@ cities_l = len(cities)
 
 g = barabasi_albert_graph(vertices, degree)
 
+counter = 1
+
 for n in g.nodes_iter():
 	g.node[n]['Firstname'] = firstnames[randint(0, firstnames_l-1)]
 	g.node[n]['Lastname'] = lastnames[randint(0, lastnames_l-1)]
+	g.node[n]['cid'] = str(counter)
+	counter = counter + 1
 #for e in g.edges_iter():
 #	g.edge[e[0]][e[1]]['In'] = cities[randint(0, cities_l-1)]
 	

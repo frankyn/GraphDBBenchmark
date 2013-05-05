@@ -53,12 +53,13 @@ public class DBLoader {
 		Graph g = initializer.initialize(initializer.getWorkDirPath(), true);
 		// Create vertices and edges indices:
 		if (g.getFeatures().supportsVertexKeyIndex) { 
+			Graph rawGraph;
+			if (g instanceof WrapperGraph) rawGraph = ((WrapperGraph) g).getBaseGraph();
+			else rawGraph = g;
 			for (GraphProperty p: d.getVertexProperties()) {
-				Graph rawGraph;
-				if (g instanceof WrapperGraph) rawGraph = ((WrapperGraph) g).getBaseGraph();
-				else rawGraph = g;
-					((KeyIndexableGraph) rawGraph).createKeyIndex(p.getFieldName(), Vertex.class);
+				((KeyIndexableGraph) rawGraph).createKeyIndex(p.getFieldName(), Vertex.class);
 			}
+			((KeyIndexableGraph) rawGraph).createKeyIndex("cid", Vertex.class);
 		}
 		
 //		if (g.getFeatures().supportsEdgeKeyIndex) {
@@ -155,7 +156,8 @@ public class DBLoader {
 	
 	public static void loadGraphML(Graph g, InputStream is) {
 		try {
-			GraphMLReader.inputGraph(g, is);
+			GraphMLReader reader = new GraphMLReader(g);
+			reader.inputGraph(is, 20000);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.err.println("Error while filling a database with a dataset");

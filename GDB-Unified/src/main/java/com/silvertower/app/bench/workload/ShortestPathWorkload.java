@@ -25,7 +25,7 @@ public class ShortestPathWorkload extends TraversalWorkload implements Serializa
 		GremlinPipeline p = new GremlinPipeline();
 		p = p.start(from).out().loop(1, new PipeFunction<LoopBundle,Boolean>() {
 			public Boolean compute(LoopBundle bundle) {
-				return !((Vertex)bundle.getObject()).getId().equals(to.getId()) && bundle.getLoops() < hopLimit;
+				return !((Vertex)bundle.getObject()).getId().equals(to.getId()) && bundle.getLoops() <= hopLimit;
 			}
 		}).path();
 		

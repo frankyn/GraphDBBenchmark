@@ -63,9 +63,33 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
       <source>src/main/resources/dex.cfg</source>
       <outputDirectory>/resources</outputDirectory>
     </file>
-        <file>
+    <file>
       <source>src/main/resources/cassandra.yaml</source>
       <outputDirectory>/resources</outputDirectory>
+    </file>
+    <file>
+      <source>src/main/resources/startserver.bat</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>src/main/resources/startserver.sh</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>src/main/resources/startmc.bat</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>src/main/resources/startmc.sh</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>src/main/resources/startsc.bat</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+    <file>
+      <source>src/main/resources/startsc.sh</source>
+      <outputDirectory>/</outputDirectory>
     </file>
   </files>
 </assembly>

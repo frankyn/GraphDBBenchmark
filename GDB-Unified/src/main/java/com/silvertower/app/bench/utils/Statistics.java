@@ -204,7 +204,7 @@ public class Statistics {
 	public static StatisticsReport addStatEntry(AggregateResult r, String dbName, 
 			IntensiveWorkload workload, int nbrOps, int nbrClients) {
 		double mean = computeMean(r);
-		double median = compteMedian(r);
+		double median = computeMedian(r);
 		double stdDeviation = computeStdDeviation(r);
 		double min = computeMin(r);
 		double max = computeMax(r);
@@ -218,7 +218,7 @@ public class Statistics {
 	public static StatisticsReport addStatEntry(AggregateResult r, String dbName, 
 			TraversalWorkload workload) {
 		double mean = computeMean(r);
-		double median = compteMedian(r);
+		double median = computeMedian(r);
 		double stdDeviation = computeStdDeviation(r);
 		double min = computeMin(r);
 		double max = computeMax(r);
@@ -255,7 +255,7 @@ public class Statistics {
 		return deviationSum / values.size();
 	}
 
-	private static double compteMedian(AggregateResult r) {
+	private static double computeMedian(AggregateResult r) {
 		List<Double> values = r.getAllResultsAsDouble();
 		Collections.sort(values);
 		if (values.size()%2!=0) return values.get(values.size()/2);
