@@ -25,7 +25,7 @@ public class Server extends UntypedActor {
 	private DBInitializer currentInitializer;
 	private enum State {DB_HOSTED, NO_DB_HOSTED};
 	private State state;
-	private final int rexsterWaitTimeLimit = 3600000;
+	private final int rexsterWaitTimeLimit = 60000;
 	
 	public Server() {
 		this.state = State.NO_DB_HOSTED;
@@ -174,7 +174,7 @@ public class Server extends UntypedActor {
 		    String currentLine;
 		    long beforeTs = System.currentTimeMillis();
 		    System.out.println("Waiting for an indication from the rexster server ...");
-		    while (true) {
+		    while ((System.currentTimeMillis() - beforeTs) < rexsterWaitTimeLimit) {
 		    	currentLine = b.readLine();
 		    	if (b != null) {
 			    	content.append(currentLine);

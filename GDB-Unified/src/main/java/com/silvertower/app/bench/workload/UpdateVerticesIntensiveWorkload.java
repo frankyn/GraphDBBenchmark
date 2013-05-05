@@ -30,7 +30,6 @@ public class UpdateVerticesIntensiveWorkload extends IntensiveWorkload implement
 		Object [] property = gDesc.getVerticesRandomPropertyCouple();
 		Object id = gDesc.getRandomVertexId(threadId);
 		Vertex v = gDesc.getGraph().getVertex(id);
-		System.out.println("thread:" + Thread.currentThread().getName() + " id:"+id + " prop0:"+(String) property[0] + " prop1:"+(String) property[1]);
 		if (v != null) {
 			try {
 				v.setProperty((String) property[0], property[1]);

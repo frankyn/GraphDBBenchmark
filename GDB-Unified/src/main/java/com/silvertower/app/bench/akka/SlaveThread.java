@@ -4,6 +4,8 @@ package com.silvertower.app.bench.akka;
 
 import java.util.concurrent.CountDownLatch;
 
+import org.codehaus.jettison.json.JSONArray;
+
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 import com.tinkerpop.blueprints.impls.rexster.RexsterGraph;
 
@@ -35,9 +37,11 @@ public class SlaveThread extends Thread {
 		if (isBatchMode) {
 			int opRemaining = maxOpCount;
 			while (opRemaining > 0) {
-				int opToRealize = opRemaining > 100 ? 100 : opRemaining;
+				int opToRealize = opRemaining > 10 ? 10 : opRemaining;
 				String request = w.generateRequest(gDesc, id, opToRealize);
-				((RexsterGraph) gDesc.getGraph()).execute(request);
+				System.out.println(request);
+				JSONArray a = ((RexsterGraph) gDesc.getGraph()).execute(request);
+				System.out.println(a);
 				opRemaining -= opToRealize;
 			}
 		}

@@ -71,8 +71,8 @@ public class BenchRunner extends UntypedActor {
 		AggregateResult aggregate = new AggregateResult();
 		long timeBefore = System.nanoTime();
 		int count = 0;
-		while (System.nanoTime() - timeBefore < BenchRunnerProperties.maxWorkTimeInNS && count < 10) {
-			Object answer = sendWorkAndWaitAnswer(work);
+		while (System.nanoTime() - timeBefore < BenchRunnerProperties.maxWorkTimeInNS && count < 50) {
+			Object answer = sendMessageAndWaitAnswer(work);
 			if (answer == null) {
 				log.logMessage(String.format("Error while executing the workload %s with %d operations " +
 						"and %d clients", w.toString(), nOps, nClients));
@@ -86,22 +86,25 @@ public class BenchRunner extends UntypedActor {
 			}
 			count ++;
 		}
+		
 		log.logMessage(Statistics.addStatEntry(aggregate, currentDBName, w, nOps, nClients).toString());
 		return aggregate;
 	}
 	
 	public AggregateResult startWorkBench(TraversalWorkload w) {
-		Object answer = sendWorkAndWaitAnswer(new TraversalWork(w));
+		Object answer = sendMessageAndWaitAnswer(new TraversalWork(w));
+		AggregateResult aggregate = new AggregateResult();
 		if (answer == null) {
 			log.logMessage(String.format("Error while executing the workload %s", w.toString()));
 			return null;
 		}
 		else {
-			AggregateResult r = (AggregateResult) answer;
+			aggregate = (AggregateResult) answer;
 			log.logOp(String.format("Workload %s", w.toString()));
-			log.logResult(r);
-			return r;
+			log.logResult(aggregate);
 		}
+		log.logMessage(Statistics.addStatEntry(aggregate, currentDBName, w).toString());
+		return aggregate;
 	}
 	
 	public void shutdownSystem() {
@@ -125,7 +128,7 @@ public class BenchRunner extends UntypedActor {
 			gDesc = (GraphDescriptor) Await.result(answer, timeout.duration());
 			gDesc.setServerAdd(serverAdd);
 			gDesc.setServerPort(8182);
-			masterClient.tell(gDesc, getSelf());
+			if (sendMessageAndWaitAnswer(gDesc) == null) return false;
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -144,8 +147,9 @@ public class BenchRunner extends UntypedActor {
 		server.tell(new StopCurrentDB(), getSelf());
 	}
 	
-	private Object sendWorkAndWaitAnswer(Object workMessage) {
-		Future<Object> result = ask(masterClient, workMessage, timeout);
+	private Object sendMessageAndWaitAnswer(Object message) {
+		System.out.println("Sending and waits for answer:" + message);
+		Future<Object> result = ask(masterClient, message, timeout);
 		try {
 			Object answer = Await.result(result, timeout.duration());
 			if (answer instanceof Messages.Error) {

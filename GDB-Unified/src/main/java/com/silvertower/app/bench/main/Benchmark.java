@@ -60,22 +60,23 @@ public class Benchmark {
 	private void addInitializers(List<DBInitializer> initializers) {
 		initializers.add(new Neo4jWrapper());
 //		initializers.add(new DexWrapper());
-//		initializers.add(new TitanWrapper("local"));
+		initializers.add(new TitanWrapper("local"));
 //		initializers.add(new TitanWrapper("cassandra"));
 //		initializers.add(new OrientWrapper());
 	}
 	
 	private void benchmark() {
-		SocialNetworkDataset d = new SocialNetworkDataset(10000);
+		SocialNetworkDataset d = new SocialNetworkDataset(500000);
 		PointSeries bps0 = new PointSeries(String.format("Loading DB with a %s dataset", d.getDatasetType()), currentDBName, "Time");
 		bps0.addResult("250000 vertices", 250000, loadBench(d));
 //		plotter.addXYPointsSeries(bps0);
 		
-//		PointSeries bps = new PointSeries("Shortest paths search", currentDBName, "Time");
+		PointSeries bps = new PointSeries("Shortest paths search", currentDBName, "Time");
 //		bps.addResult("2 hops limit", workBench(new ShortestPathWorkload(2)));
 //		bps.addResult("3 hops limit", workBench(new ShortestPathWorkload(3)));
 //		bps.addResult("4 hops limit", workBench(new ShortestPathWorkload(4)));
-//		plotter.addBPSeries(bps);
+		bps.addResult("5 hops limit", workBench(new ShortestPathWorkload(5)));
+		plotter.addBPSeries(bps);
 //		
 //		PointSeries bps1 = new PointSeries("Neighborhood breadth-first exploration", currentDBName, "Time");
 //		bps1.addResult("2 hops limit", workBench(new NeighborhoodWorkload(2)));
@@ -151,8 +152,8 @@ public class Benchmark {
 //		plotter.addBPSeries(bps51);
 //		plotter.addXYPointsSeries(bps51);
 //		
-		IntensiveWorkload w3 = new UpdateVerticesIntensiveWorkload();
-		
+//		IntensiveWorkload w3 = new UpdateVerticesIntensiveWorkload();
+//		
 //		PointSeries bps6 = new PointSeries("Read Write Intensive 1 client: batch mode", currentDBName, "Time");
 //		bps6.addResult("100 reads", 100, workBench(w3, 100, 1, true));
 //		bps6.addResult("200 reads", 200, workBench(w3, 200, 1, true));
@@ -176,14 +177,14 @@ public class Benchmark {
 //		bps7.addResult("4 clients", 4, workBench(w3, 200, 4, true));
 //		plotter.addBPSeries(bps7);
 //		plotter.addXYPointsSeries(bps7);
-		
-		PointSeries bps71 = new PointSeries("Read Write Intensive 200 ops", currentDBName, "Clients", "Time");
-		bps71.addResult("1 client", 1, workBench(w3, 200, 1, false));
-		bps71.addResult("2 clients", 2, workBench(w3, 200, 2, false));
-		bps71.addResult("3 clients", 3, workBench(w3, 200, 3, false));
-		bps71.addResult("4 clients", 4, workBench(w3, 200, 4, false));
-		plotter.addBPSeries(bps71);
-		plotter.addXYPointsSeries(bps71);
+//		
+//		PointSeries bps71 = new PointSeries("Read Write Intensive 200 ops", currentDBName, "Clients", "Time");
+//		bps71.addResult("1 client", 1, workBench(w3, 200, 1, false));
+//		bps71.addResult("2 clients", 2, workBench(w3, 200, 2, false));
+//		bps71.addResult("3 clients", 3, workBench(w3, 200, 3, false));
+//		bps71.addResult("4 clients", 4, workBench(w3, 200, 4, false));
+//		plotter.addBPSeries(bps71);
+//		plotter.addXYPointsSeries(bps71);
 	}
 	
 	private AggregateResult loadBench(Dataset d) {

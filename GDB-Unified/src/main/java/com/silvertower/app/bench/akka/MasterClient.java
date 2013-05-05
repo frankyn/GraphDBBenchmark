@@ -65,6 +65,7 @@ public class MasterClient extends UntypedActor {
 			assignGDesc();
 			currentGDesc.fetchGraph();
 			state = State.READY_FOR_WORK;
+			getSender().tell(new Ack(), getSelf());
 		}
 		
 		else if (message instanceof IntensiveWork) {

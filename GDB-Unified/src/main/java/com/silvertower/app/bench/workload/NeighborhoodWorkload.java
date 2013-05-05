@@ -33,11 +33,8 @@ public class NeighborhoodWorkload extends TraversalWorkload implements Serializa
 				return argument.getLoops() <= k;
 			}
 		});
-		while (p.hasNext()) {
-			p.next();
-			numberOfElementsInThePipe++;
-		}
-		System.out.println(numberOfElementsInThePipe);
+		
+		evaluatePipe(p);
 	}
 
 	public boolean preciseBenchmarkingNeeded() {

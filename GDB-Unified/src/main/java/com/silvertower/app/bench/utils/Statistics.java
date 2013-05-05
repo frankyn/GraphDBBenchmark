@@ -8,6 +8,7 @@ import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.silvertower.app.bench.akka.Messages.AggregateResult;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
+import com.silvertower.app.bench.workload.TraversalWorkload;
 
 public class Statistics {
 	public static List<StatisticsEntry> stats = new ArrayList<StatisticsEntry>();
@@ -210,6 +211,20 @@ public class Statistics {
 		StatisticsReport report = new StatisticsReport(mean, median, stdDeviation, min, max);
 		StatisticsEntry<IntensiveWorkload> statEntry = new StatisticsEntry<IntensiveWorkload>(r, 
 				dbName, workload, nbrOps, nbrClients, report);
+		stats.add(statEntry);
+		return report;
+	}
+	
+	public static StatisticsReport addStatEntry(AggregateResult r, String dbName, 
+			TraversalWorkload workload) {
+		double mean = computeMean(r);
+		double median = compteMedian(r);
+		double stdDeviation = computeStdDeviation(r);
+		double min = computeMin(r);
+		double max = computeMax(r);
+		StatisticsReport report = new StatisticsReport(mean, median, stdDeviation, min, max);
+		StatisticsEntry<TraversalWorkload> statEntry = new StatisticsEntry<TraversalWorkload>(r, 
+				dbName, workload, report);
 		stats.add(statEntry);
 		return report;
 	}

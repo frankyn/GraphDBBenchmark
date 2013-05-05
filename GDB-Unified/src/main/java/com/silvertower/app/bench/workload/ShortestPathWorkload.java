@@ -28,10 +28,7 @@ public class ShortestPathWorkload extends TraversalWorkload implements Serializa
 				return !((Vertex)bundle.getObject()).getId().equals(to.getId()) && bundle.getLoops() < hopLimit;
 			}
 		}).path();
-		while (p.hasNext()) {
-			p.next();
-			numberOfElementsInThePipe++;
-		}
-		System.out.println(numberOfElementsInThePipe);
+		
+		evaluatePipe(p);
 	}
 }

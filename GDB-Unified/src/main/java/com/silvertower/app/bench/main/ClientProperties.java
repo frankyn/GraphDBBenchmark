@@ -6,7 +6,7 @@ import java.security.CodeSource;
 
 public class ClientProperties {
 	public static int intensiveMeanTimes = 100;
-	public static int traversalMeanTimes = 50;
+	public static int traversalMeanTimes = 100;
 	public static String tempDir;
 	
 	public static void initializeProperties() {

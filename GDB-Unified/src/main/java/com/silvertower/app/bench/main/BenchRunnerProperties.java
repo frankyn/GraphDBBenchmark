@@ -9,7 +9,7 @@ public class BenchRunnerProperties {
 	public static String tempDirPath;
 	public static String logDir;
 	public static String plotsDir;
-	public static long maxWorkTimeInNS = 1000000000L;
+	public static long maxWorkTimeInNS = 120000000000L;
 	
 	public static void initializeProperties() {
 		tempDirPath = System.getProperty("user.dir");

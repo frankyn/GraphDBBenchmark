@@ -2,12 +2,14 @@ package com.silvertower.app.bench.akka;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
 import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.GraphProperty;
 import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.rexster.RexsterGraph;
 
 
@@ -78,11 +80,23 @@ public class GraphDescriptor implements Serializable {
 	}
 	
 	public Object[] getVerticesRandomPropertyCouple() {
+//		ArrayList<GraphProperty> graphProperties = d.getVertexProperties();
+//		Object[] returnedPropertyCouples = new Object[graphProperties.size()*2];
+//		for (int i = 0; i < graphProperties.size(); i++) {
+//			GraphProperty p = graphProperties.get(i);
+//			Object fieldName = p.getFieldName();
+//			Object value = p.getFieldPossibleValues().get(r.nextInt(p.getFieldPossibleValues().size()));
+//			returnedPropertyCouples[i*2] = fieldName;
+//			returnedPropertyCouples[(i*2)+1] = value;
+//		}
+//		return returnedPropertyCouples;
+		
 		ArrayList<GraphProperty> graphProperties = d.getVertexProperties();
 		GraphProperty property = graphProperties.get(r.nextInt(graphProperties.size()));
 		Object fieldName = property.getFieldName();
 		Object value = property.getFieldPossibleValues().get(r.nextInt(property.getFieldPossibleValues().size()));
 		return new Object[]{fieldName, value};
+		
 	}
 	
 	public Object getRandomVertexId(int threadId) {
