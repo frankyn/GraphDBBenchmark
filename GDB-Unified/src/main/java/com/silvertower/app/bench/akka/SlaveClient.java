@@ -8,6 +8,7 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 
 import com.silvertower.app.bench.akka.Messages.*;
+import com.silvertower.app.bench.main.BenchmarkConfiguration;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 
 public class SlaveClient extends UntypedActor {
@@ -20,6 +21,7 @@ public class SlaveClient extends UntypedActor {
 	private CountDownLatch stopLatch;
 	private IntensiveWork currentWork;
 	private ActorRef master;
+	private BenchmarkConfiguration config;
 	public SlaveClient() {
 		this.clientThreads = new ArrayList<SlaveThread>();
 		this.state = State.WAITING_FOR_INFOS;
@@ -34,9 +36,19 @@ public class SlaveClient extends UntypedActor {
 			master.tell(new Integer(Runtime.getRuntime().availableProcessors()), getSelf());
 		}
 		
+		else if (message instanceof BenchmarkConfiguration) {
+			this.config = (BenchmarkConfiguration) message;
+			master.tell(new Ack());
+		}
+		
 		else if (message instanceof GraphDescriptor) {
 			currentGDesc = (GraphDescriptor) message;
-			currentGDesc.fetchGraph();
+			try {
+				currentGDesc.fetchGraph();
+			} catch (Exception e) {
+				System.err.println("Error while fetching rexster graph");
+				return;
+			}
 			state = State.READY_FOR_WORK;
 			master.tell(new Ack());
 		}
@@ -81,7 +93,7 @@ public class SlaveClient extends UntypedActor {
 		int nbrOpPerThread = nbrOpWanted / nbrCoresWanted;
 		for (int i = 0; i < nbrCoresWanted; i++) {
 			SlaveThread t = new SlaveThread(currentGDesc, id + i, w, nbrOpPerThread, startLatch, 
-					stopLatch, currentWork.isBatchMode());
+					stopLatch, currentWork.isBatchMode() ? config.maxOpsAtATimeRexPro : 0);
 			clientThreads.add(t);
 			t.start();
 		}

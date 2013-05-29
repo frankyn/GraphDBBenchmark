@@ -25,8 +25,6 @@ public class ServerProperties {
 	public static String dbDirTitanWork;
 	public static String dbDirOrientWork;
 	public static String pythonDir;
-	public static long maxLoadTimeInNS = 60000000000L;
-	public static int maxNVerticesMultiLoad = 10000;
 	
 	public static void initializeProperies() {
 		CodeSource codeSource = BenchmarkLauncher.class.getProtectionDomain().getCodeSource();

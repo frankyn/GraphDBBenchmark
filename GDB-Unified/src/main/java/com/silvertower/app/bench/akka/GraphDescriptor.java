@@ -2,15 +2,15 @@ package com.silvertower.app.bench.akka;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
 import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.GraphProperty;
 import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.rexster.RexsterGraph;
+import com.tinkerpop.rexster.client.RexsterClient;
+import com.tinkerpop.rexster.client.RexsterClientFactory;
 
 
 public class GraphDescriptor implements Serializable {
@@ -20,7 +20,8 @@ public class GraphDescriptor implements Serializable {
 	private Random r;
 	public List<Object> vIds;
 	public List<Object> eIds;
-	private Graph g;
+	private Graph rexsterGraph;
+	private RexsterClient rexsterClient;
 	private int serverPort;
 	private String serverAdd;
 	private String graphName;
@@ -64,20 +65,22 @@ public class GraphDescriptor implements Serializable {
 		this.graphName = graphName;
 	}
 	
-	public void fetchGraph() {
+	public void fetchGraph() throws Exception {
 		String graphAdd = String.format("http://%s:%d/graphs/%s", serverAdd, serverPort, graphName);
 		System.out.println("Connection to rexster graph: " + graphAdd);
 		Graph g = new RexsterGraph(graphAdd);
-		this.g = g;
+		this.rexsterGraph = g;
+		this.rexsterClient = RexsterClientFactory.open(serverAdd, graphName);
 	}
 	
-	public Graph getGraph() {
-		return g;
+	public Graph getRexsterGraph() {
+		return rexsterGraph;
 	}
 	
-	public String getDescription() {
-		return String.format("Graph: %s for DB: %s", d.getDatasetName(), g.getClass().getName());
+	public RexsterClient getRexsterClient() {
+		return rexsterClient;
 	}
+	
 	
 	public Object[] getVerticesRandomPropertyCouple() {
 //		ArrayList<GraphProperty> graphProperties = d.getVertexProperties();
@@ -96,7 +99,6 @@ public class GraphDescriptor implements Serializable {
 		Object fieldName = property.getFieldName();
 		Object value = property.getFieldPossibleValues().get(r.nextInt(property.getFieldPossibleValues().size()));
 		return new Object[]{fieldName, value};
-		
 	}
 	
 	public Object getRandomVertexId(int threadId) {

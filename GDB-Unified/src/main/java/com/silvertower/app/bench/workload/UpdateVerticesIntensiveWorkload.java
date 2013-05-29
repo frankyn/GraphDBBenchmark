@@ -1,6 +1,5 @@
 package com.silvertower.app.bench.workload;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 import com.silvertower.app.bench.akka.GraphDescriptor;
@@ -22,14 +21,13 @@ public class UpdateVerticesIntensiveWorkload extends IntensiveWorkload implement
 			String propRepr = "\"" + (String)property[1] + "\"";
 			b.append(String.format("g.v(%s).%s=%s;", idRepr, (String) property[0], propRepr));
 		}
-		
 		return b.toString();
 	}
 
 	public void operation(final GraphDescriptor gDesc, int threadId) {
 		Object [] property = gDesc.getVerticesRandomPropertyCouple();
 		Object id = gDesc.getRandomVertexId(threadId);
-		Vertex v = gDesc.getGraph().getVertex(id);
+		Vertex v = gDesc.getRexsterGraph().getVertex(id);
 		if (v != null) {
 			try {
 				v.setProperty((String) property[0], property[1]);

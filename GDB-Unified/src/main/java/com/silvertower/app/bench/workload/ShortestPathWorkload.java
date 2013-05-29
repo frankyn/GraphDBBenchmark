@@ -1,10 +1,7 @@
 package com.silvertower.app.bench.workload;
 
 import java.io.Serializable;
-import java.util.List;
 
-import com.silvertower.app.bench.akka.GraphDescriptor;
-import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
 import com.tinkerpop.pipes.PipeFunction;
@@ -18,6 +15,14 @@ public class ShortestPathWorkload extends TraversalWorkload implements Serializa
 	public ShortestPathWorkload(int hopLimit) {
 		super(String.format("Dijkstra %d hop limit", hopLimit));
 		this.hopLimit = hopLimit;
+	}
+	
+	public String generateRequest(Vertex from, Vertex to) {
+		Object fromId = from.getId();
+		String fromIdRepr = fromId instanceof String ? "\"" + fromId + "\"" : fromId.toString();
+		Object toId = from.getId();
+		String toIdRepr = toId instanceof String ? "\"" + toId + "\"" : toId.toString();
+		return String.format("g.v(%s).out.loop(1){it.object.id != %s & it.loops <= %d}.path[0..2999]", fromIdRepr, toIdRepr, hopLimit);
 	}
 
 	public void operation(final Vertex from, final Vertex to) {

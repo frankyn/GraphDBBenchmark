@@ -21,7 +21,10 @@ public class TitanWrapper extends DBInitializer {
 		createDirectory(storageDir);
 		
 		Configuration config = new BaseConfiguration();
-		if (batchLoading) config.setProperty("storage.batch-loading", "true");
+		if (batchLoading) {
+			config.setProperty("storage.batch-loading", "true");
+			config.setProperty("ids.block-size", 100000); 
+		}
 		if (backend.equals("local")) {
 			config.setProperty("storage.directory", storageDir);
 			config.setProperty("storage.backend", backend);

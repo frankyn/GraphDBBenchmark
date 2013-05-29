@@ -4,8 +4,8 @@ package com.silvertower.app.bench.akka;
 import com.silvertower.app.bench.akka.Messages.*;
 import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.*;
-import com.silvertower.app.bench.main.BenchRunnerProperties;
 import com.silvertower.app.bench.main.Benchmark;
+import com.silvertower.app.bench.main.BenchmarkConfiguration;
 import com.silvertower.app.bench.utils.Logger;
 import com.silvertower.app.bench.utils.Statistics;
 import com.silvertower.app.bench.workload.TraversalWorkload;
@@ -28,6 +28,7 @@ public class BenchRunner extends UntypedActor {
 	private Benchmark b;
 	private String serverAdd;
 	private String currentDBName;
+	private BenchmarkConfiguration config;
 	public BenchRunner(ActorRef mc, ActorRef server, Benchmark b, String serverAdd) {
 		this.masterClient = mc;
 		this.server = server;
@@ -71,7 +72,7 @@ public class BenchRunner extends UntypedActor {
 		AggregateResult aggregate = new AggregateResult();
 		long timeBefore = System.nanoTime();
 		int count = 0;
-		while (System.nanoTime() - timeBefore < BenchRunnerProperties.maxWorkTimeInNS && count < 50) {
+		while (System.nanoTime() - timeBefore < config.workloadExecutionTimeThresholdInNS && count < config.intensiveRepeatTimes) {
 			Object answer = sendMessageAndWaitAnswer(work);
 			if (answer == null) {
 				log.logMessage(String.format("Error while executing the workload %s with %d operations " +
@@ -163,5 +164,11 @@ public class BenchRunner extends UntypedActor {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public void shareConfig(BenchmarkConfiguration config) {
+		this.config = config;
+		server.tell(config, getSelf());
+		masterClient.tell(config, getSelf());
 	}
 }

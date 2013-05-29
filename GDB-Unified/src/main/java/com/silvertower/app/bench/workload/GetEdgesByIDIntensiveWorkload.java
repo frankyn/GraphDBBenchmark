@@ -13,6 +13,13 @@ public class GetEdgesByIDIntensiveWorkload extends IntensiveWorkload implements 
 	}
 
 	public void operation(GraphDescriptor gDesc, int threadId) {
-		gDesc.getGraph().getEdge(gDesc.getRandomEdgeId(threadId));
+		gDesc.getRexsterGraph().getEdge(gDesc.getRandomEdgeId(threadId));
+	}
+
+	@Override
+	public String generateRequest(GraphDescriptor gDesc, int threadId,
+			int number) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

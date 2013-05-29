@@ -1,13 +1,12 @@
 package com.silvertower.app.bench.akka;
 
 
-
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import org.codehaus.jettison.json.JSONArray;
-
 import com.silvertower.app.bench.workload.IntensiveWorkload;
-import com.tinkerpop.blueprints.impls.rexster.RexsterGraph;
+import com.tinkerpop.rexster.client.RexProException;
+import com.tinkerpop.rexster.client.RexsterClient;
 
 public class SlaveThread extends Thread {
 	private IntensiveWorkload w;
@@ -16,16 +15,16 @@ public class SlaveThread extends Thread {
 	private int maxOpCount;
 	private CountDownLatch startLatch;
 	private CountDownLatch stopLatch;
-	private boolean isBatchMode;
+	private int rexProNOpsAtATime;
 	public SlaveThread(GraphDescriptor gDesc, int id, IntensiveWorkload w, int maxOpCount, 
-			CountDownLatch startLatch, CountDownLatch stopLatch, boolean isBatchMode) {
+			CountDownLatch startLatch, CountDownLatch stopLatch, int rexProNOpsAtATime) {
 		this.w = w;
 		this.gDesc = gDesc;
 		this.id = id;
 		this.maxOpCount = maxOpCount;
 		this.startLatch = startLatch;
 		this.stopLatch = stopLatch;
-		this.isBatchMode = isBatchMode;
+		this.rexProNOpsAtATime = rexProNOpsAtATime;
 	}
 	
 	public void run() {
@@ -34,15 +33,19 @@ public class SlaveThread extends Thread {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		if (isBatchMode) {
+		if (rexProNOpsAtATime > 0) {
 			int opRemaining = maxOpCount;
 			while (opRemaining > 0) {
-				int opToRealize = opRemaining > 10 ? 10 : opRemaining;
+				int opToRealize = opRemaining > rexProNOpsAtATime ? rexProNOpsAtATime : opRemaining;
 				String request = w.generateRequest(gDesc, id, opToRealize);
-				System.out.println(request);
-				JSONArray a = ((RexsterGraph) gDesc.getGraph()).execute(request);
-				System.out.println(a);
-				opRemaining -= opToRealize;
+				try {
+					((RexsterClient) gDesc.getRexsterClient()).execute(request);
+					opRemaining -= opToRealize;
+				} catch (RexProException e) {
+					System.err.println("Error while executing the request: " + request);
+				} catch (IOException e) {
+					System.err.println("Error while executing the request: " + request);
+				}
 			}
 		}
 		else {

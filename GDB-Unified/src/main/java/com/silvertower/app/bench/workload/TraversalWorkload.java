@@ -29,5 +29,7 @@ public abstract class TraversalWorkload implements Serializable {
 		System.out.println(numberOfElementsInThePipe);
 	}
 	
+	public abstract String generateRequest(Vertex from, Vertex to);
+	
 	public abstract void operation(Vertex from, Vertex to);
 }

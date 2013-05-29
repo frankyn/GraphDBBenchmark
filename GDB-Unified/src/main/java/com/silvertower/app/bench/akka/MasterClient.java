@@ -8,7 +8,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import akka.actor.ActorRef;
@@ -24,12 +23,12 @@ import akka.util.Timeout;
 import static akka.pattern.Patterns.ask;
 
 import com.silvertower.app.bench.akka.Messages.*;
+import com.silvertower.app.bench.main.BenchmarkConfiguration;
 import com.silvertower.app.bench.main.ClientProperties;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.gremlin.java.GremlinPipeline;
+import com.tinkerpop.rexster.client.RexProException;
 
 public class MasterClient extends UntypedActor {
 	private int slavesAvailable;
@@ -43,6 +42,7 @@ public class MasterClient extends UntypedActor {
 	private Timeout t = new Timeout(Duration.create(Integer.MAX_VALUE, "seconds"));
 	private List<Ack> ackBuffer;
 	private long intensiveWorkloadStartTs;
+	private BenchmarkConfiguration config;
 	public MasterClient(String[] slavesInfos) {
 		this.slavesAvailable = slavesInfos.length/2;
 		this.slaves = new ArrayList<SlaveReference>(slavesAvailable);
@@ -61,11 +61,21 @@ public class MasterClient extends UntypedActor {
 	
 	public void onReceive(Object message) throws Exception {
 		System.out.println("Master:" + message);
-		if (message instanceof GraphDescriptor) {
+		if (message instanceof BenchmarkConfiguration) {
+			this.config = (BenchmarkConfiguration) message;
+		}
+		
+		else if (message instanceof GraphDescriptor) {
 			currentGDesc = (GraphDescriptor) message;
 			currentGDesc.setNbConcurrentThreads(coresAvailable);
-			assignGDesc();
-			currentGDesc.fetchGraph();
+			shareGDesc();
+			shareConfig();
+			try {
+				currentGDesc.fetchGraph();
+			} catch (Exception e) {
+				System.err.println("Error while fetching rexster graph");
+				return;
+			}
 			state = State.READY_FOR_WORK;
 			getSender().tell(new Ack(), getSelf());
 		}
@@ -130,7 +140,7 @@ public class MasterClient extends UntypedActor {
 			unhandled(message);
 		}
 	}
-	
+
 	private AggregateResult benchWorkload(TraversalWorkload w) {
 		File inputFile = new File(ClientProperties.tempDir + w.toString() + currentGDesc.getNbVertices());
 		if (!inputFile.exists()) {
@@ -145,16 +155,24 @@ public class MasterClient extends UntypedActor {
 		
 		for (String pair: pairs) {
 			String[] cids = pair.split(" ");
-			long before = System.nanoTime();
-			Vertex from = currentGDesc.getGraph().getVertices("cid", cids[0]).iterator().next();
-			Vertex to = currentGDesc.getGraph().getVertices("cid", cids[1]).iterator().next();
-			System.out.println((System.nanoTime() - before)/1000000000.0);
+			Vertex from = currentGDesc.getRexsterGraph().getVertices("cid", cids[0]).iterator().next();
+			Vertex to = currentGDesc.getRexsterGraph().getVertices("cid", cids[1]).iterator().next();
 			if (from == null || to == null) {
 				System.err.println("Unable to perform traversal workload");
 				break;
 			}
 			long wall1 = System.nanoTime();
-			w.operation(from, to);
+			
+			//w.operation(from, to);
+			
+			String request = w.generateRequest(from, to);
+			try {
+				currentGDesc.getRexsterClient().execute(request);
+			} catch (RexProException e) {
+				System.err.println("Error while executing the request: " + request);
+			} catch (IOException e) {
+				System.err.println("Error while executing the request: " + request);
+			}
 			long wall2 = System.nanoTime();
 			double timeSpent = (wall2-wall1) / 1000000000.0;
 			System.out.println("Time:" + timeSpent);
@@ -183,13 +201,13 @@ public class MasterClient extends UntypedActor {
 	private void generateInputFile(File f, TraversalWorkload w) {
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-			for (int i = 0; i < ClientProperties.traversalMeanTimes; i++) {
-				Vertex v = currentGDesc.getGraph().getVertex(currentGDesc.getRandomVertexId());
+			for (int i = 0; i < config.traversalRepeatTimes; i++) {
+				Vertex v = currentGDesc.getRexsterGraph().getVertex(currentGDesc.getRandomVertexId());
 				bw.write(v.getProperty("cid").toString());
 				bw.write(32);
 				Vertex v1 = null;
 				while (v1 == null || v.equals(v1)) {
-					v1 = currentGDesc.getGraph().getVertex(currentGDesc.getRandomVertexId());
+					v1 = currentGDesc.getRexsterGraph().getVertex(currentGDesc.getRandomVertexId());
 				}
 				bw.write(v1.getProperty("cid").toString());
 				bw.newLine();
@@ -213,11 +231,17 @@ public class MasterClient extends UntypedActor {
 		return nCores;
 	}
 	
-	private void assignGDesc() {
+	private void shareGDesc() {
 		// Share the graph descriptor with all the slaves
 		for (SlaveReference s: slaves) {
 			// We wait until this slave ack the reception of the graph descriptor
 			askAndWait(s.getSlaveRef(), currentGDesc);
+		}
+	}
+	
+	private void shareConfig() {
+		for (SlaveReference s: slaves) {
+			askAndWait(s.getSlaveRef(), config);
 		}
 	}
 

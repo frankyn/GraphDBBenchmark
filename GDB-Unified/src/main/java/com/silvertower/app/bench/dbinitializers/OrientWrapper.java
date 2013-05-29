@@ -1,6 +1,5 @@
 package com.silvertower.app.bench.dbinitializers;
 
-import com.orientechnologies.orient.core.Orient;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -23,11 +22,6 @@ public class OrientWrapper extends DBInitializer {
 
 	public String getName() {
 		return "orient";
-	}
-	
-	public void shutdownLastGraphInitialized(Graph g) {
-		g.shutdown();
-		Orient.instance().shutdown();
 	}
 
 	public String getTempDirPath() {

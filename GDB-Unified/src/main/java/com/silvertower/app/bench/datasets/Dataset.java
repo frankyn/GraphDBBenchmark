@@ -28,18 +28,19 @@ public abstract class Dataset implements Serializable {
 		this.edgesProperties = new ArrayList<GraphProperty>();
 	}
 
+	public void fillProperties() {
+        ArrayList<Object> cids = new ArrayList<Object>();
+        for (int i = 1; i <= nVertices; i++) {
+        	cids.add(String.valueOf(i));
+        }
+        vertexProperties.add(new GraphProperty("cid", cids));
+	}
+
 	/**
 	 * Generate a GraphML file that represents a graph.
 	 * 
 	 */
 	public abstract File generate();
-		
-	/**
-	 * Fill the vertexProperties (resp. edgesProperties) list with all the possible vertex
-	 * properties (resp. edges properties) that may be present in this dataset.
-	 * A graph property is a pair composed of a field and all its possible values.
-	 */
-	public abstract void fillProperties();
 	
 	/**
 	 * 

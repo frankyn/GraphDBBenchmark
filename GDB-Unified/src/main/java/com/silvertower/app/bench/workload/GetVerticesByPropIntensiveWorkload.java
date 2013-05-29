@@ -37,10 +37,10 @@ public class GetVerticesByPropIntensiveWorkload extends IntensiveWorkload implem
 			Object [] property = gDesc.getVerticesRandomPropertyCouple();
 			String keyRepr = "\"" + (String)property[0] + "\"";
 			String valueRepr = "\"" + (String)property[1] + "\"";
-			if (i == 0) b.append(String.format("g.V.or(_().has(%s,%s))", keyRepr, valueRepr));
+			if (i == 0) b.append(String.format("g.V(%s,%s)", keyRepr, valueRepr));
 			else {
-				b.deleteCharAt(b.length()-1);
-				b.append(String.format(",_().has(%s,%s))", keyRepr, valueRepr));
+				//b.deleteCharAt(b.length()-1);
+				b.append(String.format(";g.V(%s,%s)", keyRepr, valueRepr));
 			}
 		}
 		return b.toString();
@@ -59,7 +59,7 @@ public class GetVerticesByPropIntensiveWorkload extends IntensiveWorkload implem
 //		}
 		Object[] possibleProp = gDesc.getVerticesRandomPropertyCouple();
 		// Iterator<Vertex> iter = gDesc.getGraph().getVertices((String)possibleProp[0], possibleProp[1]).iterator();
-		Iterator<Vertex> iter = gDesc.getGraph().query().has((String)possibleProp[0], possibleProp[1]).vertices().iterator();
+		Iterator<Vertex> iter = gDesc.getRexsterGraph().query().has((String)possibleProp[0], possibleProp[1]).vertices().iterator();
 		if (iter.hasNext()) {
 			iter.next().getId();
 		}

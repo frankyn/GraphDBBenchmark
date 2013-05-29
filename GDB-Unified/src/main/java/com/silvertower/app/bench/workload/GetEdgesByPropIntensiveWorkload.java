@@ -14,7 +14,14 @@ public class GetEdgesByPropIntensiveWorkload extends IntensiveWorkload implement
 
 	public void operation(GraphDescriptor gDesc, int threadId) {
 		Object[] possibleProp = gDesc.getEdgesRandomPropertyCouple();
-		gDesc.getGraph().getEdges((String)possibleProp[0], possibleProp[1]);
+		gDesc.getRexsterGraph().getEdges((String)possibleProp[0], possibleProp[1]);
+	}
+
+	@Override
+	public String generateRequest(GraphDescriptor gDesc, int threadId,
+			int number) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

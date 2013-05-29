@@ -1,15 +1,16 @@
 package com.silvertower.app.bench.main;
 
 import java.io.File;
+import java.io.Serializable;
 
 import com.silvertower.app.bench.utils.Utilities;
 
 
-public class BenchRunnerProperties {
+public class BenchRunnerProperties implements Serializable {
+	private static final long serialVersionUID = 155357608381230775L;
 	public static String tempDirPath;
 	public static String logDir;
 	public static String plotsDir;
-	public static long maxWorkTimeInNS = 120000000000L;
 	
 	public static void initializeProperties() {
 		tempDirPath = System.getProperty("user.dir");
