@@ -20,8 +20,15 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.3</version>
 				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>com.silvertower.app.bench.main.BenchmarkLauncher</mainClass>
+						</manifest>
+					</archive>
 					<descriptors>
 						<descriptor>src/main/assembly/distribution.xml</descriptor>
+						<descriptor>src/main/assembly/distributionbigjar.xml</descriptor>
 					</descriptors>
 				</configuration>
 				<executions>
@@ -189,9 +196,9 @@
 			<type>bundle</type>
 		</dependency>
 		<dependency>
-		    <groupId>com.tinkerpop.rexster</groupId>
-		    <artifactId>rexster-protocol</artifactId>
-		    <version>2.3.0</version>
+			<groupId>com.tinkerpop.rexster</groupId>
+			<artifactId>rexster-protocol</artifactId>
+			<version>2.3.0</version>
 		</dependency>
 	</dependencies>
 

@@ -26,5 +26,13 @@
 			<source>src/main/java/application.conf</source>
 			<outputDirectory>/</outputDirectory>
 		</file>
+		<file>
+			<source>src/main/resources/reference.conf</source>
+			<outputDirectory>/</outputDirectory>
+		</file>
+		<file>
+			<source>src/main/resources/remote.conf</source>
+			<outputDirectory>/</outputDirectory>
+		</file>
 	</files>
 </assembly>
