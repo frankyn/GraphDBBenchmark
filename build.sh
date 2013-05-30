@@ -8,3 +8,5 @@ mv GDB-Unified-1-akka.zip ../../GDB-Distrib
 cd ../../GDB-Distrib
 7z x -y GDB-Unified-1-akka.zip
 rm GDB-Unified-1-akka.zip
+mv ../GDB-Unified/target/GDB-Unified-1-jar-with-dependencies.jar GDB-Unified-1/client.jar
+mv GDB-Unified-1/* GDB-Unified-1/.[!.]* GDB-Unified-1/..?* ./
