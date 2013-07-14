@@ -38,27 +38,14 @@ public class ServerProperties {
 		resourcesDirPath = jarFile.getParentFile().getPath() + "//..//resources//";
 		PropertyConfigurator.configure(resourcesDirPath + "log4j.properties");
 		
-		tempDirPath = jarFile.getParentFile().getPath() + "//..//temp//";
+		tempDirPath = jarFile.getParentFile().getPath() + "//..//servertemp//";
 		File workDir = new File(tempDirPath);
 		workDir.mkdir();
-		/*if (!workDir.mkdir()) {
-			Utilities.deleteDirectory(ServerProperties.tempDirPath);
-			workDir.mkdir();
-			workDir.setReadable(true);
-			workDir.setWritable(true);
-		}*/
 		
 		// === Datasets directory initialization
 		datasetsDir = tempDirPath + "datasets//";
 		File datasetsDir = new File(ServerProperties.datasetsDir);
 		datasetsDir.mkdir();
-		/*if (!datasetsDir.mkdir()) {
-			Utilities.deleteDirectory(ServerProperties.datasetsDir);
-			datasetsDir.mkdir();
-			datasetsDir.setReadable(true);
-			datasetsDir.setWritable(true);
-		}
-		*/
 		
 		// === Python scripts directory
 		pythonDir = resourcesDirPath + "python//";

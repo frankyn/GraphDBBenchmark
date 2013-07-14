@@ -48,13 +48,13 @@ public class BenchRunner extends UntypedActor {
 		currentDBName = i.getName();
 	}
 	
-	public AggregateResult startLoadBench(Dataset d) {
-		AggregateResult r = new AggregateResult();
-		if (loadDB(d)) {
+	public LoadResults startLoadBench(Dataset d, int bufferSize) {
+		LoadResults r = new LoadResults();
+		if (loadDB(d, bufferSize)) {
 			log.logMessage(String.format("Dataset %s loaded", d.getDatasetName()));
 			Future<Object> answer = ask(server, new GetResult(), timeout);
 			try {
-				r = (AggregateResult) Await.result(answer, timeout.duration());
+				r = (LoadResults) Await.result(answer, timeout.duration());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -122,8 +122,8 @@ public class BenchRunner extends UntypedActor {
 		System.exit(-1);
 	}
 	
-	private boolean loadDB(Dataset d) {
-		Future<Object> answer = ask(server, new Load(d), timeout);
+	private boolean loadDB(Dataset d, int bufferSize) {
+		Future<Object> answer = ask(server, new Load(d, bufferSize), timeout);
 		GraphDescriptor gDesc = null;
 		try {
 			gDesc = (GraphDescriptor) Await.result(answer, timeout.duration());

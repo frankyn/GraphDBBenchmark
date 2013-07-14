@@ -47,18 +47,7 @@ public class GetVerticesByPropIntensiveWorkload extends IntensiveWorkload implem
 	}
 
 	public void operation(GraphDescriptor gDesc, int threadId) {
-//		Object[] possibleProp = gDesc.getVerticesRandomPropertyCouple();
-////		Iterator<Vertex> iter = gDesc.getGraph().getVertices((String)possibleProp[0], possibleProp[1]).iterator();
-//		GraphQuery query = gDesc.getGraph().query();
-//		for (int i = 0; i < possibleProp.length; i+=2) {
-//			query.has((String)possibleProp[i], possibleProp[i+1]);
-//		}
-//		Iterator<Vertex> iter = query.vertices().iterator();
-//		if (iter.hasNext()) {
-//			iter.next().getId();
-//		}
 		Object[] possibleProp = gDesc.getVerticesRandomPropertyCouple();
-		// Iterator<Vertex> iter = gDesc.getGraph().getVertices((String)possibleProp[0], possibleProp[1]).iterator();
 		Iterator<Vertex> iter = gDesc.getRexsterGraph().query().has((String)possibleProp[0], possibleProp[1]).vertices().iterator();
 		if (iter.hasNext()) {
 			iter.next().getId();

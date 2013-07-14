@@ -4,6 +4,8 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.security.CodeSource;
 
+import com.silvertower.app.bench.utils.Utilities;
+
 public class ClientProperties {
 	public static String tempDir;
 	
@@ -16,8 +18,11 @@ public class ClientProperties {
 			e.printStackTrace();
 		}
 		
-		tempDir = jarFile.getParentFile().getPath() + "//..//temp//";
+		tempDir = jarFile.getParentFile().getPath() + "//..//clienttemp//";
 		File f = new File(tempDir);
-		f.mkdir();
+		if (!f.mkdir()) {
+			Utilities.deleteDirectory(tempDir);
+			f.mkdir();
+		}
 	}
 }

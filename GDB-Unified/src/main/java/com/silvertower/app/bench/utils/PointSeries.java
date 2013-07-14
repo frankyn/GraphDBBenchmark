@@ -3,6 +3,8 @@ package com.silvertower.app.bench.utils;
 import java.util.ArrayList;
 
 import com.silvertower.app.bench.akka.Messages.AggregateResult;
+import com.silvertower.app.bench.akka.Messages.LoadResults;
+import com.silvertower.app.bench.akka.Messages.Result;
 
 public class PointSeries {
 	private String name;
@@ -32,6 +34,13 @@ public class PointSeries {
 	
 	public void addResult(String label, double xValue, AggregateResult results) {
 		resultsCollection.add(new PlotResult(label, xValue, results));
+	}
+	
+	public void addResult(String label, LoadResults results) {
+		for (Result r: results.getResults()) {
+			AggregateResult aggregate = new AggregateResult(r.getTime() / 1000000000.0);
+			resultsCollection.add(new PlotResult(label, r.getGraphSize(), aggregate));
+		}
 	}
 	
 	public String getName() {

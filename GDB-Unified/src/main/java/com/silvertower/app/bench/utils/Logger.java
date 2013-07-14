@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import com.silvertower.app.bench.akka.Messages.AggregateResult;
+import com.silvertower.app.bench.akka.Messages.LoadResults;
 import com.silvertower.app.bench.akka.Messages.TimeResult;
 import com.silvertower.app.bench.main.BenchRunnerProperties;
 
@@ -34,6 +35,10 @@ public class Logger {
 	}
 	
 	public void logResult(AggregateResult r) {
+		writeAndFlush(r.toString());
+	}
+	
+	public void logResult(LoadResults r) {
 		writeAndFlush(r.toString());
 	}
 	

@@ -43,12 +43,18 @@ public class Messages {
 	public static class Load implements Serializable {
 		private static final long serialVersionUID = -4879740030488164881L;
 		private final Dataset d;
-		public Load(Dataset d) {
+		private int bufferSizeWanted;
+		public Load(Dataset d, int bufferSizeWanted) {
 			this.d = d;
+			this.bufferSizeWanted = bufferSizeWanted;
 		}
 		
 		public Dataset getDataset() {
 			return d;
+		}
+		
+		public int getBufferSizeWanted() {
+			return this.bufferSizeWanted;
 		}
 	}
 	
@@ -69,6 +75,11 @@ public class Messages {
 		private List<TimeResult> times;
 		public AggregateResult() {
 			this.times = new ArrayList<TimeResult>();
+		}
+		
+		public AggregateResult(Double result) {
+			this.times = new ArrayList<TimeResult>();
+			times.add(new TimeResult(result));
 		}
 		
 		public AggregateResult(List<Double> results) {
@@ -133,6 +144,52 @@ public class Messages {
 				results.add(r.getTime());
 			}
 			return results;
+		}
+	}
+	
+	public static class Result implements Serializable {
+		private static final long serialVersionUID = -4544518770275209076L;
+		int graphSize;
+		double time;
+		public Result(int graphSize, double time) {
+			this.graphSize = graphSize;
+			this.time = time;
+		}
+		
+		public int getGraphSize() {
+			return graphSize;
+		}
+		
+		public double getTime() {
+			return time;
+		}
+		
+		public String toString() {
+			return graphSize + " vertices loaded in " + (time / 1000000000.0) + "\n";
+		}
+	}
+	
+	public static class LoadResults implements Serializable {
+		private static final long serialVersionUID = 3213333307648081315L;
+		private ArrayList<Result> results;
+		public LoadResults() {
+			results = new ArrayList<Result>();
+		}
+		
+		public void addResult(Result r) {
+			results.add(r);
+		}
+		
+		public ArrayList<Result> getResults() {
+			return results;
+		}
+		
+		public String toString() {
+			StringBuilder b = new StringBuilder();
+			for (Result r: results) {
+				b.append(r.toString());
+			}
+			return b.toString();
 		}
 	}
 	

@@ -9,7 +9,7 @@ import os
 degree = 5
 vertices = int(sys.argv[1])
 
-g = barabasi_albert_graph(vertices, degree)
+g = barabasi_albert_graph(vertices + 1, degree)
 
 counter = 1
 

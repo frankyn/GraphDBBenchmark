@@ -1,5 +1,6 @@
 package com.silvertower.app.bench.dbinitializers;
 
+import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -11,6 +12,7 @@ public class OrientWrapper extends DBInitializer {
 
 	public Graph initialize(String storageDir, boolean batchLoading) {
 		createDirectory(storageDir);
+		OGlobalConfiguration.STORAGE_KEEP_OPEN.setValue(0);
 		if (batchLoading) {
 			return new OrientBatchGraph("local:" + storageDir);
 		}

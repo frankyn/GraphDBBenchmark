@@ -27,6 +27,13 @@ public abstract class Dataset implements Serializable {
 		this.vertexProperties = new ArrayList<GraphProperty>();
 		this.edgesProperties = new ArrayList<GraphProperty>();
 	}
+	
+	public Dataset(String datasetType) {
+		this.datasetType = datasetType;
+		this.datasetName = datasetType + nVertices;
+		this.vertexProperties = new ArrayList<GraphProperty>();
+		this.edgesProperties = new ArrayList<GraphProperty>();
+	}
 
 	public void fillProperties() {
         ArrayList<Object> cids = new ArrayList<Object>();
