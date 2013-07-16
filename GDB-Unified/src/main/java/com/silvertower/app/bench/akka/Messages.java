@@ -165,7 +165,7 @@ public class Messages {
 		}
 		
 		public String toString() {
-			return graphSize + " vertices loaded in " + (time / 1000000000.0) + "\n";
+			return graphSize + " graph elements loaded in " + (time / 1000000000.0) + "\n";
 		}
 	}
 	

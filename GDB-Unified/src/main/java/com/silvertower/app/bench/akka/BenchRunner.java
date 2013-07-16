@@ -51,7 +51,7 @@ public class BenchRunner extends UntypedActor {
 	public LoadResults startLoadBench(Dataset d, int bufferSize) {
 		LoadResults r = new LoadResults();
 		if (loadDB(d, bufferSize)) {
-			log.logMessage(String.format("Dataset %s loaded", d.getDatasetName()));
+			log.logMessage(String.format("Load benchmark dataset %s with buffer size %d", d.getDatasetName(), bufferSize));
 			Future<Object> answer = ask(server, new GetResult(), timeout);
 			try {
 				r = (LoadResults) Await.result(answer, timeout.duration());

@@ -44,6 +44,14 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
       <outputDirectory>/resources/python</outputDirectory>
     </file>
     <file>
+      <source>src/python/custom-graph-creator.py</source>
+      <outputDirectory>/resources/python</outputDirectory>
+    </file>
+    <file>
+      <source>src/python/example-graph.txt</source>
+      <outputDirectory>/resources/python</outputDirectory>
+    </file>
+    <file>
       <source>src/main/resources/log4j.properties</source>
       <outputDirectory>/resources</outputDirectory>
     </file>

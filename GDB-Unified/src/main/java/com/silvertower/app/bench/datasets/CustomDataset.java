@@ -15,7 +15,6 @@ public class CustomDataset extends Dataset {
 	public File generate() {
 		String pyScriptPath = ServerProperties.pythonDir + "custom-graph-creator.py";
 		String datasetFP = ServerProperties.datasetsDir + "custom-dataset" + ".graphml";
-		
 		File f = new File(datasetFP);
 		if (!f.exists()) {
 			Runtime r = Runtime.getRuntime();

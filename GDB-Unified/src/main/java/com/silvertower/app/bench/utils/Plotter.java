@@ -113,7 +113,17 @@ public class Plotter {
 	private void createXYChart(String chartName, String xAxis, String yAxis, XYSeriesCollection c) {
 		JFreeChart chart = ChartFactory.createXYLineChart(chartName, xAxis, yAxis, c,
 				PlotOrientation.VERTICAL, true, true, true);
-		chart.getXYPlot().setRenderer(new XYSplineRenderer());
+
+		if (chart.getXYPlot().getDataset().getItemCount(0) > 30) {
+			XYSplineRenderer r = new XYSplineRenderer();
+			for (int i = 0; i < chart.getXYPlot().getSeriesCount(); i++) {
+				r.setSeriesShapesVisible(i, false);
+			}
+			
+			chart.getXYPlot().setRenderer(r);
+		}
+		
+		else chart.getXYPlot().setRenderer(new XYSplineRenderer());
         saveAsPng(chartName, chart);
 	}
     

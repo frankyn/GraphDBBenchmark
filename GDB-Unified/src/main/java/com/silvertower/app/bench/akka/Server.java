@@ -218,7 +218,9 @@ public class Server extends UntypedActor {
 //		createEdgesIndex(g, d);
 		
 		// Measure the loading time
+		long before = System.nanoTime();
 		loadGraphML(g, bufferSizeWanted, initializeIS(f));		
+		System.out.println((System.nanoTime() - before)/1000000000.0);
 		
 		// Close the previously opened batch graph and create a new standard graph that contains
 		// exactly the same vertices.

@@ -190,7 +190,7 @@ public class CustomGraphMLReader {
             Map<String, Object> edgeProps = null;
             boolean inEdge = false;
             
-            int verticesCounter = 0;
+            int graphElementsCounter = 0;
             int stepNumber = 1;
             results = new LoadResults();
             long beforeTs = System.nanoTime();
@@ -233,12 +233,6 @@ public class CustomGraphMLReader {
 
                             if (null == edgeEndVertices[i]) {
                                 edgeEndVertices[i] = graph.addVertex(vertexIds[i]);
-                                verticesCounter ++;
-                            	if (verticesCounter >= stepNumber * 10000) {
-                            		long afterTs = System.nanoTime();
-                            		results.addResult(new Result(stepNumber * 10000, afterTs - beforeTs));
-                            		stepNumber ++;
-                            	}
                                 if (vertexIdKey != null)
                                     // Default to standard ID system (in case no mapped
                                     // ID is found later)
@@ -282,12 +276,6 @@ public class CustomGraphMLReader {
                         Vertex currentVertex = graph.getVertex(vertexId);
                         if (currentVertex == null) {
                             currentVertex = graph.addVertex(vertexId);
-                            verticesCounter ++;
-                            if (verticesCounter >= stepNumber * 10000) {
-                        		long afterTs = System.nanoTime();
-                        		results.addResult(new Result(stepNumber * 10000, afterTs - beforeTs));
-                        		stepNumber ++;
-                        	}
                         }
 
                         for (Entry<String, Object> prop : vertexProps.entrySet()) {
@@ -297,13 +285,27 @@ public class CustomGraphMLReader {
                         vertexId = null;
                         vertexProps = null;
                         inVertex = false;
+                        
+                        graphElementsCounter ++;
+                        if (graphElementsCounter >= stepNumber * 10000) {
+                    		long afterTs = System.nanoTime();
+                    		results.addResult(new Result(stepNumber * 10000, afterTs - beforeTs));
+                    		stepNumber ++;
+                    	}
+                        
                     } else if (elementName.equals(GraphMLTokens.EDGE)) {
                         Edge currentEdge = graph.addEdge(edgeId, edgeEndVertices[0], edgeEndVertices[1], edgeLabel);
-
+                        
                         for (Entry<String, Object> prop : edgeProps.entrySet()) {
                             currentEdge.setProperty(prop.getKey(), prop.getValue());
                         }
 
+                        graphElementsCounter ++;
+                        if (graphElementsCounter >= stepNumber * 10000) {
+                    		long afterTs = System.nanoTime();
+                    		results.addResult(new Result(stepNumber * 10000, afterTs - beforeTs));
+                    		stepNumber ++;
+                    	}
                         edgeId = null;
                         edgeLabel = null;
                         edgeEndVertices = null;
@@ -313,12 +315,8 @@ public class CustomGraphMLReader {
 
                 }
             }
-
             reader.close();
-
             graph.commit();
-            
-            System.out.println(verticesCounter);
         } catch (XMLStreamException xse) {
             throw new IOException(xse);
         }
