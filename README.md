@@ -13,12 +13,12 @@ Requirements
 
 Installation
 ------------
-### Cloning the project ###
+### Cloning GDB ###
 To clone GDB sources from Github, open a command prompt, go to the folder where
 you want to clone the project and type:
 *git clone https://github.com/Morro/GraphDBBenchmark.git*
 
-### Building the project ###
+### Building GDB ###
 To build GDB on a Linux host, run build.sh (resp. build.bat on a Windows host). This will create a GDB-Distrib directory containing executable files.
 Copy this directory to as many machines as required.
 
