@@ -83,17 +83,6 @@ public class GraphDescriptor implements Serializable {
 	
 	
 	public Object[] getVerticesRandomPropertyCouple() {
-//		ArrayList<GraphProperty> graphProperties = d.getVertexProperties();
-//		Object[] returnedPropertyCouples = new Object[graphProperties.size()*2];
-//		for (int i = 0; i < graphProperties.size(); i++) {
-//			GraphProperty p = graphProperties.get(i);
-//			Object fieldName = p.getFieldName();
-//			Object value = p.getFieldPossibleValues().get(r.nextInt(p.getFieldPossibleValues().size()));
-//			returnedPropertyCouples[i*2] = fieldName;
-//			returnedPropertyCouples[(i*2)+1] = value;
-//		}
-//		return returnedPropertyCouples;
-		
 		ArrayList<GraphProperty> graphProperties = d.getVertexProperties();
 		GraphProperty property = graphProperties.get(r.nextInt(graphProperties.size()));
 		Object fieldName = property.getFieldName();

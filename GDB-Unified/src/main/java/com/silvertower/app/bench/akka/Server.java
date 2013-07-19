@@ -29,7 +29,6 @@ import com.tinkerpop.blueprints.KeyIndexableGraph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
-import com.tinkerpop.blueprints.util.io.graphml.GraphMLReader;
 import com.tinkerpop.blueprints.util.wrappers.WrapperGraph;
 
 import akka.actor.ActorRef;
@@ -199,16 +198,6 @@ public class Server extends UntypedActor {
 		return new GraphDescriptor(vIds, eIds, i.getName(), d);
 	}
 	
-//	public void batchLoadingBenchmark(Dataset d, File datasetFile, DBInitializer initializer) {
-//		String suffix = d.getDatasetName() + "_batch";
-//		loadTimes = loadMultipleTimes(datasetFile, initializer, suffix, true);
-//	}
-//	
-//	public void normalLoadingBenchmark(Dataset d, File datasetFile, DBInitializer initializer) {
-//		String suffix = d.getDatasetName();
-//		loadTimes =  loadMultipleTimes(datasetFile, initializer, suffix, false);
-//	}
-	
 	public GraphDescriptor loadDB(File f, Dataset d, int bufferSizeWanted, DBInitializer initializer) {	
 		// Create a batch loading graph
 		Graph g = initializer.initialize(initializer.getWorkDirPath(), true);
@@ -220,7 +209,6 @@ public class Server extends UntypedActor {
 		// Measure the loading time
 		long before = System.nanoTime();
 		loadGraphML(g, bufferSizeWanted, initializeIS(f));		
-		System.out.println((System.nanoTime() - before)/1000000000.0);
 		
 		// Close the previously opened batch graph and create a new standard graph that contains
 		// exactly the same vertices.
@@ -284,37 +272,12 @@ public class Server extends UntypedActor {
 			if (needStringRep) ids.add(id.toString());
 			else ids.add(id);
 			count++;
-			if (count == 20000) ((TransactionalGraph) g).commit();
+			if (count == 50000) break; // We limit the scan to 50000 vertices
 		}
 		((TransactionalGraph) g).commit();
 		return ids;
 	}
 	
-//	private List<Double> loadMultipleTimes(File datasetFile, DBInitializer initializer, String suffix, boolean batchLoading) {
-//		long before = System.nanoTime();
-//		int counter = 0;
-//		List<Double> times = new ArrayList<Double>();
-//		while (System.nanoTime() - before < config.maxLoadExecutionTimeInNS) {
-//	    	Graph g = initializer.initialize(initializer.getTempDirPath() + suffix + counter, batchLoading);
-//	    	InputStream is = initializeIS(datasetFile);
-//	    	long beforeLoading = System.nanoTime();
-//			loadGraphML(g, is);
-//			long afterLoading = System.nanoTime();
-//			times.add((afterLoading - beforeLoading) / 1000000000.0);
-//			initializer.shutdownGraph(g);
-//			counter++;
-//		}
-//		
-//		deleteTempDBs(counter, initializer, suffix);
-//		return times;
-//	}
-//	
-//	public void deleteTempDBs(int counter, DBInitializer initializer, String suffix) {
-//    	for (int i = 0; i < counter; i++) {
-//    		Utilities.deleteDirectory(initializer.getTempDirPath() + suffix + i);
-//    	}
-//	}
-
 	public InputStream initializeIS(File datasetFile) {
 		InputStream is = null;
 		try {

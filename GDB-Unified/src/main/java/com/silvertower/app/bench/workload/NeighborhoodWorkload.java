@@ -34,10 +34,6 @@ public class NeighborhoodWorkload extends TraversalWorkload implements Serializa
 		evaluatePipe(p);
 	}
 
-	public boolean preciseBenchmarkingNeeded() {
-		return false;
-	}
-
 	public String generateRequest(Vertex from, Vertex to) {
 		Object fromId = from.getId();
 		String fromIdRepr = fromId instanceof String ? "\"" + fromId + "\"" : fromId.toString();

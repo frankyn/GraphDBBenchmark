@@ -54,14 +54,14 @@ public class Benchmark {
 	
 	private void addInitializers(List<DBInitializer> initializers) {
 		initializers.add(new Neo4jWrapper());
-		initializers.add(new DexWrapper());
-		initializers.add(new TitanWrapper("local"));
-		initializers.add(new TitanWrapper("cassandra"));
-		initializers.add(new OrientWrapper());
+//		initializers.add(new DexWrapper());
+//		initializers.add(new TitanWrapper("local"));
+//		initializers.add(new TitanWrapper("cassandra"));
+//		initializers.add(new OrientWrapper());
 	}
 	
 	private void benchmark() {
-		SocialNetworkDataset d = new SocialNetworkDataset(500000);
+		SocialNetworkDataset d = new SocialNetworkDataset(5000);
 		PointSeries bps0 = new PointSeries(String.format("Loading DB with a %s dataset", d.getDatasetType()), currentDBName, "Time");
 		bps0.addResult("Load", loadBench(d, 5000));
 		plotter.addXYPointsSeries(bps0);

@@ -19,7 +19,7 @@ public class GetEdgesByIDIntensiveWorkload extends IntensiveWorkload implements 
 	@Override
 	public String generateRequest(GraphDescriptor gDesc, int threadId,
 			int number) {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 }

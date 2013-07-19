@@ -31,6 +31,5 @@ public class GetVerticesByIDIntensiveWorkload extends IntensiveWorkload implemen
 	public void operation(GraphDescriptor gDesc, int threadId) {
 		Object id = gDesc.getRandomVertexId(threadId);
 		gDesc.getRexsterGraph().getVertex(id).getId();
-		
 	}
 }

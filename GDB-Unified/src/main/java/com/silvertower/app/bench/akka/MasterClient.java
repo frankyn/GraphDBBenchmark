@@ -276,9 +276,6 @@ public class MasterClient extends UntypedActor {
 		for (SlaveReference s: slaves) {
 			if (s.isWorking()) s.getSlaveRef().tell(new StartWork(), getSelf());
 		}
-		
-//		Iterator <Vertex> vs = currentGDesc.getGraph().getVertices().iterator();
-//		while (vs.hasNext()) {Vertex v = vs.next(); System.out.println(v.getProperty("Firstname")); System.out.println(v.getProperty("Lastname"));}
 	}
 	
 	private void resetState() {

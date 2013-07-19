@@ -4,13 +4,22 @@ import com.silvertower.app.bench.akka.GraphDescriptor;
 import com.tinkerpop.blueprints.Vertex;
 
 public class AddEdgesIntensiveWorkload extends IntensiveWorkload {
+	private static final long serialVersionUID = -4641257810241575418L;
 
 	public AddEdgesIntensiveWorkload() {
 		super("Add edges intensive");
 	}
 
 	public String generateRequest(GraphDescriptor gDesc, int threadId, int number) {
-		return null;
+		StringBuilder b = new StringBuilder();
+		for (int i = 0; i < number; i++) {
+			Object id1 = gDesc.getRandomVertexId(threadId);
+			String id1Repr = id1 instanceof String ? "\"" + id1 + "\"" : id1.toString();
+			Object id2 = gDesc.getRandomVertexId(threadId);
+			String id2Repr = id2 instanceof String ? "\"" + id2 + "\"" : id2.toString();
+			b.append(String.format("g.addEdge(g.v(%s), g.v(%s), \"test\", [:]);", id1Repr, id2Repr));
+		}
+		return b.toString();
 	}
 
 	public void operation(GraphDescriptor gDesc, int threadId) {
@@ -19,11 +28,9 @@ public class AddEdgesIntensiveWorkload extends IntensiveWorkload {
 		Vertex s = gDesc.getRexsterGraph().getVertex(ids);
 		Vertex d = gDesc.getRexsterGraph().getVertex(idd);
 		try {
-			System.out.println(s);
-			System.out.println(d);
 			gDesc.getRexsterGraph().addEdge("test", s, d, "test");
 		} catch (Exception e) {
-			System.out.println("zboub");
+			System.out.println("Error while executing " + this.toString());
 		}
 	}
 }

@@ -33,6 +33,8 @@ public class SlaveThread extends Thread {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		
+		// Rexpro communication mode
 		if (rexProNOpsAtATime > 0) {
 			int opRemaining = maxOpCount;
 			while (opRemaining > 0) {
@@ -41,13 +43,13 @@ public class SlaveThread extends Thread {
 				try {
 					((RexsterClient) gDesc.getRexsterClient()).execute(request);
 					opRemaining -= opToRealize;
-				} catch (RexProException e) {
-					System.err.println("Error while executing the request: " + request);
-				} catch (IOException e) {
+				} catch (RexProException | IOException e) {
 					System.err.println("Error while executing the request: " + request);
 				}
 			}
 		}
+		
+		// REST communication mode
 		else {
 			int opCount = 0;
 			while (opCount < maxOpCount) {
@@ -55,6 +57,7 @@ public class SlaveThread extends Thread {
 				opCount ++;
 			}
 		}
+		
 		stopLatch.countDown();
 	}
 }

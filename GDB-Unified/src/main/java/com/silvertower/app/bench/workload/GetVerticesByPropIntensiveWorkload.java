@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 import com.silvertower.app.bench.akka.GraphDescriptor;
-import com.tinkerpop.blueprints.GraphQuery;
 import com.tinkerpop.blueprints.Vertex;
 
 
@@ -16,32 +15,12 @@ public class GetVerticesByPropIntensiveWorkload extends IntensiveWorkload implem
 	}
 	
 	public String generateRequest(GraphDescriptor gDesc, int threadId, int number) {
-//		StringBuilder b = new StringBuilder();
-//		for (int i = 0; i < number; i++) {
-//			Object[] possibleProp = gDesc.getVerticesRandomPropertyCouples();
-//			if (i == 0) b.append("g.V.or(_()");
-//			else {
-//				b.deleteCharAt(b.length()-1);
-//				b.append(",_()");
-//			}
-//			for (int j = 0; j < possibleProp.length; j+=2) {
-//				String keyRepr = "\"" + (String)possibleProp[j] + "\"";
-//				String valueRepr = "\"" + (String)possibleProp[j+1] + "\"";
-//				b.append(String.format(".has(%s,%s)", keyRepr, valueRepr));
-//			}
-//			b.append(")");
-//		}
-//		return b.toString();
 		StringBuilder b = new StringBuilder();
 		for (int i = 0; i < number; i++) {
 			Object [] property = gDesc.getVerticesRandomPropertyCouple();
 			String keyRepr = "\"" + (String)property[0] + "\"";
 			String valueRepr = "\"" + (String)property[1] + "\"";
-			if (i == 0) b.append(String.format("g.V(%s,%s)", keyRepr, valueRepr));
-			else {
-				//b.deleteCharAt(b.length()-1);
-				b.append(String.format(";g.V(%s,%s)", keyRepr, valueRepr));
-			}
+			b.append(String.format("g.V(%s,%s);", keyRepr, valueRepr));
 		}
 		return b.toString();
 	}
