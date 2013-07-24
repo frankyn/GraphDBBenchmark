@@ -4,9 +4,10 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 import com.silvertower.app.bench.akka.GraphDescriptor;
+import com.silvertower.app.bench.annotations.Custom;
 import com.tinkerpop.blueprints.Vertex;
 
-
+@Custom
 public class GetVerticesByPropIntensiveWorkload extends IntensiveWorkload implements Serializable {
 	private static final long serialVersionUID = -6914516778970375060L;
 

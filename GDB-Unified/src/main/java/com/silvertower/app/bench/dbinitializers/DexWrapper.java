@@ -1,12 +1,14 @@
 package com.silvertower.app.bench.dbinitializers;
 
 
+import com.silvertower.app.bench.annotations.Custom;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.impls.dex.DexGraph;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
 
+@Custom
 public class DexWrapper extends DBInitializer {
 
 	private static final long serialVersionUID = 4694503791969544756L;

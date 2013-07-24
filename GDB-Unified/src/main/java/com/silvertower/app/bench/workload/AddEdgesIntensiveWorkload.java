@@ -1,8 +1,10 @@
 package com.silvertower.app.bench.workload;
 
 import com.silvertower.app.bench.akka.GraphDescriptor;
+import com.silvertower.app.bench.annotations.Custom;
 import com.tinkerpop.blueprints.Vertex;
 
+@Custom
 public class AddEdgesIntensiveWorkload extends IntensiveWorkload {
 	private static final long serialVersionUID = -4641257810241575418L;
 

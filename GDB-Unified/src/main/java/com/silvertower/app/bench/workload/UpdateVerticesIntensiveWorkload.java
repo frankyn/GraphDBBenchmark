@@ -3,8 +3,10 @@ package com.silvertower.app.bench.workload;
 import java.io.Serializable;
 
 import com.silvertower.app.bench.akka.GraphDescriptor;
+import com.silvertower.app.bench.annotations.Custom;
 import com.tinkerpop.blueprints.Vertex;
 
+@Custom
 public class UpdateVerticesIntensiveWorkload extends IntensiveWorkload implements Serializable {
 	private static final long serialVersionUID = -8421933447224966555L;
 

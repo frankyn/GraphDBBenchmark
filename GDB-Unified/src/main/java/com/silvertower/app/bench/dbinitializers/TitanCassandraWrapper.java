@@ -6,19 +6,13 @@ import org.apache.commons.configuration.Configuration;
 import com.silvertower.app.bench.annotations.Custom;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.thinkaurelius.titan.core.TitanFactory;
-import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Graph;
 
 @Custom
-public class TitanWrapper extends DBInitializer {
-	
-	private static final long serialVersionUID = 5735385409119575934L;
-	private String backend;
-	
-	public TitanWrapper(String backend) {
-		this.backend = backend;
-	}
-	
+public class TitanCassandraWrapper extends DBInitializer {
+
+	private static final long serialVersionUID = -4666166187789412864L;
+
 	public Graph initialize(String storageDir, boolean batchLoading) {
 		createDirectory(storageDir);
 		
@@ -27,28 +21,22 @@ public class TitanWrapper extends DBInitializer {
 			config.setProperty("storage.batch-loading", "true");
 			config.setProperty("ids.block-size", 100000); 
 		}
-		if (backend.equals("local")) {
-			config.setProperty("storage.directory", storageDir);
-			config.setProperty("storage.backend", backend);
-		}
 		
-		else if (backend.equals("cassandra")) {
-			config.setProperty("storage.backend", "embeddedcassandra");
-			config.setProperty("storage.cassandra-config-dir", "cassandra.yaml");
-		}
+		config.setProperty("storage.backend", "embeddedcassandra");
+		config.setProperty("storage.cassandra-config-dir", "cassandra.yaml");
 		
 		return TitanFactory.open(config);	
 	}
 
 	public String getName() {
-		return "titan"+backend;
+		return "Titancassandra";
 	}
 
 	public String getTempDirPath() {
-		return ServerProperties.dbDirTitanTemp + "/titan" + backend + "/";
+		return ServerProperties.dbDirTitanTemp + "/titancassandra" + "/";
 	}
 
 	public String getWorkDirPath() {
-		return ServerProperties.dbDirTitanWork + "/titan" + backend + "/";
+		return ServerProperties.dbDirTitanWork + "/titancassandra" + "/";
 	}
 }

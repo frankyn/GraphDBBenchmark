@@ -2,12 +2,13 @@ package com.silvertower.app.bench.workload;
 
 import java.io.Serializable;
 
+import com.silvertower.app.bench.annotations.Custom;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
 import com.tinkerpop.pipes.PipeFunction;
 import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 
-
+@Custom
 public class NeighborhoodWorkload extends TraversalWorkload implements Serializable {
 	private static final long serialVersionUID = -3153736507890597883L;
 	private int hopsLimit;
@@ -15,11 +16,6 @@ public class NeighborhoodWorkload extends TraversalWorkload implements Serializa
 	public NeighborhoodWorkload(int hopsLimit) {
 		super(String.format("Neighborhood %d", hopsLimit));
 		this.hopsLimit = hopsLimit;
-	}
-	
-	public NeighborhoodWorkload() {
-		super(String.format("Neighborhood %d", 7));
-		this.hopsLimit = 7;
 	}
 	
 	public void operation(Vertex from, Vertex to) {

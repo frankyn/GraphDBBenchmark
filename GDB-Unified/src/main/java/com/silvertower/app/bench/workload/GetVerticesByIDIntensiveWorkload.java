@@ -4,8 +4,9 @@ package com.silvertower.app.bench.workload;
 import java.io.Serializable;
 
 import com.silvertower.app.bench.akka.GraphDescriptor;
+import com.silvertower.app.bench.annotations.Custom;
 
-
+@Custom
 public class GetVerticesByIDIntensiveWorkload extends IntensiveWorkload implements Serializable {
 	private static final long serialVersionUID = -8388681706759862131L;
 
