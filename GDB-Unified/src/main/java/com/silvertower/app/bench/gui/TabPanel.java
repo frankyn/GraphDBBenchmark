@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -20,7 +21,9 @@ import javax.swing.ListSelectionModel;
 public abstract class TabPanel extends JPanel {
 	protected final DefaultListModel elementsModel;
 	protected List<Object> chosenElementsObjects;
-	public TabPanel() {
+	protected JFrame parent;
+	public TabPanel(JFrame parent) {
+		this.parent = parent;
 		this.chosenElementsObjects = new ArrayList<Object>();
 		this.setLayout(new GridBagLayout());
 		

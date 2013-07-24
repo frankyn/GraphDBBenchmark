@@ -55,9 +55,9 @@ public class MainGui {
 		frame.getContentPane().setLayout(gridBagLayout);
 		
 		JTabbedPane content = new JTabbedPane();
-		JPanel dbsPanel = new DBInitializersTabPanel();
+		JPanel dbsPanel = new DBInitializersTabPanel(frame);
 		content.addTab("Databases", dbsPanel);
-		JPanel workloadsPanel = new WorkloadsTabPanel();
+		JPanel workloadsPanel = new WorkloadsTabPanel(frame);
 		content.addTab("Workloads", workloadsPanel);
 		
 		GridBagConstraints c = new GridBagConstraints();
@@ -87,7 +87,5 @@ public class MainGui {
 		JProgressBar progressBar = new JProgressBar();
 		progressBar.setPreferredSize(new Dimension (300, 15));
 		startAndProgressPanel.add(progressBar, c2);
-		
-		frame.pack();
 	}
 }
