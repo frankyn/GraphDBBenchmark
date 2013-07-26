@@ -9,7 +9,6 @@ import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Graph;
 
-@Custom
 public class TitanWrapper extends DBInitializer {
 	
 	private static final long serialVersionUID = 5735385409119575934L;

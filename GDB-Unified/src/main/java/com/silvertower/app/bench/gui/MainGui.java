@@ -47,6 +47,7 @@ public class MainGui {
 		frame.setBounds(100, 100, 600, 375);
 		frame.setMinimumSize(new Dimension(450, 300));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLocationRelativeTo(null);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0};
 		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0};

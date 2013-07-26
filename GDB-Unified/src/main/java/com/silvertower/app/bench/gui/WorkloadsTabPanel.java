@@ -37,11 +37,25 @@ public class WorkloadsTabPanel extends TabPanel {
 							expectedTypes.add(Integer.class);
 							expectedTypes.add(Integer.class);
 							expectedTypes.add(Boolean.class);
-							new AdditionalInformationJDialog(parent, labels, expectedTypes).setVisible(true);
+							AdditionalInformationJDialog infosDialog = new AdditionalInformationJDialog(parent, labels, expectedTypes);
+							Object[] params = infosDialog.showDialog();
+							
+							// Do nothing if the dialog was canceled
+							if (params == null) return;
 							
 							IntensiveWorkload workload = (IntensiveWorkload) c.getConstructors()[0].newInstance();
+							StringBuilder listElementString = new StringBuilder();
+							listElementString.append(workload + "(");
+							for (int i = 0; i < params.length; i++) {
+								if (i != params.length - 1) {
+									listElementString.append(params[i] + ", ");
+								}
+								else {
+									listElementString.append(params[i] + ")");
+								}
+							}
 							chosenElementsObjects.add(workload);
-							
+							elementsModel.addElement(listElementString.toString());
 						}
 						
 						else {
@@ -49,13 +63,20 @@ public class WorkloadsTabPanel extends TabPanel {
 							labels.add("Number of hops");
 							List<Class> expectedTypes = new ArrayList<Class>();
 							expectedTypes.add(Integer.class);
-							new AdditionalInformationJDialog(parent, labels, expectedTypes).setVisible(true);
+							AdditionalInformationJDialog infosDialog = new AdditionalInformationJDialog(parent, labels, expectedTypes);
+							Object[] params = infosDialog.showDialog();
 							
-							TraversalWorkload workload = (TraversalWorkload) c.getConstructors()[0].newInstance();
+							// Do nothing if the dialog was canceled
+							if (params == null) return;
+							
+							// There is only one element in params, the hops limit
+							TraversalWorkload workload = (TraversalWorkload) c.getConstructors()[0].newInstance(params[0]);
+							
 							chosenElementsObjects.add(workload);
+							elementsModel.addElement(workload);
 						}
 						
-						elementsModel.addElement(c.getSimpleName());
+						
 					} catch (InstantiationException | IllegalAccessException
 							| IllegalArgumentException
 							| InvocationTargetException | SecurityException e1) {

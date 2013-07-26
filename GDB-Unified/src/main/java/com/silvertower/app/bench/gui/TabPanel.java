@@ -7,7 +7,6 @@ import java.awt.GridBagLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -18,8 +17,9 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
 
+@SuppressWarnings("serial")
 public abstract class TabPanel extends JPanel {
-	protected final DefaultListModel elementsModel;
+	protected final DefaultListModel<String> elementsModel;
 	protected List<Object> chosenElementsObjects;
 	protected JFrame parent;
 	public TabPanel(JFrame parent) {
@@ -42,14 +42,15 @@ public abstract class TabPanel extends JPanel {
 		this.add(buttonsPanel, c);
 		
 		this.elementsModel = new DefaultListModel();
-		final JList pList = new JList(elementsModel);
+		final JList<String> pList = new JList<String>(elementsModel);
 		pList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		pList.setLayoutOrientation(JList.VERTICAL);
 		pList.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-					elementsModel.remove(pList.getSelectedIndex());
-					chosenElementsObjects.remove(pList.getSelectedIndex());
+					int indexRemoved = pList.getSelectedIndex();
+					elementsModel.remove(indexRemoved);
+					chosenElementsObjects.remove(indexRemoved);
 				}
 			}
 		});
