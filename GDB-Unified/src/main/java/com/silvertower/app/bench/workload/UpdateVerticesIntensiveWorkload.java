@@ -10,8 +10,8 @@ import com.tinkerpop.blueprints.Vertex;
 public class UpdateVerticesIntensiveWorkload extends IntensiveWorkload implements Serializable {
 	private static final long serialVersionUID = -8421933447224966555L;
 
-	public UpdateVerticesIntensiveWorkload() {
-		super("Update vertices intensive");
+	public UpdateVerticesIntensiveWorkload(int nOps, int nClients, boolean rexPro) {
+		super("Update vertices intensive", nOps, nClients, rexPro);
 	}
 	
 	public String generateRequest(GraphDescriptor gDesc, int threadId, int number) {

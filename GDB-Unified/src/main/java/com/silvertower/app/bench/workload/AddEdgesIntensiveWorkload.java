@@ -8,8 +8,8 @@ import com.tinkerpop.blueprints.Vertex;
 public class AddEdgesIntensiveWorkload extends IntensiveWorkload {
 	private static final long serialVersionUID = -4641257810241575418L;
 
-	public AddEdgesIntensiveWorkload() {
-		super("Add edges intensive");
+	public AddEdgesIntensiveWorkload(int nOps, int nClients, boolean rexPro) {
+		super("Add edges intensive", nOps, nClients, rexPro);
 	}
 
 	public String generateRequest(GraphDescriptor gDesc, int threadId, int number) {

@@ -24,8 +24,8 @@ public class OrientWrapper extends DBInitializer {
 		}
 	}
 
-	public String getName() {
-		return "orient";
+	public String toString() {
+		return "Orient";
 	}
 
 	public String getTempDirPath() {

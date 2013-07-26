@@ -3,6 +3,8 @@ package com.silvertower.app.bench.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -12,7 +14,7 @@ import org.reflections.Reflections;
 
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 
-public class DBInitializersTabPanel extends TabPanel {
+public class DBInitializersTabPanel extends TabPanel <DBInitializer>{
 	public DBInitializersTabPanel(JFrame parent) {
 		super(parent);
 	}
@@ -23,10 +25,19 @@ public class DBInitializersTabPanel extends TabPanel {
 			JButton b = new JButton(c.getSimpleName());
 			b.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
+					List<String> labels = new ArrayList<String>();
+					labels.add("Buffer size");
+					List<Class> expectedTypes = new ArrayList<Class>();
+					expectedTypes.add(Integer.class);
+					AdditionalInformationJDialog infosDialog = new AdditionalInformationJDialog(parent, labels, expectedTypes);
+					Object[] params = infosDialog.showDialog();
+					
+					// Do nothing if the dialog was canceled
+					if (params == null) return;
+					
 					try {
 						DBInitializer dbInit = (DBInitializer) c.getConstructors()[0].newInstance();
-						chosenElementsObjects.add(dbInit);
-						elementsModel.addElement(c.getSimpleName());
+						elementsModel.addElement(dbInit);
 					} catch (InstantiationException | IllegalAccessException
 							| IllegalArgumentException
 							| InvocationTargetException | SecurityException e1) {

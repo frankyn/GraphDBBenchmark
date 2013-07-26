@@ -10,8 +10,8 @@ import com.silvertower.app.bench.annotations.Custom;
 public class GetVerticesByIDIntensiveWorkload extends IntensiveWorkload implements Serializable {
 	private static final long serialVersionUID = -8388681706759862131L;
 
-	public GetVerticesByIDIntensiveWorkload() {
-		super("Get vertices by ID intensive");
+	public GetVerticesByIDIntensiveWorkload(int nOps, int nClients, boolean rexPro) {
+		super("Get vertices by ID intensive", nOps, nClients, rexPro);
 	}
 
 	public String generateRequest(GraphDescriptor gDesc, int threadId, int number) {

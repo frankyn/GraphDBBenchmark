@@ -18,8 +18,8 @@ public class Neo4jWrapper extends DBInitializer {
 		else return new Neo4jGraph(storageDir);
 	}
 
-	public String getName() {
-		return "neo4j";
+	public String toString() {
+		return "Neo4j";
 	}
 
 	public String getTempDirPath() {

@@ -14,8 +14,7 @@ public class ShortestPathWorkload extends TraversalWorkload implements Serializa
 	private int hopLimit;
 	
 	public ShortestPathWorkload(int hopLimit) {
-		super(String.format("Dijkstra %d hop limit", hopLimit));
-		this.hopLimit = hopLimit;
+		super("Dijkstra workload", hopLimit);
 	}
 	
 	public String generateRequest(Vertex from, Vertex to) {

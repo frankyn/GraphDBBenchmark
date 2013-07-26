@@ -19,7 +19,7 @@ public class SlaveClient extends UntypedActor {
 	private List<SlaveThread> clientThreads;
 	private CountDownLatch startLatch;
 	private CountDownLatch stopLatch;
-	private IntensiveWork currentWork;
+	private IntensiveWorkload currentWorkload;
 	private ActorRef master;
 	private BenchmarkConfiguration config;
 	public SlaveClient() {
@@ -53,12 +53,12 @@ public class SlaveClient extends UntypedActor {
 			master.tell(new Ack());
 		}
 		
-		else if (message instanceof IntensiveWork) {
+		else if (message instanceof IntensiveWorkload) {
 			if (state != State.READY_FOR_WORK) {
 				forwardError("Error: client is not ready yet!");
 				return;
 			}
-			currentWork = (IntensiveWork) message;
+			currentWorkload = (IntensiveWorkload) message;
 			createAndStartClientThreads();
 			state = State.WORK_RECEIVED;
 			master.tell(new Ack());
@@ -84,16 +84,15 @@ public class SlaveClient extends UntypedActor {
 	}
 	
 	private void createAndStartClientThreads() {
-		int nbrCoresWanted = currentWork.getHowManyClients();
-		int nbrOpWanted = currentWork.getHowManyOp();
-		IntensiveWorkload w = currentWork.getWorkload();
+		int nbrCoresWanted = currentWorkload.getnClients();
+		int nbrOpWanted = currentWorkload.getnOps();
 		startLatch = new CountDownLatch(1);
 		stopLatch = new CountDownLatch(nbrCoresWanted);
 		clientThreads = new ArrayList<SlaveThread>();
 		int nbrOpPerThread = nbrOpWanted / nbrCoresWanted;
 		for (int i = 0; i < nbrCoresWanted; i++) {
-			SlaveThread t = new SlaveThread(currentGDesc, id + i, w, nbrOpPerThread, startLatch, 
-					stopLatch, currentWork.isBatchMode() ? config.maxOpsAtATimeRexPro : 0);
+			SlaveThread t = new SlaveThread(currentGDesc, id + i, currentWorkload, nbrOpPerThread, startLatch, 
+					stopLatch, currentWorkload.isRexPro() ? config.maxOpsAtATimeRexPro : 0);
 			clientThreads.add(t);
 			t.start();
 		}

@@ -202,15 +202,17 @@ public class Statistics {
 	}
 	
 	public static StatisticsReport addStatEntry(AggregateResult r, String dbName, 
-			IntensiveWorkload workload, int nbrOps, int nbrClients) {
+			IntensiveWorkload workload) {
 		double mean = computeMean(r);
 		double median = computeMedian(r);
 		double stdDeviation = computeStdDeviation(r);
 		double min = computeMin(r);
 		double max = computeMax(r);
+		int nOps = workload.getnOps();
+		int nClients = workload.getnClients();
 		StatisticsReport report = new StatisticsReport(mean, median, stdDeviation, min, max);
 		StatisticsEntry<IntensiveWorkload> statEntry = new StatisticsEntry<IntensiveWorkload>(r, 
-				dbName, workload, nbrOps, nbrClients, report);
+				dbName, workload, nOps, nClients, report);
 		stats.add(statEntry);
 		return report;
 	}

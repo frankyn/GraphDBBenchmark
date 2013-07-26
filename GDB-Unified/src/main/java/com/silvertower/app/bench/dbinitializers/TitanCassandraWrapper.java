@@ -28,7 +28,7 @@ public class TitanCassandraWrapper extends DBInitializer {
 		return TitanFactory.open(config);	
 	}
 
-	public String getName() {
+	public String toString() {
 		return "Titancassandra";
 	}
 

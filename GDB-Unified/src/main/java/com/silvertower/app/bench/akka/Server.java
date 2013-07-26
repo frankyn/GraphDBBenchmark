@@ -65,7 +65,7 @@ public class Server extends UntypedActor {
 			Load loadMessage = (Load) message;
 			Dataset d = loadMessage.getDataset();
 			int bufferSizeWanted = loadMessage.getBufferSizeWanted();
-			String dbName = currentInitializer.getName();
+			String dbName = currentInitializer.toString();
 			System.out.println(String.format("Received dataset: %s", d.getDatasetName()));
 			System.out.println(String.format("Generating dataset: %s", d.getDatasetName()));
 			File f = d.generate();
@@ -103,7 +103,7 @@ public class Server extends UntypedActor {
 	}
 	
 	private void startRexsterServer() {
-		String command = "--start -c " + currentInitializer.getName() + ".xml";
+		String command = "--start -c " + currentInitializer.toString() + ".xml";
 		String endIndicator = "Starting listener thread for shutdown requests";
 	    File f = new File(ServerProperties.rexsterDirPath + "..//rexsteroutput.txt");
 	    if (f.exists()) f.delete();
@@ -195,7 +195,7 @@ public class Server extends UntypedActor {
 	
 	private GraphDescriptor initializeGraphDescriptor(Graph g, List<Object> vIds, List<Object> eIds, 
 			Dataset d, DBInitializer i) {
-		return new GraphDescriptor(vIds, eIds, i.getName(), d);
+		return new GraphDescriptor(vIds, eIds, i.toString(), d);
 	}
 	
 	public GraphDescriptor loadDB(File f, Dataset d, int bufferSizeWanted, DBInitializer initializer) {	

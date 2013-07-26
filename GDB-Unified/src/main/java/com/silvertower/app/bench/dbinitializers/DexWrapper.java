@@ -26,8 +26,8 @@ public class DexWrapper extends DBInitializer {
 		}
 	}
 
-	public String getName() {
-		return "dex";
+	public String toString() {
+		return "Dex";
 	}
 
 	public String getTempDirPath() {

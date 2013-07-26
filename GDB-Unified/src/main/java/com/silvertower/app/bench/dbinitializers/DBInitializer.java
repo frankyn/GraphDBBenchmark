@@ -22,7 +22,7 @@ public abstract class DBInitializer implements Serializable {
 	 * 
 	 * @return the name of the type of the graph implementation this initializer initializes.
 	 */
-	public abstract String getName();
+	public abstract String toString();
 	
 	/**
 	 * 

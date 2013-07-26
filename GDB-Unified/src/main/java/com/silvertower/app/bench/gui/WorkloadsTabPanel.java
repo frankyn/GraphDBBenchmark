@@ -14,8 +14,9 @@ import org.reflections.Reflections;
 
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
+import com.silvertower.app.bench.workload.Workload;
 
-public class WorkloadsTabPanel extends TabPanel {
+public class WorkloadsTabPanel extends TabPanel <Workload>{
 	
 	public WorkloadsTabPanel(JFrame parent) {
 		super(parent);
@@ -43,19 +44,8 @@ public class WorkloadsTabPanel extends TabPanel {
 							// Do nothing if the dialog was canceled
 							if (params == null) return;
 							
-							IntensiveWorkload workload = (IntensiveWorkload) c.getConstructors()[0].newInstance();
-							StringBuilder listElementString = new StringBuilder();
-							listElementString.append(workload + "(");
-							for (int i = 0; i < params.length; i++) {
-								if (i != params.length - 1) {
-									listElementString.append(params[i] + ", ");
-								}
-								else {
-									listElementString.append(params[i] + ")");
-								}
-							}
-							chosenElementsObjects.add(workload);
-							elementsModel.addElement(listElementString.toString());
+							IntensiveWorkload workload = (IntensiveWorkload) c.getConstructors()[0].newInstance(params);
+							elementsModel.addElement(workload);
 						}
 						
 						else {
@@ -71,8 +61,6 @@ public class WorkloadsTabPanel extends TabPanel {
 							
 							// There is only one element in params, the hops limit
 							TraversalWorkload workload = (TraversalWorkload) c.getConstructors()[0].newInstance(params[0]);
-							
-							chosenElementsObjects.add(workload);
 							elementsModel.addElement(workload);
 						}
 						

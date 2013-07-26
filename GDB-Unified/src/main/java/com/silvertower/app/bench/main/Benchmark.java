@@ -61,7 +61,7 @@ public class Benchmark {
 	}
 	
 	private void benchmark() {
-		SocialNetworkDataset d = new SocialNetworkDataset(5000);
+		SocialNetworkDataset d = new SocialNetworkDataset(10000);
 		PointSeries bps0 = new PointSeries(String.format("Loading DB with a %s dataset", d.getDatasetType()), currentDBName, "Time");
 		bps0.addResult("Load", loadBench(d, 5000));
 		plotter.addXYPointsSeries(bps0);
@@ -81,22 +81,22 @@ public class Benchmark {
 //		plotter.addBPSeries(bps1);
 //		
 //		IntensiveWorkload w1 = new GetVerticesByIDIntensiveWorkload();
-//		
+		
 //		PointSeries bps2 = new PointSeries("Read ID Intensive 1 client: batchMode", currentDBName, "Time");
-//		bps2.addResult("100 reads", 100, workBench(w1, 100, 1, true));
+//		bps2.addResult("100 reads", 100, workBench(new GetVerticesByIDIntensiveWorkload(100, 1, true)));
 //		bps2.addResult("200 reads", 200, workBench(w1, 200, 1, true));
 //		bps2.addResult("300 reads", 300, workBench(w1, 300, 1, true));
 //		bps2.addResult("400 reads", 400, workBench(w1, 400, 1, true));
 //		plotter.addBPSeries(bps2);
 //		plotter.addXYPointsSeries(bps2);
 //		
-//		PointSeries bps21 = new PointSeries("Read ID Intensive 1 client", currentDBName, "Time");
-//		bps21.addResult("100 reads", 100, workBench(w1, 100, 1, false));
-//		bps21.addResult("200 reads", 200, workBench(w1, 200, 1, false));
-//		bps21.addResult("300 reads", 300, workBench(w1, 300, 1, false));
-//		bps21.addResult("400 reads", 400, workBench(w1, 400, 1, false));
-//		plotter.addBPSeries(bps21);
-//		plotter.addXYPointsSeries(bps21);
+		PointSeries bps21 = new PointSeries("Read ID Intensive 1 client", currentDBName, "Time");
+		bps21.addResult("100 reads", 100, workBench(new GetVerticesByIDIntensiveWorkload(100, 1, false)));
+		bps21.addResult("200 reads", 200, workBench(new GetVerticesByIDIntensiveWorkload(200, 2, false)));
+		bps21.addResult("300 reads", 300, workBench(new GetVerticesByIDIntensiveWorkload(300, 3, false)));
+		bps21.addResult("400 reads", 400, workBench(new GetVerticesByIDIntensiveWorkload(400, 4, false)));
+		plotter.addBPSeries(bps21);
+		plotter.addXYPointsSeries(bps21);
 //		
 //		PointSeries bps3 = new PointSeries("Read by ID Intensive 200 ops: rexpro", currentDBName, "Clients", "Time");
 //		bps3.addResult("1 client", 1, workBench(w1, 200, 1, true));
@@ -205,7 +205,7 @@ public class Benchmark {
 		return b.startWorkBench(w);
 	}
 	
-	private AggregateResult workBench(IntensiveWorkload w, int nOps, int nClients, boolean batchMode) {
-		return b.startWorkBench(w, nOps, nClients, batchMode);
+	private AggregateResult workBench(IntensiveWorkload w) {
+		return b.startWorkBench(w);
 	}
 }

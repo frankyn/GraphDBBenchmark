@@ -17,14 +17,12 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
 
-@SuppressWarnings("serial")
-public abstract class TabPanel extends JPanel {
-	protected final DefaultListModel<String> elementsModel;
-	protected List<Object> chosenElementsObjects;
+public abstract class TabPanel <T> extends JPanel {
+	protected final DefaultListModel<T> elementsModel;
 	protected JFrame parent;
 	public TabPanel(JFrame parent) {
 		this.parent = parent;
-		this.chosenElementsObjects = new ArrayList<Object>();
+		this.elementsModel = new DefaultListModel<T>();
 		this.setLayout(new GridBagLayout());
 		
 		JPanel buttonsPanel = new JPanel();
@@ -41,8 +39,7 @@ public abstract class TabPanel extends JPanel {
 		
 		this.add(buttonsPanel, c);
 		
-		this.elementsModel = new DefaultListModel();
-		final JList<String> pList = new JList<String>(elementsModel);
+		final JList<T> pList = new JList<T>(elementsModel);
 		pList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		pList.setLayoutOrientation(JList.VERTICAL);
 		pList.addKeyListener(new KeyAdapter() {
@@ -50,7 +47,6 @@ public abstract class TabPanel extends JPanel {
 				if (e.getKeyCode() == KeyEvent.VK_DELETE) {
 					int indexRemoved = pList.getSelectedIndex();
 					elementsModel.remove(indexRemoved);
-					chosenElementsObjects.remove(indexRemoved);
 				}
 			}
 		});
@@ -64,6 +60,14 @@ public abstract class TabPanel extends JPanel {
 		c1.weightx = 0.6;
 		c1.weighty = 1;
 		this.add(listScrollPane, c1);
+	}
+	
+	public List<T> getCollectedElements() {
+		List<T> collectedElements = new ArrayList<T>();
+		for (int i = 0; i < elementsModel.size(); i++) {
+			collectedElements.add(elementsModel.get(i));
+		}
+		return collectedElements;
 	}
 	
 	protected abstract void addButtons(JPanel buttonsPanel);

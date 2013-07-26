@@ -9,12 +9,18 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+
 import javax.swing.JButton;
 import javax.swing.JProgressBar;
 
 public class MainGui {
 
 	private JFrame frame;
+	private List<Object> dbInitializers;
+	private List<Object> workloads;
 
 	/**
 	 * Launch the application.
@@ -79,6 +85,11 @@ public class MainGui {
 		frame.getContentPane().add(startAndProgressPanel, c1);
 		
 		JButton startButton = new JButton("Start");
+		startButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new BenchmarkThread();
+			}
+		});
 		startButton.setPreferredSize(new Dimension (80, 25));
 		startAndProgressPanel.add(startButton);
 		

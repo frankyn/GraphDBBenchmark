@@ -14,8 +14,7 @@ public class NeighborhoodWorkload extends TraversalWorkload implements Serializa
 	private int hopsLimit;
 	
 	public NeighborhoodWorkload(int hopsLimit) {
-		super(String.format("Neighborhood %d", hopsLimit));
-		this.hopsLimit = hopsLimit;
+		super("Neighborhood workload", hopsLimit);
 	}
 	
 	public void operation(Vertex from, Vertex to) {

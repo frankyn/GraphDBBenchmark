@@ -11,8 +11,8 @@ import com.tinkerpop.blueprints.Vertex;
 public class GetVerticesByPropIntensiveWorkload extends IntensiveWorkload implements Serializable {
 	private static final long serialVersionUID = -6914516778970375060L;
 
-	public GetVerticesByPropIntensiveWorkload() {
-		super("Get vertices by properties intensive");
+	public GetVerticesByPropIntensiveWorkload(int nOps, int nClients, boolean rexPro) {
+		super("Get vertices by properties intensive", nOps, nClients, rexPro);
 	}
 	
 	public String generateRequest(GraphDescriptor gDesc, int threadId, int number) {

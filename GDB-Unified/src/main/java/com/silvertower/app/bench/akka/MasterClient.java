@@ -80,7 +80,7 @@ public class MasterClient extends UntypedActor {
 			getSender().tell(new Ack(), getSelf());
 		}
 		
-		else if (message instanceof IntensiveWork) {
+		else if (message instanceof IntensiveWorkload) {
 			if (state != State.READY_FOR_WORK) {
 				forwardError("Error: the master client is not ready for work!");
 				return;
@@ -88,19 +88,15 @@ public class MasterClient extends UntypedActor {
 			
 			resultsListener = getSender();
 			
-			IntensiveWork work = (IntensiveWork) message;
-			int nCores = work.getHowManyClients();
-			int nOps = work.getHowManyOp();
-			IntensiveWorkload workload = work.getWorkload();
-			boolean isBatchMode = work.isBatchMode();
-			
+			IntensiveWorkload w = (IntensiveWorkload) message;
+			int nCores = w.getnClients();
 			if (nCores > coresAvailable) {
 				forwardError("Error: not enough cores/slaves available!");
 				return;
 			}
 			
 			state = State.WORKING;
-			assignWork(nCores, nOps, workload,isBatchMode);
+			assignWork(w);
 			intensiveWorkloadStartTs = System.nanoTime();
 			startWork();
 			System.out.println("Starting intensive work");
@@ -245,8 +241,10 @@ public class MasterClient extends UntypedActor {
 		}
 	}
 
-	private void assignWork(int nCores, int nOps, IntensiveWorkload workload, boolean isBatchMode) {
+	private void assignWork(IntensiveWorkload workload) {
 		int nbrSlavesNeeded = 0;
+		int nOps = workload.getnOps();
+		int nCores = workload.getnClients();
 		int remainingCoresNeeded = nCores;
 		for (SlaveReference s: slaves) {
 			if (remainingCoresNeeded <= 0) break;
@@ -265,8 +263,8 @@ public class MasterClient extends UntypedActor {
 			SlaveReference slave = slaves.get(i);
 			int coresAvailable = slave.getNbCoresAvailable();
 			int coresUsed = coresAvailable > nCores ? nCores : coresAvailable;
-			IntensiveWork work = new IntensiveWork(workload, nbrOpPerSlave, coresUsed, isBatchMode);
-			askAndWait(slave.getSlaveRef(), work);
+			IntensiveWorkload slaveWorkload = workload.reduceWorkload(nbrOpPerSlave, coresUsed);
+			askAndWait(slave.getSlaveRef(), slaveWorkload);
 			slave.setWorking();
 			nCores -= coresUsed;
 		}

@@ -44,8 +44,8 @@ public class BenchRunner extends UntypedActor {
 	
 	public void assignInitializer(DBInitializer i) {
 		server.tell(i, getSelf());
-		log.logDB(i.getName());
-		currentDBName = i.getName();
+		log.logDB(i.toString());
+		currentDBName = i.toString();
 	}
 	
 	public LoadResults startLoadBench(Dataset d, int bufferSize) {
@@ -67,33 +67,30 @@ public class BenchRunner extends UntypedActor {
 		return r;
 	}
 	
-	public AggregateResult startWorkBench(IntensiveWorkload w, int nOps, int nClients, boolean batchMode) {
-		IntensiveWork work = new IntensiveWork(w, nOps, nClients, batchMode);
+	public AggregateResult startWorkBench(IntensiveWorkload w) {
 		AggregateResult aggregate = new AggregateResult();
 		long timeBefore = System.nanoTime();
 		int count = 0;
 		while (System.nanoTime() - timeBefore < config.workloadExecutionTimeThresholdInNS && count < config.intensiveRepeatTimes) {
-			Object answer = sendMessageAndWaitAnswer(work);
+			Object answer = sendMessageAndWaitAnswer(w, masterClient);
 			if (answer == null) {
-				log.logMessage(String.format("Error while executing the workload %s with %d operations " +
-						"and %d clients", w.toString(), nOps, nClients));
+				log.logMessage("Error while executing: " + w);
 			}
 			else {
 				TimeResult r = (TimeResult) answer;
-				log.logOp(String.format("Workload %s with %d operations and %d clients, batchmode=%b", 
-						w.toString(), nOps, nClients, batchMode));
+				log.logOp(w.toString());
 				log.logResult(r);
 				aggregate.addTime(r);
 			}
 			count ++;
 		}
 		
-		log.logMessage(Statistics.addStatEntry(aggregate, currentDBName, w, nOps, nClients).toString());
+		log.logMessage(Statistics.addStatEntry(aggregate, currentDBName, w).toString());
 		return aggregate;
 	}
 	
 	public AggregateResult startWorkBench(TraversalWorkload w) {
-		Object answer = sendMessageAndWaitAnswer(new TraversalWork(w));
+		Object answer = sendMessageAndWaitAnswer(new TraversalWork(w), masterClient);
 		AggregateResult aggregate = new AggregateResult();
 		if (answer == null) {
 			log.logMessage(String.format("Error while executing the workload %s", w.toString()));
@@ -129,7 +126,7 @@ public class BenchRunner extends UntypedActor {
 			gDesc = (GraphDescriptor) Await.result(answer, timeout.duration());
 			gDesc.setServerAdd(serverAdd);
 			gDesc.setServerPort(8182);
-			if (sendMessageAndWaitAnswer(gDesc) == null) return false;
+			if (sendMessageAndWaitAnswer(gDesc, masterClient) == null) return false;
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -148,9 +145,9 @@ public class BenchRunner extends UntypedActor {
 		server.tell(new StopCurrentDB(), getSelf());
 	}
 	
-	private Object sendMessageAndWaitAnswer(Object message) {
+	private Object sendMessageAndWaitAnswer(Object message, ActorRef dest) {
 		System.out.println("Sending and waits for answer:" + message);
-		Future<Object> result = ask(masterClient, message, timeout);
+		Future<Object> result = ask(dest, message, timeout);
 		try {
 			Object answer = Await.result(result, timeout.duration());
 			if (answer instanceof Messages.Error) {
