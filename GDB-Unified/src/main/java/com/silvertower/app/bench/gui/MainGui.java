@@ -1,62 +1,38 @@
 package com.silvertower.app.bench.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JProgressBar;
 
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
+import com.silvertower.app.bench.utils.IP;
 import com.silvertower.app.bench.workload.Workload;
 
 public class MainGui {
+	public JFrame frame;
 
-	private JFrame frame;
-	private List<Object> dbInitializers;
-	private List<Object> workloads;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					MainGui window = new MainGui();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	/**
-	 * Create the application.
-	 */
 	public MainGui() {
-		initialize();
-	}
-
-	/**
-	 * Initialize the contents of the frame.
-	 */
-	private void initialize() {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 600, 375);
 		frame.setMinimumSize(new Dimension(450, 300));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLocationRelativeTo(null);
+		frame.setTitle("GDB GUI");
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0};
 		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0};
@@ -69,6 +45,25 @@ public class MainGui {
 		content.addTab("Databases", dbsPanel);
 		final WorkloadsTabPanel workloadsPanel = new WorkloadsTabPanel(frame);
 		content.addTab("Workloads", workloadsPanel);
+		JPanel configFormPanel = new JPanel();
+		configFormPanel.setLayout(new BorderLayout());
+		final FormJPanel configForm = new FormJPanel();
+		configForm.addAdditionalTF("Server IP", IP.class);
+		configForm.addAdditionalTF("Master client IP", IP.class);
+		configForm.addAdditionalTF("Slave client IP", IP.class);
+		JScrollPane scrollForm = new JScrollPane(configForm);
+		JPanel buttonPanel = new JPanel();
+		JButton addSlaveButton = new JButton("Add new slave");
+		addSlaveButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				configForm.addAdditionalTF("Slave client IP", IP.class);
+				frame.repaint();
+			}
+		});
+		buttonPanel.add(addSlaveButton);
+		configFormPanel.add(scrollForm, BorderLayout.NORTH);
+		configFormPanel.add(buttonPanel, BorderLayout.SOUTH);
+		content.addTab("Configuration", configFormPanel);
 		
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -102,9 +97,33 @@ public class MainGui {
 		startButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				List<DBInitializer> dbs = dbsPanel.getCollectedElements();
-				if (dbs.size() == 0) return;
+				if (dbs.size() == 0) {
+					JOptionPane.showMessageDialog(frame, "No database selected!", 
+							"Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				
 				List<Workload> workloads = workloadsPanel.getCollectedElements();
-				BenchmarkThread worker = new BenchmarkThread(progressBar, dbs, workloads);
+				if (workloads.size() == 0) {
+					JOptionPane.showMessageDialog(frame, "No workload selected!", 
+							"Error", JOptionPane.ERROR_MESSAGE);
+					return;
+
+				}
+				
+				if (!configForm.validateContent()) {
+					JOptionPane.showMessageDialog(frame, "Incorrect config form", 
+							"Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				
+				List<Object> rawIps = configForm.getConvertedObjects();
+				List<IP> ips = new ArrayList<IP>();
+				for (Object o: rawIps) {
+					ips.add((IP) o);
+				}
+				
+				BenchmarkThread worker = new BenchmarkThread(progressBar, dbs, workloads, ips);
 				progressBar.setMinimum(0);
 				progressBar.setMaximum(worker.getTaskLength());
 				worker.execute();

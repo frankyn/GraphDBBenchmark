@@ -17,10 +17,10 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
 
-public abstract class TabPanel <T> extends JPanel {
+public abstract class ButtonsTabPanel <T> extends JPanel {
 	protected final DefaultListModel<T> elementsModel;
 	protected JFrame parent;
-	public TabPanel(JFrame parent) {
+	public ButtonsTabPanel(JFrame parent) {
 		this.parent = parent;
 		this.elementsModel = new DefaultListModel<T>();
 		this.setLayout(new GridBagLayout());

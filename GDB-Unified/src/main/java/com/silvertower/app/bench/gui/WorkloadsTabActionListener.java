@@ -22,10 +22,10 @@ import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.silvertower.app.bench.workload.Workload;
 
 public class WorkloadsTabActionListener implements ActionListener {
-	private TabPanel tabPanel;
+	private ButtonsTabPanel tabPanel;
 	private JFrame mainFrame;
 	private Class workloadClassAssociated;
-	public WorkloadsTabActionListener(TabPanel tabPanel, JFrame mainFrame, Class workloadClassAssociated) {
+	public WorkloadsTabActionListener(ButtonsTabPanel tabPanel, JFrame mainFrame, Class workloadClassAssociated) {
 		this.tabPanel = tabPanel;
 		this.mainFrame = mainFrame;
 		this.workloadClassAssociated = workloadClassAssociated;
@@ -42,10 +42,12 @@ public class WorkloadsTabActionListener implements ActionListener {
 					return;
 				}
 				
-				AdditionalInformationJDialog infosDialog = new AdditionalInformationJDialog(mainFrame);
-				infosDialog.addAdditionalTF("Number of ops", Integer.class);
-				infosDialog.addAdditionalTF("Number of clients", Integer.class);
-				infosDialog.addAdditionalTF("RexPro", Boolean.class);
+				
+				FormJPanel form = new FormJPanel();
+				form.addAdditionalTF("Number of ops", Integer.class);
+				form.addAdditionalTF("Number of clients", Integer.class);
+				form.addAdditionalTF("RexPro", Boolean.class);
+				FormJDialog infosDialog = new FormJDialog(mainFrame, form);
 				Object[] params = infosDialog.showDialog();
 				
 				// Do nothing if the dialog was canceled
@@ -63,8 +65,9 @@ public class WorkloadsTabActionListener implements ActionListener {
 					return;
 				}
 				
-				AdditionalInformationJDialog infosDialog = new AdditionalInformationJDialog(mainFrame);
-				infosDialog.addAdditionalTF("Number of hops", Integer.class);
+				FormJPanel form = new FormJPanel();
+				form.addAdditionalTF("Number of hops", Integer.class);
+				FormJDialog infosDialog = new FormJDialog(mainFrame, form);
 				Object[] params = infosDialog.showDialog();
 				
 				// Do nothing if the dialog was canceled
@@ -81,11 +84,11 @@ public class WorkloadsTabActionListener implements ActionListener {
 					return;
 				}
 				
-				AdditionalInformationJDialog infosDialog = new AdditionalInformationJDialog(mainFrame);
-				infosDialog.addAdditionalTF("Buffer size", Integer.class);
+				FormJPanel form = new FormJPanel();
+				form.addAdditionalTF("Buffer size", Integer.class);
+				
 				ListCellRenderer r = new DefaultListCellRenderer() {
 					public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-						System.out.println("zboub");
 						String stringValue = ((Class) value).getSimpleName();
 						return super.getListCellRendererComponent(list, stringValue, index, isSelected, cellHasFocus);
 					}
@@ -94,18 +97,21 @@ public class WorkloadsTabActionListener implements ActionListener {
 				Reflections datasetsReflections = new Reflections("com.silvertower.app.bench.datasets");
 				Object[] datasetClasses = datasetsReflections.getTypesAnnotatedWith(Custom.class).toArray();
 				
-				infosDialog.addAdditionalComboBox("Dataset type", datasetClasses, r);
+				form.addAdditionalComboBox("Dataset type", datasetClasses, r);
 				
-				infosDialog.addAdditionalTF("Number of vertices desired", Integer.class);
+				form.addAdditionalTF("Number of vertices desired", Integer.class);
+				
+				FormJDialog infosDialog = new FormJDialog(mainFrame, form);
 				
 				Object[] params = infosDialog.showDialog();
 				
 				// Do nothing if the dialog was canceled
 				if (params == null) return;
 				
-				Dataset d = (((Class)params[1]).getConstructors()[0].newInstance(params[2]));
+				Dataset d = (Dataset) ((Class)params[1]).getConstructors()[0].newInstance(params[2]);
 				
-				LoadWorkload workload = (LoadWorkload) workloadClassAssociated.getConstructors()[0].newInstance(arg0) 
+				LoadWorkload workload = (LoadWorkload) workloadClassAssociated.getConstructors()[0].newInstance(params[0], d);
+				elementsModel.addElement(workload);
 			}
 			
 			

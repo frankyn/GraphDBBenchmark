@@ -11,7 +11,7 @@ import org.reflections.Reflections;
 import com.silvertower.app.bench.workload.Workload;
 import com.silvertower.app.bench.annotations.*;
 
-public class WorkloadsTabPanel extends TabPanel <Workload>{
+public class WorkloadsTabPanel extends ButtonsTabPanel <Workload> {
 	
 	public WorkloadsTabPanel(JFrame parent) {
 		super(parent);

@@ -18,6 +18,7 @@ import com.silvertower.app.bench.utils.Plotter;
 import com.silvertower.app.bench.utils.Logger;
 import com.silvertower.app.bench.utils.Statistics;
 import com.silvertower.app.bench.workload.AddEdgesIntensiveWorkload;
+import com.silvertower.app.bench.workload.LoadWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.silvertower.app.bench.workload.ShortestPathWorkload;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
@@ -197,8 +198,8 @@ public class Benchmark {
 		b.shareConfig(config);
 	}
 	
-	private LoadResults loadBench(Dataset d, int bufferSize) {
-		return b.startLoadBench(d, bufferSize);
+	private LoadResults loadBench(LoadWorkload w) {
+		return b.startLoadBench(w);
 	}
 	
 	private AggregateResult workBench(TraversalWorkload w) {

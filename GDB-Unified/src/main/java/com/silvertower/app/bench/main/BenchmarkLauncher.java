@@ -1,10 +1,16 @@
 package com.silvertower.app.bench.main;
 
+import java.awt.EventQueue;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.silvertower.app.bench.akka.BenchRunner;
 import com.silvertower.app.bench.akka.MasterClient;
 import com.silvertower.app.bench.akka.Server;
+import com.silvertower.app.bench.gui.MainGui;
+import com.silvertower.app.bench.utils.IP;
+import com.silvertower.app.bench.utils.Port;
 import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorRef;
@@ -20,11 +26,11 @@ public class BenchmarkLauncher {
 	private static ActorSystem actorsSystem = ActorSystem.create("LocalNodeSystem", 
 			ConfigFactory.load().getConfig("LocalSys"));
 	
-	public static void startActors(final String[] actorsInfos) {
-		final String serverAdd = actorsInfos[0];
-		int serverPort = Integer.parseInt(actorsInfos[1]);
-		String masterClientAdd = actorsInfos[2];
-		int masterClientPort = Integer.parseInt(actorsInfos[3]);
+	public static void startActors(final List<IP> ips, final List<Port> ports) {
+		final String serverAdd = ips.get(0).toString();
+		int serverPort = ports.get(0).toInt();
+		String masterClientAdd = ips.get(1).toString();
+		int masterClientPort = ports.get(1).toInt();
 		
 		Address mcAddr = new Address("akka", "MCNode", masterClientAdd, masterClientPort);
 		Props mcProps = new Props(new UntypedActorFactory() {
@@ -47,63 +53,64 @@ public class BenchmarkLauncher {
 	}
 	
 	public static void main (String[] args) {
-		if (args.length < 6) {
+		if (args.length == 0) {
 			usage();
 			System.exit(-1);
 		}
-		for (int i = 0; i < args.length; i++) {
-			if (i % 2 == 0) {
-				if (!checkIp(args[i])) {
-					System.out.println("Only IPv4 address allowed!");
-					usage();
-					System.exit(-1);
+		
+		List<IP> ips = new ArrayList<IP>();
+		List<Port> ports = new ArrayList<Port>();
+		
+		if (args[0].equals("commandline")) {
+			BenchRunnerProperties.initializeProperties();
+			for (int i = 1; i < args.length; i++) {
+				if (i % 2 != 0) {
+					try {
+						ips.add(new IP(args[i]));
+					} catch (NumberFormatException e) {
+						System.err.println("Only IPv4 address allowed!");
+						usage();
+						System.exit(-1);
+						return;
+					}
+				}
+				else {
+					try {
+						ports.add(new Port(args[i]));
+					} catch (NumberFormatException e) {
+						System.err.println("Incorrect port number!");
+						usage();
+						System.exit(-1);
+					}
 				}
 			}
-			else {
-				if (!checkPort(args[i])) {
-					usage();
-					System.exit(-1);
-				}
-			}
+			startActors(ips, ports);
 		}
-		initiateBenchmark();
-		startActors(args);
+		else if (args[0].equals("gui")) {
+			BenchRunnerProperties.initializeProperties();
+			EventQueue.invokeLater(new Runnable() {
+				public void run() {
+					try {
+						MainGui window = new MainGui();
+						window.frame.setVisible(true);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			});
+		}
+		else {
+			usage();
+			System.exit(-1);
+		}
 	}
 	
 	private static void usage() {
 		String usage = 
-				"Usage: java -jar bench.jar serverAdd serverPort masterClientAdd masterClientPort " +
-				"slaveClient1Add slaveClient1Port ... slaveClientXAdd slaveClientXPort";
+				"Usage:\n" + 
+				"java -jar bench.jar commandline serverAdd serverPort masterClientAdd masterClientPort " +
+				"[slaveClientAdd...] [slaveClientPort...]\n" +
+				"java -jar bench.jar gui";
 		System.out.println(usage);
-	}
-	
-	public static void initiateBenchmark() {
-		BenchRunnerProperties.initializeProperties();
-	}
-	
-	private static boolean checkIp (String ip) {
-		String[] parts = ip.split("\\.");
-		if (parts.length != 4) return false;
-		for (String partS: parts) {
-			int part = 0;
-			try {
-				part = Integer.parseInt(partS);
-			} catch (NumberFormatException e) {
-				return false;
-			}
-			if (!(part >= 0 && part <= 255)) return false;
-		}
-		return true;
-    }
-	
-	private static boolean checkPort (String port) {
-		int portN = 0;
-		try {
-			portN = Integer.parseInt(port);
-		} catch (NumberFormatException e) {
-			return false;
-		}
-		if (!(portN >= 0 && portN <= 65535)) return false;
-		else return true;
 	}
 }

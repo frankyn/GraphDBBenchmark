@@ -14,7 +14,7 @@ import org.reflections.Reflections;
 
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
 
-public class DBInitializersTabPanel extends TabPanel <DBInitializer>{
+public class DBInitializersTabPanel extends ButtonsTabPanel <DBInitializer> {
 	public DBInitializersTabPanel(JFrame parent) {
 		super(parent);
 	}

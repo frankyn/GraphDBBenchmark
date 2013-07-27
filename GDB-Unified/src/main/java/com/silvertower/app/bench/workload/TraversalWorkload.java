@@ -16,7 +16,7 @@ public abstract class TraversalWorkload implements Serializable, Workload {
 	}
 	
 	public String toString() {
-		return name;
+		return String.format("%s with %d hops", name, nHops);
 	}
 	
 	public int getNumberOfElementsInThePipe() {
