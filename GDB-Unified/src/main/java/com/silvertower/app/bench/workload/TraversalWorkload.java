@@ -35,11 +35,7 @@ public abstract class TraversalWorkload implements Serializable, Workload {
 	
 	public abstract void operation(Vertex from, Vertex to);
 	
-	public boolean isIntensive() {
-		return false;
-	}
-	
-	public boolean isTraversal() {
-		return true;
+	public Type getType() {
+		return Type.TRAVERSAL;
 	}
 }

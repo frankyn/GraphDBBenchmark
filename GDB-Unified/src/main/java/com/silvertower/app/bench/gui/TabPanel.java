@@ -70,5 +70,9 @@ public abstract class TabPanel <T> extends JPanel {
 		return collectedElements;
 	}
 	
+	public DefaultListModel<T> getElementsModel() {
+		return elementsModel;
+	}
+	
 	protected abstract void addButtons(JPanel buttonsPanel);
 }

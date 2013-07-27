@@ -3,8 +3,10 @@ package com.silvertower.app.bench.datasets;
 import java.io.File;
 import java.io.IOException;
 
+import com.silvertower.app.bench.annotations.Custom;
 import com.silvertower.app.bench.main.ServerProperties;
 
+@Custom
 public class SocialNetworkDataset extends Dataset {
 	private static final long serialVersionUID = 7857644860840840667L;
 

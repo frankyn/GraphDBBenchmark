@@ -5,10 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
-import com.silvertower.app.bench.workload.IntensiveWorkload;
-import com.silvertower.app.bench.workload.TraversalWorkload;
 
 public class Messages {
 	public static class Initializer implements Serializable {
@@ -21,43 +18,7 @@ public class Messages {
 			return i;
 		}
 	}
-	
-	public static class LoadBench implements Serializable {
-		private static final long serialVersionUID = -6399708538774605441L;
-		private final Dataset d;
-		private final boolean batchLoading;
-		public LoadBench(Dataset d, boolean batchLoading) {
-			this.d = d;
-			this.batchLoading = batchLoading;
-		}
-		
-		public Dataset getDataset() {
-			return d;
-		}
-		
-		public boolean isBatchLoading() {
-			return batchLoading;
-		}
-	}
-	
-	public static class Load implements Serializable {
-		private static final long serialVersionUID = -4879740030488164881L;
-		private final Dataset d;
-		private int bufferSizeWanted;
-		public Load(Dataset d, int bufferSizeWanted) {
-			this.d = d;
-			this.bufferSizeWanted = bufferSizeWanted;
-		}
-		
-		public Dataset getDataset() {
-			return d;
-		}
-		
-		public int getBufferSizeWanted() {
-			return this.bufferSizeWanted;
-		}
-	}
-	
+
 	public static class SlaveInfos implements Serializable {
 		private static final long serialVersionUID = -4333435361885242243L;
 		private final int nCores;
@@ -208,68 +169,7 @@ public class Messages {
 			return String.format("Time: %f", wallTime);
 		}
 	}
-	
-	public static class IntensiveWork implements Serializable {
-		private static final long serialVersionUID = -6005829209802293908L;
-		private final IntensiveWorkload w;
-		private final int howManyOp;
-		private final int howManyClients;
-		private final boolean batchMode;
-		public IntensiveWork(IntensiveWorkload w, int howManyOp, int howManyClients, boolean batchMode) {
-			this.w = w;
-			this.howManyOp = howManyOp;
-			this.howManyClients = howManyClients;
-			this.batchMode = batchMode;
-		}
 		
-		public IntensiveWorkload getWorkload() {
-			return w;
-		}
-		
-		public int getHowManyOp() {
-			return howManyOp;
-		}
-
-		public int getHowManyClients() {
-			return howManyClients;
-		}
-
-		public String getDescription() {
-			return String.format("%s with %d operations and %d clients", w.toString(), howManyOp, howManyClients);
-		}
-		
-		public boolean isBatchMode() {
-			return batchMode;
-		}
-	}
-	
-	public static class TraversalWork implements Serializable {
-		private static final long serialVersionUID = -3734788843421921270L;
-		private TraversalWorkload w;
-		public TraversalWork(TraversalWorkload w) {
-			this.w = w;
-		}
-		
-		public TraversalWorkload getWorkload() {
-			return w;
-		}
-		
-		public String getDescription() {
-			return w.toString();
-		}
-	}
-	
-	public static class NumberOfClients implements Serializable {
-		private static final long serialVersionUID = -5095668060726594399L;
-		private final int howManyClients;
-		public NumberOfClients(int n) {
-			this.howManyClients = n;
-		}
-		public int getHowManyClients() {
-			return howManyClients;
-		}
-	}
-	
 	public static class Ack implements Serializable {
 		private static final long serialVersionUID = -4287805372778660583L;
 	}

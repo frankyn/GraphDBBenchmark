@@ -53,7 +53,7 @@ public abstract class Dataset implements Serializable {
 	 * 
 	 * @return The name of this dataset (in one word without any space character).
 	 */
-	public String getDatasetName() {
+	public String toString() {
 		return datasetName;
 	}
 

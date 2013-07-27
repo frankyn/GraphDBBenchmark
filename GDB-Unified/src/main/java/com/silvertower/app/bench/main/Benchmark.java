@@ -41,7 +41,7 @@ public class Benchmark {
 		
 		for (DBInitializer i: initializers) {
 			b.assignInitializer(i);
-			this.currentDBName = i.getName();
+			this.currentDBName = i.toString();
 			benchmark();
 			b.vanishDB();
 		}

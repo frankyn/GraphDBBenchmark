@@ -102,7 +102,7 @@ public class MasterClient extends UntypedActor {
 			System.out.println("Starting intensive work");
 		}
 		
-		else if (message instanceof TraversalWork) {
+		else if (message instanceof TraversalWorkload) {
 			if (state != State.READY_FOR_WORK) {
 				forwardError("Error: the master client is not ready for work!");
 				return;
@@ -111,7 +111,7 @@ public class MasterClient extends UntypedActor {
 			
 			state = State.WORKING;
 			System.out.println("Starting traversal work");
-			resultsListener.tell(benchWorkload(((TraversalWork) message).getWorkload()), getSelf());
+			resultsListener.tell(benchWorkload((TraversalWorkload) message), getSelf());
 			System.out.println("Traversal work complete");
 			state = State.READY_FOR_WORK;
 		}

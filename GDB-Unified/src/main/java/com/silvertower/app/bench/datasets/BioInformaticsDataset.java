@@ -2,7 +2,6 @@ package com.silvertower.app.bench.datasets;
 
 import java.io.File;
 
-
 public class BioInformaticsDataset extends Dataset {
 	private static final long serialVersionUID = -7103018579770627456L;
 

@@ -61,11 +61,7 @@ public abstract class IntensiveWorkload implements Serializable, Workload {
 		return reducedWorkload;
 	}
 	
-	public boolean isIntensive() {
-		return true;
-	}
-	
-	public boolean isTraversal() {
-		return false;
+	public Type getType() {
+		return Type.INTENSIVE;
 	}
 }

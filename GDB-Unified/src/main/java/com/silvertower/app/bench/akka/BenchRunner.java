@@ -8,6 +8,7 @@ import com.silvertower.app.bench.main.Benchmark;
 import com.silvertower.app.bench.main.BenchmarkConfiguration;
 import com.silvertower.app.bench.utils.Logger;
 import com.silvertower.app.bench.utils.Statistics;
+import com.silvertower.app.bench.workload.LoadWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 
@@ -48,10 +49,10 @@ public class BenchRunner extends UntypedActor {
 		currentDBName = i.toString();
 	}
 	
-	public LoadResults startLoadBench(Dataset d, int bufferSize) {
+	public LoadResults startLoadBench(LoadWorkload w) {
 		LoadResults r = new LoadResults();
-		if (loadDB(d, bufferSize)) {
-			log.logMessage(String.format("Load benchmark dataset %s with buffer size %d", d.getDatasetName(), bufferSize));
+		if (loadDB(w)) {
+			log.logOp(w.toString());
 			Future<Object> answer = ask(server, new GetResult(), timeout);
 			try {
 				r = (LoadResults) Await.result(answer, timeout.duration());
@@ -90,7 +91,7 @@ public class BenchRunner extends UntypedActor {
 	}
 	
 	public AggregateResult startWorkBench(TraversalWorkload w) {
-		Object answer = sendMessageAndWaitAnswer(new TraversalWork(w), masterClient);
+		Object answer = sendMessageAndWaitAnswer(w, masterClient);
 		AggregateResult aggregate = new AggregateResult();
 		if (answer == null) {
 			log.logMessage(String.format("Error while executing the workload %s", w.toString()));
@@ -119,8 +120,8 @@ public class BenchRunner extends UntypedActor {
 		System.exit(-1);
 	}
 	
-	private boolean loadDB(Dataset d, int bufferSize) {
-		Future<Object> answer = ask(server, new Load(d, bufferSize), timeout);
+	private boolean loadDB(LoadWorkload w) {
+		Future<Object> answer = ask(server, w, timeout);
 		GraphDescriptor gDesc = null;
 		try {
 			gDesc = (GraphDescriptor) Await.result(answer, timeout.duration());

@@ -21,6 +21,7 @@ import com.silvertower.app.bench.loading.CustomGraphMLReader;
 import com.silvertower.app.bench.main.BenchmarkConfiguration;
 import com.silvertower.app.bench.main.ServerProperties;
 import com.silvertower.app.bench.utils.Utilities;
+import com.silvertower.app.bench.workload.LoadWorkload;
 import com.silvertower.app.bench.akka.Messages.*;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Edge;
@@ -56,15 +57,15 @@ public class Server extends UntypedActor {
 			currentInitializer = (DBInitializer) message;
 		}
 		
-		else if (message instanceof Load) {
+		else if (message instanceof LoadWorkload) {
 			if (state == State.DB_HOSTED) {
 				stopRexsterServer();
 				deleteDBDirectory();
 			}
 			
-			Load loadMessage = (Load) message;
-			Dataset d = loadMessage.getDataset();
-			int bufferSizeWanted = loadMessage.getBufferSizeWanted();
+			LoadWorkload workload = (LoadWorkload) message;
+			Dataset d = workload.getDataset();
+			int bufferSizeWanted = workload.getBufferSize();
 			String dbName = currentInitializer.toString();
 			System.out.println(String.format("Received dataset: %s", d.getDatasetName()));
 			System.out.println(String.format("Generating dataset: %s", d.getDatasetName()));
