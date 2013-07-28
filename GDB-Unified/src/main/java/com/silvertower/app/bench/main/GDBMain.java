@@ -2,12 +2,12 @@ package com.silvertower.app.bench.main;
 
 import java.awt.EventQueue;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import com.silvertower.app.bench.akka.BenchRunner;
+import com.silvertower.app.bench.akka.BenchmarkRunner;
 import com.silvertower.app.bench.akka.MasterClient;
 import com.silvertower.app.bench.akka.Server;
+import com.silvertower.app.bench.akka.Messages.MasterClientInit;
 import com.silvertower.app.bench.gui.MainGui;
 import com.silvertower.app.bench.utils.IP;
 import com.silvertower.app.bench.utils.Port;
@@ -22,32 +22,39 @@ import akka.actor.UntypedActor;
 import akka.actor.UntypedActorFactory;
 import akka.remote.RemoteScope;
 
-public class BenchmarkLauncher {
-	private static ActorSystem actorsSystem = ActorSystem.create("LocalNodeSystem", 
-			ConfigFactory.load().getConfig("LocalSys"));
-	
-	public static void startActors(final List<IP> ips, final List<Port> ports) {
+public class GDBMain {
+	public static void startActors(final List<IP> ips, final List<Port> ports, final BenchmarkExecutor executor) {
+		ActorSystem actorsSystem = ActorSystem.create("LocalNodeSystem", 
+				ConfigFactory.load().getConfig("LocalSys"));
 		final String serverAdd = ips.get(0).toString();
 		int serverPort = ports.get(0).toInt();
 		String masterClientAdd = ips.get(1).toString();
 		int masterClientPort = ports.get(1).toInt();
 		
-		Address mcAddr = new Address("akka", "MCNode", masterClientAdd, masterClientPort);
-		Props mcProps = new Props(new UntypedActorFactory() {
-			 public UntypedActor create() {
-				 return new MasterClient(Arrays.copyOfRange(actorsInfos, 4, actorsInfos.length));
-			 }
-		});
-		final ActorRef masterClient = actorsSystem.actorOf(mcProps.withDeploy(new Deploy(new RemoteScope(mcAddr))));
-		
 		Address servAddr = new Address("akka", "ServerNode", serverAdd, serverPort);
 		Props servProps = new Props(Server.class).withDeploy(new Deploy(new RemoteScope(servAddr)));
 		final ActorRef server = actorsSystem.actorOf(servProps);
+		System.out.println(server);
 		
-		final Benchmark b = new Benchmark();
+		Address mcAddr = new Address("akka", "MCNode", masterClientAdd, masterClientPort);
+//		Props mcProps = new Props(new UntypedActorFactory() {
+//			 public UntypedActor create() {
+//				 IP[] slaveIps = ips.subList(2, ips.size()).toArray(new IP[ips.size()-2]);
+//				 Port[] slavePorts = ports.subList(2, ports.size()).toArray(new Port[ports.size()-2]);
+//				 return new MasterClient(slaveIps, slavePorts);
+//			 }
+//		});
+//		final ActorRef masterClient = actorsSystem.actorOf(mcProps.withDeploy(new Deploy(new RemoteScope(mcAddr))));
+		Props mcProps = new Props(MasterClient.class).withDeploy(new Deploy(new RemoteScope(mcAddr)));
+		final ActorRef masterClient = actorsSystem.actorOf(mcProps);
+		
+		MasterClientInit init = new MasterClientInit(ips.subList(2, ips.size()).toArray(new IP[ips.size()-2]),
+				ports.subList(2, ports.size()).toArray(new Port[ports.size()-2]));
+		masterClient.tell(init, server);
+		
 		ActorRef listener = actorsSystem.actorOf(new Props(new UntypedActorFactory() {
 			 public UntypedActor create() {
-				 return new BenchRunner(masterClient, server, b, serverAdd);
+				 return new BenchmarkRunner(masterClient, server, executor, serverAdd);
 			 }
 		}), "ResultListener");
 	}
@@ -84,8 +91,9 @@ public class BenchmarkLauncher {
 					}
 				}
 			}
-			startActors(ips, ports);
+			startActors(ips, ports, new BenchmarkCommandLineExecutor());
 		}
+		
 		else if (args[0].equals("gui")) {
 			BenchRunnerProperties.initializeProperties();
 			EventQueue.invokeLater(new Runnable() {
@@ -99,6 +107,7 @@ public class BenchmarkLauncher {
 				}
 			});
 		}
+		
 		else {
 			usage();
 			System.exit(-1);

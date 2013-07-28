@@ -27,7 +27,7 @@ public class ServerProperties {
 	public static String pythonDir;
 	
 	public static void initializeProperies() {
-		CodeSource codeSource = BenchmarkLauncher.class.getProtectionDomain().getCodeSource();
+		CodeSource codeSource = GDBMain.class.getProtectionDomain().getCodeSource();
 		File jarFile = null;
 		try {
 			jarFile = new File(codeSource.getLocation().toURI().getPath());

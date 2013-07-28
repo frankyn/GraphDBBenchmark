@@ -10,7 +10,7 @@ public class ClientProperties {
 	public static String tempDir;
 	
 	public static void initializeProperties() {
-		CodeSource codeSource = BenchmarkLauncher.class.getProtectionDomain().getCodeSource();
+		CodeSource codeSource = GDBMain.class.getProtectionDomain().getCodeSource();
 		File jarFile = null;
 		try {
 			jarFile = new File(codeSource.getLocation().toURI().getPath());

@@ -20,7 +20,9 @@ import javax.swing.JButton;
 import javax.swing.JProgressBar;
 
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
+import com.silvertower.app.bench.main.GDBMain;
 import com.silvertower.app.bench.utils.IP;
+import com.silvertower.app.bench.utils.Port;
 import com.silvertower.app.bench.workload.Workload;
 
 public class MainGui {
@@ -48,9 +50,9 @@ public class MainGui {
 		JPanel configFormPanel = new JPanel();
 		configFormPanel.setLayout(new BorderLayout());
 		final FormJPanel configForm = new FormJPanel();
-		configForm.addAdditionalTF("Server IP", IP.class);
-		configForm.addAdditionalTF("Master client IP", IP.class);
-		configForm.addAdditionalTF("Slave client IP", IP.class);
+		configForm.addAdditionalTF("Server IP", IP.class, "127.0.0.1");
+		configForm.addAdditionalTF("Master client IP", IP.class, "127.0.0.1");
+		configForm.addAdditionalTF("Slave client IP", IP.class, "127.0.0.1");
 		JScrollPane scrollForm = new JScrollPane(configForm);
 		JPanel buttonPanel = new JPanel();
 		JButton addSlaveButton = new JButton("Add new slave");
@@ -123,7 +125,17 @@ public class MainGui {
 					ips.add((IP) o);
 				}
 				
-				BenchmarkThread worker = new BenchmarkThread(progressBar, dbs, workloads, ips);
+				// TODO
+				List<Port> ports = new ArrayList<Port>();
+				ports.add(new Port("2552"));
+				ports.add(new Port("2553"));
+				
+				for (int i = 3; i <= ips.size(); i++) {
+					ports.add(new Port("2554"));
+				}
+				
+				BenchmarkGUIExecutor worker = new BenchmarkGUIExecutor(progressBar, dbs, workloads);
+				GDBMain.startActors(ips, ports, worker);
 				progressBar.setMinimum(0);
 				progressBar.setMaximum(worker.getTaskLength());
 				worker.execute();

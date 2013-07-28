@@ -69,6 +69,15 @@ public class FormJPanel extends JPanel {
 		this.repaint();
 	}
 	
+	public void addAdditionalTF(String label, Class expectedType, String defaultValue) {
+		this.add(new JLabel(label));
+		JTextField tf = new JTextField(defaultValue);
+		tf.setPreferredSize(new Dimension(80, 20));
+		this.add(tf);
+		expectedTypes.add(expectedType);
+		this.repaint();
+	}
+	
 	public void addAdditionalComboBox(String label, Object[] choices, ListCellRenderer r) {
 		this.add(new JLabel(label));
 		JComboBox comboChoices = new JComboBox(choices);

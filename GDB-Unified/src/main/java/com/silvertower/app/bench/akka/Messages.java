@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
+import com.silvertower.app.bench.utils.IP;
+import com.silvertower.app.bench.utils.Port;
 
 public class Messages {
 	public static class Initializer implements Serializable {
@@ -28,6 +30,25 @@ public class Messages {
 		
 		public int getNCores() {
 			return nCores;
+		}
+	}
+	
+	public static class MasterClientInit implements Serializable {
+		private static final long serialVersionUID = -4987874748111482448L;
+		private IP[] slaveIps;
+		private Port[] ports;
+
+		public MasterClientInit(IP[] slaveIps, Port[] ports) {
+			this.slaveIps = slaveIps;
+			this.ports = ports;
+		}
+		
+		public IP[] getIps() {
+			return slaveIps;
+		}
+		
+		public Port[] getPorts() {
+			return ports;
 		}
 	}
 	

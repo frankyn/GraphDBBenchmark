@@ -25,6 +25,8 @@ import static akka.pattern.Patterns.ask;
 import com.silvertower.app.bench.akka.Messages.*;
 import com.silvertower.app.bench.main.BenchmarkConfiguration;
 import com.silvertower.app.bench.main.ClientProperties;
+import com.silvertower.app.bench.utils.IP;
+import com.silvertower.app.bench.utils.Port;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.tinkerpop.blueprints.Vertex;
@@ -43,18 +45,12 @@ public class MasterClient extends UntypedActor {
 	private List<Ack> ackBuffer;
 	private long intensiveWorkloadStartTs;
 	private BenchmarkConfiguration config;
-	public MasterClient(String[] slavesInfos) {
-		this.slavesAvailable = slavesInfos.length/2;
-		this.slaves = new ArrayList<SlaveReference>(slavesAvailable);
-		this.ackBuffer = new ArrayList<Ack>();
-		// Create the slave (workers)
-		for (int i = 1; i <= slavesAvailable; i++) {
-			String ipAddress = slavesInfos[(i-1)*2];
-			int port = Integer.parseInt(slavesInfos[((i-1)*2) + 1]);
-			Address add = new Address("akka", "SCNode", ipAddress, port);
-			int coresAdded = createNewSlave(coresAvailable + 1, add);
-			coresAvailable += coresAdded;
-		}
+	public MasterClient(IP[] slaveIps, Port[] slavePorts) {
+		//TODO
+	}
+	
+	public MasterClient() {
+		System.out.println("init");
 		state = State.WAITING_FOR_INFOS;
 		ClientProperties.initializeProperties();
 	}
@@ -63,6 +59,22 @@ public class MasterClient extends UntypedActor {
 		System.out.println("Master:" + message);
 		if (message instanceof BenchmarkConfiguration) {
 			this.config = (BenchmarkConfiguration) message;
+		}
+		
+		else if (message instanceof MasterClientInit) {
+			IP[] slaveIps = ((MasterClientInit)message).getIps();
+			Port[] slavePorts = ((MasterClientInit)message).getPorts();
+			this.slavesAvailable = slaveIps.length/2;
+			this.slaves = new ArrayList<SlaveReference>(slavesAvailable);
+			this.ackBuffer = new ArrayList<Ack>();
+			// Create the slave (workers)
+			for (int i = 1; i <= slavesAvailable; i++) {
+				String ipAddress = slaveIps[i-1].toString();
+				int port = slavePorts[i-1].toInt();
+				Address add = new Address("akka", "SCNode", ipAddress, port);
+				int coresAdded = createNewSlave(coresAvailable + 1, add);
+				coresAvailable += coresAdded;
+			}
 		}
 		
 		else if (message instanceof GraphDescriptor) {

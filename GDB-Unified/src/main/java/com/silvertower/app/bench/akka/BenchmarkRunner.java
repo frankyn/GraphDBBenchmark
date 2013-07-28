@@ -2,10 +2,9 @@ package com.silvertower.app.bench.akka;
 
 
 import com.silvertower.app.bench.akka.Messages.*;
-import com.silvertower.app.bench.datasets.Dataset;
 import com.silvertower.app.bench.dbinitializers.*;
-import com.silvertower.app.bench.main.Benchmark;
 import com.silvertower.app.bench.main.BenchmarkConfiguration;
+import com.silvertower.app.bench.main.BenchmarkExecutor;
 import com.silvertower.app.bench.utils.Logger;
 import com.silvertower.app.bench.utils.Statistics;
 import com.silvertower.app.bench.workload.LoadWorkload;
@@ -21,26 +20,26 @@ import akka.dispatch.Future;
 import akka.util.Duration;
 import akka.util.Timeout;
 
-public class BenchRunner extends UntypedActor {
+public class BenchmarkRunner extends UntypedActor {
 	private ActorRef masterClient;
 	private ActorRef server;
 	private Timeout timeout;
 	public Logger log;
-	private Benchmark b;
+	private BenchmarkExecutor executor;
 	private String serverAdd;
 	private String currentDBName;
 	private BenchmarkConfiguration config;
-	public BenchRunner(ActorRef mc, ActorRef server, Benchmark b, String serverAdd) {
+	public BenchmarkRunner(ActorRef mc, ActorRef server, BenchmarkExecutor executor, String serverAdd) {
 		this.masterClient = mc;
 		this.server = server;
 		this.timeout = new Timeout(Duration.create(Integer.MAX_VALUE, "seconds"));
 		this.log = new Logger();
-		this.b = b;
+		this.executor = executor;
 		this.serverAdd = serverAdd;
 	}
 	
 	public void preStart() {
-		b.start(this, log);
+		executor.startBenchmark(this, log);
 	}
 	
 	public void assignInitializer(DBInitializer i) {
@@ -53,13 +52,14 @@ public class BenchRunner extends UntypedActor {
 		LoadResults r = new LoadResults();
 		if (loadDB(w)) {
 			log.logOp(w.toString());
-			Future<Object> answer = ask(server, new GetResult(), timeout);
-			try {
-				r = (LoadResults) Await.result(answer, timeout.duration());
-			} catch (Exception e) {
-				e.printStackTrace();
+			Object answer = sendMessageAndWaitAnswer(new GetResult(), server);
+			if (answer == null) {
+				log.logMessage("Error when asking db load result");
 			}
-			log.logResult(r);
+			else {
+				r = (LoadResults) answer;
+				log.logResult(r);
+			}
 		}
 		else {
 			log.logMessage("Error while loading DB");
@@ -121,17 +121,17 @@ public class BenchRunner extends UntypedActor {
 	}
 	
 	private boolean loadDB(LoadWorkload w) {
-		Future<Object> answer = ask(server, w, timeout);
-		GraphDescriptor gDesc = null;
-		try {
-			gDesc = (GraphDescriptor) Await.result(answer, timeout.duration());
+		Object answer = sendMessageAndWaitAnswer(w, server);
+		if (answer == null) {
+			log.logMessage(String.format("Error while executing the workload %s", w.toString()));
+			return false;
+		}
+		else {
+			GraphDescriptor gDesc = (GraphDescriptor) answer;
 			gDesc.setServerAdd(serverAdd);
 			gDesc.setServerPort(8182);
 			if (sendMessageAndWaitAnswer(gDesc, masterClient) == null) return false;
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
+			else return true;
 		}
 	}
 

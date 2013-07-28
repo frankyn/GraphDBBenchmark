@@ -3,7 +3,7 @@ package com.silvertower.app.bench.main;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.silvertower.app.bench.akka.BenchRunner;
+import com.silvertower.app.bench.akka.BenchmarkRunner;
 import com.silvertower.app.bench.akka.Messages.AggregateResult;
 import com.silvertower.app.bench.akka.Messages.LoadResults;
 import com.silvertower.app.bench.datasets.Dataset;
@@ -27,16 +27,14 @@ import com.silvertower.app.bench.workload.GetVerticesByIDIntensiveWorkload;
 import com.silvertower.app.bench.workload.GetVerticesByPropIntensiveWorkload;
 import com.silvertower.app.bench.workload.UpdateVerticesIntensiveWorkload;
 
-public class Benchmark {
+public class BenchmarkCommandLineExecutor implements BenchmarkExecutor {
 	private Plotter plotter = new Plotter();
-	private BenchRunner b;
+	private BenchmarkRunner benchRunner;
 	private String currentDBName;
-	private BenchmarkConfiguration config;
-	public void start(BenchRunner b, Logger log) {
-		this.b = b;
-		this.config = new BenchmarkConfiguration();
-		config.intensiveRepeatTimes = 10;
-		setConfig();
+	public void startBenchmark(BenchmarkRunner b, Logger log) {
+		this.benchRunner = b;
+		BenchmarkConfiguration config = new BenchmarkConfiguration();
+		setConfig(config);
 		List<DBInitializer> initializers = new ArrayList<DBInitializer>();
 		addInitializers(initializers);
 		
@@ -62,10 +60,10 @@ public class Benchmark {
 	}
 	
 	private void benchmark() {
-		SocialNetworkDataset d = new SocialNetworkDataset(10000);
-		PointSeries bps0 = new PointSeries(String.format("Loading DB with a %s dataset", d.getDatasetType()), currentDBName, "Time");
-		bps0.addResult("Load", loadBench(d, 5000));
-		plotter.addXYPointsSeries(bps0);
+//		SocialNetworkDataset d = new SocialNetworkDataset(10000);
+//		PointSeries bps0 = new PointSeries(String.format("Loading DB with a %s dataset", d.getDatasetType()), currentDBName, "Time");
+//		bps0.addResult("Load", loadBench(new LoadWorkload(10000, d)));
+//		plotter.addXYPointsSeries(bps0);
 		
 //		PointSeries bps = new PointSeries("Shortest paths search", currentDBName, "Time");
 //		bps.addResult("2 hops limit", workBench(new ShortestPathWorkload(2)));
@@ -194,19 +192,19 @@ public class Benchmark {
 //		plotter.addXYPointsSeries(bps8);
 	}
 	
-	private void setConfig() {
-		b.shareConfig(config);
+	private void setConfig(BenchmarkConfiguration config) {
+		benchRunner.shareConfig(config);
 	}
 	
 	private LoadResults loadBench(LoadWorkload w) {
-		return b.startLoadBench(w);
+		return benchRunner.startLoadBench(w);
 	}
 	
 	private AggregateResult workBench(TraversalWorkload w) {
-		return b.startWorkBench(w);
+		return benchRunner.startWorkBench(w);
 	}
 	
 	private AggregateResult workBench(IntensiveWorkload w) {
-		return b.startWorkBench(w);
+		return benchRunner.startWorkBench(w);
 	}
 }
