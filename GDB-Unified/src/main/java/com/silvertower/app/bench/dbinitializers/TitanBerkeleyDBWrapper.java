@@ -29,7 +29,7 @@ public class TitanBerkeleyDBWrapper extends DBInitializer {
 	}
 
 	public String toString() {
-		return "Titanbdb";
+		return "titanlocal";
 	}
 
 	public String getTempDirPath() {

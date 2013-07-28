@@ -29,7 +29,7 @@ public class TitanCassandraWrapper extends DBInitializer {
 	}
 
 	public String toString() {
-		return "Titancassandra";
+		return "titancassandra";
 	}
 
 	public String getTempDirPath() {

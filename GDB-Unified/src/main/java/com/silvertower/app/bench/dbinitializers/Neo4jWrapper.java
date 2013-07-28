@@ -19,7 +19,7 @@ public class Neo4jWrapper extends DBInitializer {
 	}
 
 	public String toString() {
-		return "Neo4j";
+		return "neo4j";
 	}
 
 	public String getTempDirPath() {

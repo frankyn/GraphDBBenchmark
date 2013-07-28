@@ -24,7 +24,7 @@ import static akka.pattern.Patterns.ask;
 
 import com.silvertower.app.bench.akka.Messages.*;
 import com.silvertower.app.bench.main.BenchmarkConfiguration;
-import com.silvertower.app.bench.main.ClientProperties;
+import com.silvertower.app.bench.main.MasterClientProperties;
 import com.silvertower.app.bench.utils.IP;
 import com.silvertower.app.bench.utils.Port;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
@@ -46,35 +46,24 @@ public class MasterClient extends UntypedActor {
 	private long intensiveWorkloadStartTs;
 	private BenchmarkConfiguration config;
 	public MasterClient(IP[] slaveIps, Port[] slavePorts) {
-		//TODO
-	}
-	
-	public MasterClient() {
-		System.out.println("init");
+		this.slavesAvailable = slaveIps.length;
+		this.slaves = new ArrayList<SlaveReference>(slavesAvailable);
+		this.ackBuffer = new ArrayList<Ack>();
+		// Create the slave (workers)
+		for (int i = 1; i <= slavesAvailable; i++) {
+			String ipAddress = slaveIps[i-1].toString();
+			int port = slavePorts[i-1].toInt();
+			Address add = new Address("akka", "SCNode", ipAddress, port);
+			int coresAdded = createNewSlave(coresAvailable + 1, add);
+			coresAvailable += coresAdded;
+		}
 		state = State.WAITING_FOR_INFOS;
-		ClientProperties.initializeProperties();
 	}
 	
 	public void onReceive(Object message) throws Exception {
 		System.out.println("Master:" + message);
 		if (message instanceof BenchmarkConfiguration) {
 			this.config = (BenchmarkConfiguration) message;
-		}
-		
-		else if (message instanceof MasterClientInit) {
-			IP[] slaveIps = ((MasterClientInit)message).getIps();
-			Port[] slavePorts = ((MasterClientInit)message).getPorts();
-			this.slavesAvailable = slaveIps.length/2;
-			this.slaves = new ArrayList<SlaveReference>(slavesAvailable);
-			this.ackBuffer = new ArrayList<Ack>();
-			// Create the slave (workers)
-			for (int i = 1; i <= slavesAvailable; i++) {
-				String ipAddress = slaveIps[i-1].toString();
-				int port = slavePorts[i-1].toInt();
-				Address add = new Address("akka", "SCNode", ipAddress, port);
-				int coresAdded = createNewSlave(coresAvailable + 1, add);
-				coresAvailable += coresAdded;
-			}
 		}
 		
 		else if (message instanceof GraphDescriptor) {
@@ -150,7 +139,7 @@ public class MasterClient extends UntypedActor {
 	}
 
 	private AggregateResult benchWorkload(TraversalWorkload w) {
-		File inputFile = new File(ClientProperties.tempDir + w.toString() + currentGDesc.getNbVertices());
+		File inputFile = new File(MasterClientProperties.tempDir + w.toString() + currentGDesc.getNbVertices());
 		if (!inputFile.exists()) {
 			generateInputFile(inputFile, w);
 		}
@@ -296,6 +285,7 @@ public class MasterClient extends UntypedActor {
 	}
 
 	private void forwardError(String errorMessage) {
+		System.out.println(errorMessage);
 		resultsListener.tell(new Messages.Error(errorMessage), getSelf());
 	}
 	

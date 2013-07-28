@@ -7,7 +7,7 @@ import java.util.List;
 import com.silvertower.app.bench.akka.BenchmarkRunner;
 import com.silvertower.app.bench.akka.MasterClient;
 import com.silvertower.app.bench.akka.Server;
-import com.silvertower.app.bench.akka.Messages.MasterClientInit;
+import com.silvertower.app.bench.akka.SlaveClient;
 import com.silvertower.app.bench.gui.MainGui;
 import com.silvertower.app.bench.utils.IP;
 import com.silvertower.app.bench.utils.Port;
@@ -31,32 +31,36 @@ public class GDBMain {
 		String masterClientAdd = ips.get(1).toString();
 		int masterClientPort = ports.get(1).toInt();
 		
+		Address mcAddr = new Address("akka", "MCNode", masterClientAdd, masterClientPort);
+		Props mcProps = new Props(new UntypedActorFactory() {
+			 public UntypedActor create() {
+				 IP[] slaveIps = ips.subList(2, ips.size()).toArray(new IP[ips.size()-2]);
+				 Port[] slavePorts = ports.subList(2, ports.size()).toArray(new Port[ports.size()-2]);
+				 return new MasterClient(slaveIps, slavePorts);
+			 }
+		});
+		final ActorRef masterClient = actorsSystem.actorOf(mcProps.withDeploy(new Deploy(new RemoteScope(mcAddr))), "MasterClient");
+		System.out.println(masterClient);
+		
 		Address servAddr = new Address("akka", "ServerNode", serverAdd, serverPort);
 		Props servProps = new Props(Server.class).withDeploy(new Deploy(new RemoteScope(servAddr)));
-		final ActorRef server = actorsSystem.actorOf(servProps);
+		final ActorRef server = actorsSystem.actorOf(servProps, "Server");
 		System.out.println(server);
 		
-		Address mcAddr = new Address("akka", "MCNode", masterClientAdd, masterClientPort);
-//		Props mcProps = new Props(new UntypedActorFactory() {
-//			 public UntypedActor create() {
-//				 IP[] slaveIps = ips.subList(2, ips.size()).toArray(new IP[ips.size()-2]);
-//				 Port[] slavePorts = ports.subList(2, ports.size()).toArray(new Port[ports.size()-2]);
-//				 return new MasterClient(slaveIps, slavePorts);
-//			 }
-//		});
-//		final ActorRef masterClient = actorsSystem.actorOf(mcProps.withDeploy(new Deploy(new RemoteScope(mcAddr))));
-		Props mcProps = new Props(MasterClient.class).withDeploy(new Deploy(new RemoteScope(mcAddr)));
-		final ActorRef masterClient = actorsSystem.actorOf(mcProps);
-		
-		MasterClientInit init = new MasterClientInit(ips.subList(2, ips.size()).toArray(new IP[ips.size()-2]),
-				ports.subList(2, ports.size()).toArray(new Port[ports.size()-2]));
-		masterClient.tell(init, server);
+//		Props mcProps = new Props(MasterClient.class).withDeploy(new Deploy(new RemoteScope(mcAddr)));
+//		final ActorRef masterClient = actorsSystem.actorOf(mcProps);
+//		
+//		MasterClientInit init = new MasterClientInit(ips.subList(2, ips.size()).toArray(new IP[ips.size()-2]),
+//				ports.subList(2, ports.size()).toArray(new Port[ports.size()-2]));
+//		masterClient.tell(init, server);
 		
 		ActorRef listener = actorsSystem.actorOf(new Props(new UntypedActorFactory() {
 			 public UntypedActor create() {
 				 return new BenchmarkRunner(masterClient, server, executor, serverAdd);
 			 }
 		}), "ResultListener");
+		
+		System.out.println(listener);
 	}
 	
 	public static void main (String[] args) {
@@ -65,11 +69,11 @@ public class GDBMain {
 			System.exit(-1);
 		}
 		
-		List<IP> ips = new ArrayList<IP>();
-		List<Port> ports = new ArrayList<Port>();
+		BenchRunnerProperties.initializeProperties();
 		
 		if (args[0].equals("commandline")) {
-			BenchRunnerProperties.initializeProperties();
+			List<IP> ips = new ArrayList<IP>();
+			List<Port> ports = new ArrayList<Port>();
 			for (int i = 1; i < args.length; i++) {
 				if (i % 2 != 0) {
 					try {

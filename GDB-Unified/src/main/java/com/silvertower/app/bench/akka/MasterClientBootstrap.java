@@ -1,5 +1,6 @@
 package com.silvertower.app.bench.akka;
 
+import com.silvertower.app.bench.main.MasterClientProperties;
 import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorSystem;
@@ -13,5 +14,6 @@ public class MasterClientBootstrap implements Bootable {
 	}
 
 	public void startup() {
+		MasterClientProperties.initializeProperties();
 	}
 }

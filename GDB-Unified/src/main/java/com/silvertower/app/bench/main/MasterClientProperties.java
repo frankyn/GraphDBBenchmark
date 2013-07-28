@@ -6,7 +6,7 @@ import java.security.CodeSource;
 
 import com.silvertower.app.bench.utils.Utilities;
 
-public class ClientProperties {
+public class MasterClientProperties {
 	public static String tempDir;
 	
 	public static void initializeProperties() {

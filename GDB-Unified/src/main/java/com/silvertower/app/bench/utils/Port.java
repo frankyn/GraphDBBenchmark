@@ -1,6 +1,9 @@
 package com.silvertower.app.bench.utils;
 
-public class Port {
+import java.io.Serializable;
+
+public class Port implements Serializable {
+	private static final long serialVersionUID = 2504860562256001431L;
 	private int port;
 	
 	public Port(String s) {

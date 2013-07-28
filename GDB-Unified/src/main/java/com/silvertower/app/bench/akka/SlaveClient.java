@@ -25,6 +25,7 @@ public class SlaveClient extends UntypedActor {
 	public SlaveClient() {
 		this.clientThreads = new ArrayList<SlaveThread>();
 		this.state = State.WAITING_FOR_INFOS;
+		System.out.println("initialized");
 	}
 	
 	public void onReceive(Object message) throws Exception {

@@ -1,6 +1,5 @@
 package com.silvertower.app.bench.akka;
 
-
 import com.silvertower.app.bench.main.ServerProperties;
 import com.typesafe.config.ConfigFactory;
 

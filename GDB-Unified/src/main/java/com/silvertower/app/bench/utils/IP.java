@@ -1,6 +1,9 @@
 package com.silvertower.app.bench.utils;
 
-public class IP {
+import java.io.Serializable;
+
+public class IP implements Serializable {
+	private static final long serialVersionUID = 3691543811692440702L;
 	private String address;
 	
 	public IP(String s) throws NumberFormatException {

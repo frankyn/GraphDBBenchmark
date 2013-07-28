@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -83,10 +82,7 @@ public class Server extends UntypedActor {
 		}
 		
 		else if (message instanceof StopCurrentDB) {
-			if (currentInitializer == null) {
-				forwardError(getSender(), "Error: the database initializer is not set yet!");
-			}
-			else {
+			if (state == State.DB_HOSTED) {
 				// Stop the rexster server and clean the working directory for this graph
 				// db implementation
 				stopRexsterServer();
