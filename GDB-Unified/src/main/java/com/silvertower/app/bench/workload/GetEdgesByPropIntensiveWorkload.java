@@ -8,8 +8,8 @@ public class GetEdgesByPropIntensiveWorkload extends IntensiveWorkload implement
 
 	private static final long serialVersionUID = -301287645267730066L;
 
-	public GetEdgesByPropIntensiveWorkload(String name) {
-		super("Get edges by ID intensive");
+	public GetEdgesByPropIntensiveWorkload(int nOps, int nClients, boolean rexPro) {
+		super("Get edges by ID intensive", nOps, nClients, rexPro);
 	}
 
 	public void operation(GraphDescriptor gDesc, int threadId) {

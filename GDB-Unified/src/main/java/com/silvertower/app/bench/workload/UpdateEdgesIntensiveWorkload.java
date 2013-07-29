@@ -9,8 +9,8 @@ public class UpdateEdgesIntensiveWorkload extends IntensiveWorkload implements S
 	
 	private static final long serialVersionUID = 9089701656082730745L;
 
-	public UpdateEdgesIntensiveWorkload(String name) {
-		super("Update edges properties intensive");
+	public UpdateEdgesIntensiveWorkload(int nOps, int nClients, boolean rexPro) {
+		super("Update edges properties intensive", nOps, nClients, rexPro);
 	}
 
 	public void operation(GraphDescriptor gDesc, int threadId) {
