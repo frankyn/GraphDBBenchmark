@@ -11,7 +11,6 @@ import com.tinkerpop.pipes.branch.LoopPipe.LoopBundle;
 @Custom
 public class NeighborhoodWorkload extends TraversalWorkload implements Serializable {
 	private static final long serialVersionUID = -3153736507890597883L;
-	private int hopsLimit;
 	
 	public NeighborhoodWorkload(int hopsLimit) {
 		super("Neighborhood workload", hopsLimit);
@@ -22,7 +21,7 @@ public class NeighborhoodWorkload extends TraversalWorkload implements Serializa
 		GremlinPipeline p = new GremlinPipeline();
 		p = p.start(from).out().gather().scatter().loop(1, new PipeFunction<LoopBundle,Boolean>() {
 			public Boolean compute(LoopBundle argument) {
-				return argument.getLoops() <= hopsLimit;
+				return argument.getLoops() <= nHops;
 			}
 		});
 		
@@ -32,6 +31,6 @@ public class NeighborhoodWorkload extends TraversalWorkload implements Serializa
 	public String generateRequest(Vertex from, Vertex to) {
 		Object fromId = from.getId();
 		String fromIdRepr = fromId instanceof String ? "\"" + fromId + "\"" : fromId.toString();
-		return String.format("g.v(%s).out.gather.scatter.loop(1){it.loops <= %d}[0..2999]", fromIdRepr, hopsLimit);
+		return String.format("g.v(%s).out.gather.scatter.loop(3){it.loops <= %d}[0..2999]", fromIdRepr, nHops);
 	}
 }

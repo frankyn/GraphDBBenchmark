@@ -47,13 +47,6 @@ public class GDBMain {
 		final ActorRef server = actorsSystem.actorOf(servProps, "Server");
 		System.out.println(server);
 		
-//		Props mcProps = new Props(MasterClient.class).withDeploy(new Deploy(new RemoteScope(mcAddr)));
-//		final ActorRef masterClient = actorsSystem.actorOf(mcProps);
-//		
-//		MasterClientInit init = new MasterClientInit(ips.subList(2, ips.size()).toArray(new IP[ips.size()-2]),
-//				ports.subList(2, ports.size()).toArray(new Port[ports.size()-2]));
-//		masterClient.tell(init, server);
-		
 		ActorRef listener = actorsSystem.actorOf(new Props(new UntypedActorFactory() {
 			 public UntypedActor create() {
 				 return new BenchmarkRunner(masterClient, server, executor, serverAdd);

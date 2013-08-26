@@ -116,7 +116,8 @@ public class Messages {
 			for (TimeResult r: times) {
 				s.append("Measure: " + r.toString() + "\n");
 			}
-			s.append(String.format("Min %s - Mean %s - Max %s", getMin().toString(), getMean().toString(), getMax().toString()));
+			s.append(String.format("Min %s - Mean %s - Max %s", getMin().toString(), 
+					getMean().toString(), getMax().toString()));
 			return s.toString();
 		}
 		

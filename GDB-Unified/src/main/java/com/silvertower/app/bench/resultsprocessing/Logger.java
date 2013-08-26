@@ -1,4 +1,4 @@
-package com.silvertower.app.bench.utils;
+package com.silvertower.app.bench.resultsprocessing;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

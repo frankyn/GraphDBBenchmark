@@ -5,8 +5,8 @@ import com.silvertower.app.bench.akka.Messages.*;
 import com.silvertower.app.bench.dbinitializers.*;
 import com.silvertower.app.bench.main.BenchmarkConfiguration;
 import com.silvertower.app.bench.main.BenchmarkExecutor;
-import com.silvertower.app.bench.utils.Logger;
-import com.silvertower.app.bench.utils.Statistics;
+import com.silvertower.app.bench.resultsprocessing.Logger;
+import com.silvertower.app.bench.resultsprocessing.Statistics;
 import com.silvertower.app.bench.workload.LoadWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
@@ -24,7 +24,7 @@ public class BenchmarkRunner extends UntypedActor {
 	private ActorRef masterClient;
 	private ActorRef server;
 	private Timeout timeout;
-	public Logger log;
+	public Logger logger;
 	private BenchmarkExecutor executor;
 	private String serverAdd;
 	private String currentDBName;
@@ -33,37 +33,38 @@ public class BenchmarkRunner extends UntypedActor {
 		this.masterClient = mc;
 		this.server = server;
 		this.timeout = new Timeout(Duration.create(Integer.MAX_VALUE, "seconds"));
-		this.log = new Logger();
+		this.logger = new Logger();
 		this.executor = executor;
 		this.serverAdd = serverAdd;
 	}
 	
 	public void preStart() {
-		executor.startBenchmark(this, log);
+		executor.startBenchmark(this, logger);
 	}
 	
 	public void assignInitializer(DBInitializer i) {
 		server.tell(i, getSelf());
-		log.logDB(i.toString());
+		logger.logDB(i.toString());
 		currentDBName = i.toString();
 	}
 	
 	public LoadResults startLoadBench(LoadWorkload w) {
 		LoadResults r = new LoadResults();
 		if (loadDB(w)) {
-			log.logOp(w.toString());
+			logger.logOp(w.toString());
 			Object answer = sendMessageAndWaitAnswer(new GetResult(), server);
 			if (answer == null) {
-				log.logMessage("Error when asking db load result");
+				logger.logMessage("Error when asking db load result");
 			}
 			else {
 				r = (LoadResults) answer;
-				log.logResult(r);
+				logger.logResult(r);
 			}
 		}
 		else {
-			log.logMessage("Error while loading DB");
+			logger.logMessage("Error while loading DB");
 			shutdownSystem();
+			return null;
 		}
 		return r;
 	}
@@ -72,37 +73,41 @@ public class BenchmarkRunner extends UntypedActor {
 		AggregateResult aggregate = new AggregateResult();
 		long timeBefore = System.nanoTime();
 		int count = 0;
-		while (System.nanoTime() - timeBefore < config.workloadExecutionTimeThresholdInNS && count < config.intensiveRepeatTimes) {
+		while (System.nanoTime() - timeBefore < config.workloadExTime 
+				&& count < config.intensiveRepeatTimes) {
 			Object answer = sendMessageAndWaitAnswer(w, masterClient);
-			if (answer == null) {
-				log.logMessage("Error while executing: " + w);
+			if (answer != null) {
+				TimeResult r = (TimeResult) answer;
+				logger.logOp(w.toString());
+				logger.logResult(r);
+				aggregate.addTime(r);
 			}
 			else {
-				TimeResult r = (TimeResult) answer;
-				log.logOp(w.toString());
-				log.logResult(r);
-				aggregate.addTime(r);
+				logger.logMessage("Error while executing: " + w);
+				shutdownSystem();
+				return null;
 			}
 			count ++;
 		}
 		
-		log.logMessage(Statistics.addStatEntry(aggregate, currentDBName, w).toString());
+		logger.logMessage(Statistics.addStatEntry(aggregate, currentDBName, w).toString());
 		return aggregate;
 	}
 	
 	public AggregateResult startWorkBench(TraversalWorkload w) {
 		Object answer = sendMessageAndWaitAnswer(w, masterClient);
 		AggregateResult aggregate = new AggregateResult();
-		if (answer == null) {
-			log.logMessage(String.format("Error while executing the workload %s", w.toString()));
-			return null;
+		if (answer != null) {
+			aggregate = (AggregateResult) answer;
+			logger.logOp(String.format("Workload %s", w.toString()));
+			logger.logResult(aggregate);
 		}
 		else {
-			aggregate = (AggregateResult) answer;
-			log.logOp(String.format("Workload %s", w.toString()));
-			log.logResult(aggregate);
+			logger.logMessage(String.format("Error while executing the workload %s", w.toString()));
+			shutdownSystem();
+			return null;
 		}
-		log.logMessage(Statistics.addStatEntry(aggregate, currentDBName, w).toString());
+		logger.logMessage(Statistics.addStatEntry(aggregate, currentDBName, w).toString());
 		return aggregate;
 	}
 	
@@ -123,7 +128,7 @@ public class BenchmarkRunner extends UntypedActor {
 	private boolean loadDB(LoadWorkload w) {
 		Object answer = sendMessageAndWaitAnswer(w, server);
 		if (answer == null) {
-			log.logMessage(String.format("Error while executing the workload %s", w.toString()));
+			logger.logMessage(String.format("Error while executing the workload %s", w.toString()));
 			return false;
 		}
 		else {

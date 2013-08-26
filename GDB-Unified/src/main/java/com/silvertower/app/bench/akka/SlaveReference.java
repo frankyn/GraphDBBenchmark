@@ -1,7 +1,6 @@
 package com.silvertower.app.bench.akka;
 
 
-
 import akka.actor.ActorRef;
 
 public class SlaveReference {

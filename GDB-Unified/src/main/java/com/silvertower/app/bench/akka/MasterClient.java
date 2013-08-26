@@ -49,7 +49,7 @@ public class MasterClient extends UntypedActor {
 		this.slavesAvailable = slaveIps.length;
 		this.slaves = new ArrayList<SlaveReference>(slavesAvailable);
 		this.ackBuffer = new ArrayList<Ack>();
-		// Create the slave (workers)
+		// Initialize the slaves (workers)
 		for (int i = 1; i <= slavesAvailable; i++) {
 			String ipAddress = slaveIps[i-1].toString();
 			int port = slavePorts[i-1].toInt();
@@ -69,15 +69,19 @@ public class MasterClient extends UntypedActor {
 		else if (message instanceof GraphDescriptor) {
 			currentGDesc = (GraphDescriptor) message;
 			currentGDesc.setNbConcurrentThreads(coresAvailable);
+			
 			shareGDesc();
 			shareConfig();
+			
 			try {
 				currentGDesc.fetchGraph();
 			} catch (Exception e) {
 				System.err.println("Error while fetching rexster graph");
 				return;
 			}
+			
 			state = State.READY_FOR_WORK;
+			
 			getSender().tell(new Ack(), getSelf());
 		}
 		
@@ -160,8 +164,6 @@ public class MasterClient extends UntypedActor {
 			}
 			long wall1 = System.nanoTime();
 			
-			//w.operation(from, to);
-			
 			String request = w.generateRequest(from, to);
 			try {
 				currentGDesc.getRexsterClient().execute(request);
@@ -170,6 +172,7 @@ public class MasterClient extends UntypedActor {
 			} catch (IOException e) {
 				System.err.println("Error while executing the request: " + request);
 			}
+			
 			long wall2 = System.nanoTime();
 			double timeSpent = (wall2-wall1) / 1000000000.0;
 			System.out.println("Time:" + timeSpent);

@@ -75,6 +75,7 @@ public class Server extends UntypedActor {
 			startRexsterServer();
 			System.out.println("Loading finished, sending confirmation to the master node...");
 			getSender().tell(gDesc, getSelf());
+			state = State.DB_HOSTED;
 		}
 		
 		else if (message instanceof GetResult) {
@@ -183,10 +184,6 @@ public class Server extends UntypedActor {
         }
 	}
 	
-	private void forwardError(ActorRef dest, String errorMessage) {
-		dest.tell(new Messages.Error(errorMessage), getSelf());
-	}
-	
 	public void postStop() {
 		System.exit(-1);
 	}
@@ -229,16 +226,16 @@ public class Server extends UntypedActor {
 		}
 	}
 	
-	private void createEdgesIndex(Graph g, Dataset d) {
-		if (g.getFeatures().supportsEdgeKeyIndex) {
-			Graph rawGraph;
-			if (g instanceof WrapperGraph) rawGraph = ((WrapperGraph) g).getBaseGraph();
-			else rawGraph = g;
-			for (GraphProperty p: d.getEdgesProperties()) {
-				((KeyIndexableGraph) rawGraph).createKeyIndex(p.getFieldName(), Edge.class);
-			}
-		}
-	}
+//	private void createEdgesIndex(Graph g, Dataset d) {
+//		if (g.getFeatures().supportsEdgeKeyIndex) {
+//			Graph rawGraph;
+//			if (g instanceof WrapperGraph) rawGraph = ((WrapperGraph) g).getBaseGraph();
+//			else rawGraph = g;
+//			for (GraphProperty p: d.getEdgesProperties()) {
+//				((KeyIndexableGraph) rawGraph).createKeyIndex(p.getFieldName(), Edge.class);
+//			}
+//		}
+//	}
 	
 	private List<Object> scanVertices(Graph g) {
 		// As OrientDB does not use the same id for RexsterGraph and the raw graph, we need to send
@@ -258,23 +255,23 @@ public class Server extends UntypedActor {
 		return ids;
 	}
 	
-	private List<Object> scanEdges(Graph g) {
-		// As OrientDB does not use the same id for RexsterGraph and the raw graph, we need to send
-		// to the client the string representation of the vertices ids.
-		boolean needStringRep = g instanceof OrientGraph || g instanceof TitanGraph;
-		Iterator <Edge> iter = g.getEdges().iterator();
-		ArrayList<Object> ids = new ArrayList<Object>();
-		int count = 0;
-		while (iter.hasNext()) {
-			Object id = iter.next().getId();
-			if (needStringRep) ids.add(id.toString());
-			else ids.add(id);
-			count++;
-			if (count == 50000) break; // We limit the scan to 50000 vertices
-		}
-		((TransactionalGraph) g).commit();
-		return ids;
-	}
+//	private List<Object> scanEdges(Graph g) {
+//		// As OrientDB does not use the same id for RexsterGraph and the raw graph, we need to send
+//		// to the client the string representation of the vertices ids.
+//		boolean needStringRep = g instanceof OrientGraph || g instanceof TitanGraph;
+//		Iterator <Edge> iter = g.getEdges().iterator();
+//		ArrayList<Object> ids = new ArrayList<Object>();
+//		int count = 0;
+//		while (iter.hasNext()) {
+//			Object id = iter.next().getId();
+//			if (needStringRep) ids.add(id.toString());
+//			else ids.add(id);
+//			count++;
+//			if (count == 50000) break; // We limit the scan to 50000 vertices
+//		}
+//		((TransactionalGraph) g).commit();
+//		return ids;
+//	}
 	
 	public InputStream initializeIS(File datasetFile) {
 		InputStream is = null;

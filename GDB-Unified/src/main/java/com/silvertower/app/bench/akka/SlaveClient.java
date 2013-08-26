@@ -25,7 +25,6 @@ public class SlaveClient extends UntypedActor {
 	public SlaveClient() {
 		this.clientThreads = new ArrayList<SlaveThread>();
 		this.state = State.WAITING_FOR_INFOS;
-		System.out.println("initialized");
 	}
 	
 	public void onReceive(Object message) throws Exception {
@@ -92,8 +91,8 @@ public class SlaveClient extends UntypedActor {
 		clientThreads = new ArrayList<SlaveThread>();
 		int nbrOpPerThread = nbrOpWanted / nbrCoresWanted;
 		for (int i = 0; i < nbrCoresWanted; i++) {
-			SlaveThread t = new SlaveThread(currentGDesc, id + i, currentWorkload, nbrOpPerThread, startLatch, 
-					stopLatch, currentWorkload.isRexPro() ? config.maxOpsAtATimeRexPro : 0);
+			SlaveThread t = new SlaveThread(currentGDesc, id + i, currentWorkload, nbrOpPerThread, 
+					startLatch, stopLatch, currentWorkload.isRexPro() ? config.maxOpsAtATimeRexPro : 0);
 			clientThreads.add(t);
 			t.start();
 		}

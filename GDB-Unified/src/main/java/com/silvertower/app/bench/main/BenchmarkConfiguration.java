@@ -7,7 +7,7 @@ public class BenchmarkConfiguration implements Serializable {
 	public int traversalRepeatTimes = 100;
 	public int intensiveRepeatTimes = 100;
 	public int maxOpsAtATimeRexPro = 1;
-	public long workloadExecutionTimeThresholdInNS = 120000000000L;
+	public long workloadExTime = 120000000000L;
 	public long maxLoadExecutionTimeInNS = 60000000000L;
 	public int maxNVerticesMultiLoad = 5000;
 }

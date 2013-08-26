@@ -33,10 +33,10 @@ public class TitanBerkeleyDBWrapper extends DBInitializer {
 	}
 
 	public String getTempDirPath() {
-		return ServerProperties.dbDirTitanTemp + "/titanbdb" + "/";
+		return ServerProperties.dbDirTitanTemp + "/titanlocal" + "/";
 	}
 
 	public String getWorkDirPath() {
-		return ServerProperties.dbDirTitanWork + "/titanbdb" + "/";
+		return ServerProperties.dbDirTitanWork + "/titanlocal" + "/";
 	}
 }

@@ -7,15 +7,15 @@ import com.silvertower.app.bench.akka.BenchmarkRunner;
 import com.silvertower.app.bench.akka.Messages.AggregateResult;
 import com.silvertower.app.bench.akka.Messages.LoadResults;
 import com.silvertower.app.bench.dbinitializers.DBInitializer;
-import com.silvertower.app.bench.utils.Plotter;
-import com.silvertower.app.bench.utils.Logger;
-import com.silvertower.app.bench.utils.Statistics;
+import com.silvertower.app.bench.resultsprocessing.Logger;
+import com.silvertower.app.bench.resultsprocessing.Plotter;
+import com.silvertower.app.bench.resultsprocessing.Statistics;
 import com.silvertower.app.bench.workload.LoadWorkload;
 import com.silvertower.app.bench.workload.TraversalWorkload;
 import com.silvertower.app.bench.workload.IntensiveWorkload;
 
 public class BenchmarkCommandLineExecutor implements BenchmarkExecutor {
-	private Plotter plotter = new Plotter();
+	public Plotter plotter = new Plotter();
 	private BenchmarkRunner benchRunner;
 	public void startBenchmark(BenchmarkRunner b, Logger log) {
 		this.benchRunner = b;

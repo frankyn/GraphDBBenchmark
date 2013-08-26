@@ -8,4 +8,5 @@ public interface Workload {
 	 * @return the type of this workload
 	 */
 	public Type getType();
+	
 }

@@ -1,4 +1,4 @@
-package com.silvertower.app.bench.utils;
+package com.silvertower.app.bench.resultsprocessing;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,36 +7,29 @@ import java.util.List;
 import com.bethecoder.ascii_table.ASCIITable;
 import com.bethecoder.ascii_table.ASCIITableHeader;
 import com.silvertower.app.bench.akka.Messages.AggregateResult;
-import com.silvertower.app.bench.workload.IntensiveWorkload;
-import com.silvertower.app.bench.workload.TraversalWorkload;
+import com.silvertower.app.bench.workload.Workload;
 
 public class Statistics {
 	public static List<StatisticsEntry> stats = new ArrayList<StatisticsEntry>();
 	
-	public static class StatisticsEntry <T> {
-		private AggregateResult result;
+	public static class StatisticsEntry {
 		private String dbName;
-		private T workload;
-		private int nbrOps;
-		private int nbrClients;
+		private Workload w;
 		private StatisticsReport report;
+		private boolean isCombined;
 		
-		public StatisticsEntry(AggregateResult result, String dbName, T workload, 
-				StatisticsReport report) {
-			this.result = result;
+		public StatisticsEntry(String dbName, Workload w, StatisticsReport report) {
 			this.dbName = dbName;
-			this.workload = workload;
+			this.w = w;
 			this.report = report;
+			this.isCombined = false;
 		}
 		
-		public StatisticsEntry(AggregateResult result, String dbName, T workload, int nbrOps, 
-				int nbrClients, StatisticsReport report) {
-			this.result = result;
+		public StatisticsEntry(String dbName, Workload w, StatisticsReport report, boolean isCombined) {
 			this.dbName = dbName;
-			this.workload = workload;
-			this.nbrOps = nbrOps;
-			this.nbrClients = nbrClients;
+			this.w = w;
 			this.report = report;
+			this.isCombined = true;
 		}
 	}
 	
@@ -66,7 +59,7 @@ public class Statistics {
 		private List<List<StatisticsEntry>> compReport;
 		
 		public ComparisonReport() {
-			compReport = new ArrayList();
+			compReport = new ArrayList<List<StatisticsEntry>>();
 		}
 		
 		public void addListStatsEntry(List<StatisticsEntry> entries) {
@@ -78,12 +71,13 @@ public class Statistics {
 			for (List<StatisticsEntry> entries: compReport) {
 				List<ASCIITableHeader> headerObjs = new ArrayList<ASCIITableHeader>();
 				StatisticsEntry firstEntry = entries.get(0);
-				if (firstEntry.workload instanceof IntensiveWorkload) {
-					String workloadCompleteName = String.format("%s/%s clients/%s ops", 
-							firstEntry.workload.toString(), firstEntry.nbrClients, firstEntry.nbrOps);
-					headerObjs.add(new ASCIITableHeader(workloadCompleteName));
+				
+				if (firstEntry.isCombined) {
+					headerObjs.add(new ASCIITableHeader(firstEntry.w.getClass().getSimpleName()));
 				}
-				else headerObjs.add(new ASCIITableHeader(firstEntry.workload.toString()));
+				else {
+					headerObjs.add(new ASCIITableHeader(firstEntry.w.toString()));
+				}
 				
 				for (StatisticsEntry e: entries) {
 					headerObjs.add(new ASCIITableHeader(e.dbName));
@@ -142,29 +136,23 @@ public class Statistics {
 					minLine.add(String.format("%f", r.min));
 					maxLine.add(String.format("%f", r.max));
 					
-					double comparedMean = r.mean / relativeReport.mean;
-					if (comparedMean < 1) relativeMeanLine.add(String.format("-%f%%",(1-comparedMean)*100));
-					else relativeMeanLine.add(String.format("+%f%%",(comparedMean-1)*100));
+					double comparedMean = ((r.mean - relativeReport.mean) / relativeReport.mean)*100;
+					relativeMeanLine.add(String.format("%f%%", comparedMean));
 					
-					double comparedMedian = r.median / relativeReport.median;
-					if (comparedMedian < 1) relativeMedianLine.add(String.format("-%f%%",(1-comparedMedian)*100));
-					else relativeMedianLine.add(String.format("+%f%%",(comparedMedian-1)*100));
+					double comparedMedian = ((r.median - relativeReport.median) / relativeReport.median)*100;
+					relativeMedianLine.add(String.format("%f%%", comparedMedian));
 					
-					double comparedStdDev = r.stdDeviation / relativeReport.stdDeviation;
-					if (comparedStdDev < 1) relativeStdDevLine.add(String.format("-%f%%",(1-comparedStdDev)*100));
-					else relativeStdDevLine.add(String.format("+%f%%",(comparedStdDev-1)*100));
+					double comparedStdDev = ((r.stdDeviation - relativeReport.stdDeviation) / relativeReport.stdDeviation)*100;
+					relativeStdDevLine.add(String.format("%f%%", comparedStdDev));
 					
-					double comparedMin = r.min / relativeReport.min;
-					if (comparedMin < 1) relativeMinLine.add(String.format("-%f%%",(1-comparedMin)*100));
-					else relativeMinLine.add(String.format("+%f%%",(comparedMin-1)*100));
+					double comparedMin = ((r.min - relativeReport.min) / relativeReport.min)*100;
+					relativeMinLine.add(String.format("%f%%", comparedMin));
 					
-					double comparedMax = r.max / relativeReport.max;
-					if (comparedMax < 1) relativeMaxLine.add(String.format("-%f%%",(1-comparedMax)*100));
-					else relativeMaxLine.add(String.format("+%f%%",(comparedMax-1)*100));
+					double comparedMax = ((r.max - relativeReport.max) / relativeReport.max)*100;
+					relativeMaxLine.add(String.format("%f%%", comparedMax));
 				}
 				
 				int firstDim = data.size();
-				int secondDim = data.get(0).size();
 				int headerArraySize = headerObjs.size();
 				ASCIITableHeader[] headerArray = headerObjs.toArray(new ASCIITableHeader[headerArraySize]);
 				String[][] dataArray = new String[firstDim][];
@@ -183,50 +171,51 @@ public class Statistics {
 		ComparisonReport r = new ComparisonReport();
 		List<String> alreadyAddedToReport = new ArrayList<String>();
 		for (StatisticsEntry e: stats) {
-			System.out.println(e.workload);
-			System.out.println(e.nbrClients);
-			System.out.println(e.nbrOps);
-			String workloadFullName = e.workload.toString() + e.nbrClients + e.nbrOps;
-			if (!alreadyAddedToReport.contains(workloadFullName)) {
+			if (!alreadyAddedToReport.contains(e.w.toString())) {
 				List<StatisticsEntry> relatedEntries = new ArrayList<StatisticsEntry>();
 				for (StatisticsEntry e1: stats) {
-					if ((e1.workload.toString() + e1.nbrClients + e1.nbrOps).equals(workloadFullName)) {
+					if ((e1.w.toString().equals(e.w.toString()))) {
 						relatedEntries.add(e1);
 					}
 				}
 				r.addListStatsEntry(relatedEntries);
-				alreadyAddedToReport.add(workloadFullName);
+				alreadyAddedToReport.add(e.toString());
 			}
 		}
 		return r;
 	}
 	
-	public static StatisticsReport addStatEntry(AggregateResult r, String dbName, 
-			IntensiveWorkload workload) {
-		double mean = computeMean(r);
-		double median = computeMedian(r);
-		double stdDeviation = computeStdDeviation(r);
-		double min = computeMin(r);
-		double max = computeMax(r);
-		int nOps = workload.getnOps();
-		int nClients = workload.getnClients();
-		StatisticsReport report = new StatisticsReport(mean, median, stdDeviation, min, max);
-		StatisticsEntry<IntensiveWorkload> statEntry = new StatisticsEntry<IntensiveWorkload>(r, 
-				dbName, workload, nOps, nClients, report);
-		stats.add(statEntry);
-		return report;
+	public static StatisticsEntry combineSameWorkloadTypeEntries(Workload concernedWorkloadType, 
+			String dbNameConcerned, List<StatisticsEntry> entries) {
+		double combinedMean = 0;
+		double combinedMedian = 0;
+		double combinedStdDeviation = 0;
+		double combinedMin = 0;
+		double combinedMax = 0;
+		for (StatisticsEntry entry: entries) {
+			combinedMean += entry.report.mean;
+			combinedMedian += entry.report.median;
+			combinedStdDeviation += entry.report.stdDeviation;
+			combinedMin += entry.report.min;
+			combinedMax += entry.report.max;
+		}
+		StatisticsReport combinedReport = new StatisticsReport(combinedMean/entries.size(), 
+				combinedMedian/entries.size(), combinedStdDeviation/entries.size(), 
+				combinedMin/entries.size(), combinedMax/entries.size());
+		StatisticsEntry combinedEntry = new StatisticsEntry(dbNameConcerned, concernedWorkloadType, 
+				combinedReport, true);
+		return combinedEntry;
 	}
 	
 	public static StatisticsReport addStatEntry(AggregateResult r, String dbName, 
-			TraversalWorkload workload) {
+			Workload workload) {
 		double mean = computeMean(r);
 		double median = computeMedian(r);
-		double stdDeviation = computeStdDeviation(r);
+		double stdDeviation = computeVariance(r);
 		double min = computeMin(r);
 		double max = computeMax(r);
 		StatisticsReport report = new StatisticsReport(mean, median, stdDeviation, min, max);
-		StatisticsEntry<TraversalWorkload> statEntry = new StatisticsEntry<TraversalWorkload>(r, 
-				dbName, workload, report);
+		StatisticsEntry statEntry = new StatisticsEntry(dbName, workload, report);
 		stats.add(statEntry);
 		return report;
 	}
@@ -247,7 +236,7 @@ public class Statistics {
 		return min;
 	}
 
-	private static double computeStdDeviation(AggregateResult r) {
+	private static double computeVariance(AggregateResult r) {
 		List<Double> values = r.getAllResultsAsDouble();
 		double mean = computeMean(r);
 		double deviationSum = 0;
