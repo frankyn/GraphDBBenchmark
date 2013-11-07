@@ -23,19 +23,19 @@ To build GDB on a Linux host, run build.sh (resp. build.bat on a Windows host). 
 Copy this directory to as many machines as required.
 
 ### Starting GDB actors ###
-On each machine, you will have to modify the file GDB-Unified/config/application.conf. This file is the AKKA configuration file used to configure all the actors of the system.
+On each machine, you will have to modify the file GDB-Distrib/config/application.conf. This file is the AKKA configuration file used to configure all the actors of the system.
 On the server machine, change the IP address (and optionally the port number) in the SSys section of the file with the network address that must be used by the server. 
 The same configuration applies for the master client (MCSys section) and the slave clients (SCSys section) actors.
 
-To start the server on a Linux host, run GDB-Unified/startserver.sh (resp. startserver.bat on a Windows host).  
-To start the master client on a Linux host, run GDB-Unified/startmc.sh (resp. startmc.bat on a Windows host).  
-To start a slave client on a Linux host, run GDB-Unified/startsc.sh (resp. startsc.bat on a Windows host).  
+To start the server on a Linux host, run GDB-Distrib/startserver.sh (resp. startserver.bat on a Windows host).  
+To start the master client on a Linux host, run GDB-Distrib/startmc.sh (resp. startmc.bat on a Windows host).  
+To start a slave client on a Linux host, run GDB-Distrib/startsc.sh (resp. startsc.bat on a Windows host).  
 
 After having started the server, the master client and at least one slave client, the user is allowed to start running a benchmark.
 
 ### Defining and starting your benchmark ###
-#### Command line mode ####
-In order to define a custom benchmark, start by modifying the file GDB-Unified/src/main/java/com/silvertower/app/bench/main/Benchmark.java.  
+#### Source mode ####
+In order to define a custom benchmark, start by modifying the file GDB-Distrib/src/main/java/com/silvertower/app/bench/main/Benchmark.java.  
 There are two methods that can be modifed:  
 -	The method Benchmark#addInitializers defines which graph databases will be evaluated during the benchmark  
 -	The method Benchmark#benchmark specifies which workloads will be executed on each graph database
@@ -48,3 +48,6 @@ This will start the benchmark runner locally and all the other actors. Then, the
 #### GUI mode ####
 To start GDB's visual interface open a command prompt, go to the GDB-Distrib directory and type:  
 *java -jar client.jar gui*
+
+### Results and visualizations ###
+Logs are generated during the benchmark for further analysis and comparisons (a log file GDB-Distrib\log\log.txt is created at benchmark startup). One can also define results visualizations in source mode. The resulting figures are output in GDB-Distrib\plots.
