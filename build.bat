@@ -3,7 +3,7 @@
 md GDB-Distrib
 cd GDB-Unified
 cd "external deps"
-exec install_deps.bat
+CALL install_deps.bat
 cd ..
 call mvn package
 cd target
