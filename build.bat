@@ -2,6 +2,9 @@
 
 md GDB-Distrib
 cd GDB-Unified
+cd "external deps"
+exec install_deps.bat
+cd ..
 call mvn package
 cd target
 move GDB-Unified-1-akka.zip ..\..\GDB-Distrib

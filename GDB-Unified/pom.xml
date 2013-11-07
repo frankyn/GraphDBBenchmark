@@ -61,11 +61,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.bb.code</groupId>
-			<artifactId>bb-bench</artifactId>
-			<version>1</version>
-		</dependency>
-		<dependency>
 			<groupId>com.asciitable.com</groupId>
 			<artifactId>asciitable</artifactId>
 			<version>1.0</version>
@@ -74,16 +69,6 @@
 			<groupId>com.commons.exec</groupId>
 			<artifactId>exec</artifactId>
 			<version>1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.jsci.code</groupId>
-			<artifactId>jsci-bench</artifactId>
-			<version>1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.mt.code</groupId>
-			<artifactId>mt-bench</artifactId>
-			<version>1</version>
 		</dependency>
 		<dependency>
 			<groupId>jfree</groupId>
