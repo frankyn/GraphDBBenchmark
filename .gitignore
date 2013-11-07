@@ -2,7 +2,7 @@
 .project
 .settings/
 dbs/
+data/*
 log/
 plots/
 target/
-lib/
