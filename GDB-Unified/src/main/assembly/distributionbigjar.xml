@@ -23,7 +23,7 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>src/main/java/application.conf</source>
+			<source>src/main/resources/application.conf</source>
 			<outputDirectory>/</outputDirectory>
 		</file>
 		<file>

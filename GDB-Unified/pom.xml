@@ -23,7 +23,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>com.silvertower.app.bench.main.BenchmarkLauncher</mainClass>
+							<mainClass>com.silvertower.app.bench.main.GDBMain</mainClass>
 						</manifest>
 					</archive>
 					<descriptors>
